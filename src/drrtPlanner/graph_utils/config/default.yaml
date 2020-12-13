@@ -1,0 +1,5 @@
+# Topics
+sub_local_graph_topic_            : /local_graph
+sub_global_graph_topic_           : /global_graph
+pub_local_graph_marker_topic_     : /local_graph_markers
+pub_global_graph_marker_topic_    : /global_graph_markers
