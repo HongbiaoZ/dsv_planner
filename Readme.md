@@ -1,5 +1,6 @@
 Dual-Stage Viewpoint Planner involves two stages in autonomous exploration - a local plan stage for extension of the map and a global plan stage for relocation of the vehicle between different mapped areas. During the course of exploration, the method transitions back-and-forth between the two stages extending the map in all possible directions. Both the local plan and global plan are dynamically maintained through the re-planning circles.
-  <iframe width="560" height="315" src="https://www.youtube.com/embed/lQqFivWDI3o" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+  
+Please use instructions on our [project page](https://www.cmu-exploration.com/dsv-planner).
 
 ## Instructions ##
 The repository has been tested in Ubuntu 18.04 with ROS Melodic and Ubuntu 20.04 with ROS Noetic. Follow instructions in [Autonomous Exploration Development Environment](cmu-exploration.com) to setup the development environment. Make sure to checkout the branch that matches the computer setup, compile, and download the simulation environments.
