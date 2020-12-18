@@ -114,6 +114,13 @@ int main(int argc, char** argv)
   ros::Duration(1.0).sleep();
   ros::spinOnce();
 
+  while (!begin_signal)
+  {
+    ros::Duration(0.5).sleep();
+    ros::spinOnce();
+    ROS_INFO("Waiting for Odometry");
+  }
+
   ROS_INFO("Starting the planner: Performing initialization motion");
   geometry_msgs::PointStamped wp;
   wp.header.frame_id = map_frame;
@@ -142,7 +149,7 @@ int main(int argc, char** argv)
   int iteration = 0;
   while (ros::ok())
   {
-    if (begin_signal)
+    if (true)
     {
       ROS_INFO_THROTTLE(0.5, "Planning iteration %i", iteration);
       drrt_planner::drrt_planner_srv planSrv;

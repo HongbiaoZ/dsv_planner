@@ -36,7 +36,7 @@ interface/initX: 4
 interface/initY: 0
 interface/initZ: 0
 interface/tfFrame: /map
-interface/autoExp: true
+interface/autoExp: false
 
 
 # Exploration Boundary (local boundary and global boundary)

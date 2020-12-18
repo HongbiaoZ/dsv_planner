@@ -303,7 +303,7 @@ Visualization Manager:
           Marker Topic: /drrt_planner/octomap_occupied
           Name: OctomapOccupied
           Namespaces:
-            map: true
+            {}
           Queue Size: 100
           Value: true
         - Class: rviz/MarkerArray
@@ -319,8 +319,7 @@ Visualization Manager:
           Marker Topic: /new_tree_path
           Name: rrt path
           Namespaces:
-            drrt_branches: true
-            drrt_node: true
+            {}
           Queue Size: 1000
           Value: true
         - Class: rviz/Marker
@@ -328,8 +327,7 @@ Visualization Manager:
           Marker Topic: /remaining_tree_path
           Name: rrt path
           Namespaces:
-            drrt_branches: true
-            drrt_node: true
+            {}
           Queue Size: 1000
           Value: true
         - Class: rviz/Marker
@@ -647,7 +645,7 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Scale: 34.54109191894531
+      Scale: 2.8728268146514893
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
       X: 89.71172332763672
