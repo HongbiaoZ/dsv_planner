@@ -22,5 +22,5 @@
     </include>
   </group>
 
-  <node pkg="rviz" type="rviz" name="zhbp_rviz" args="-d $(find drrt_planner_interface)/default.rviz"/>
+  <node pkg="rviz" type="rviz" name="dsvp_rviz" args="-d $(find drrt_planner_interface)/default.rviz"/>
 </launch>
