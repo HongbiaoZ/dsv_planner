@@ -19,6 +19,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Point.h>
 #include <nav_msgs/Odometry.h>
+#include <std_msgs/Bool.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float32MultiArray.h>
 
@@ -40,6 +41,7 @@ struct Params
   ros::Publisher plantimePub_;
   ros::Publisher pointInSensorRangePub_;
   ros::Publisher terrainNoGroundPub_;
+  ros::Publisher shutdownSignalPub;
 
   double sensorPitch;
   double sensorHorizontalView;

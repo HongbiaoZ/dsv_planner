@@ -1,6 +1,6 @@
 <launch>
   <arg name="enable_bag_record" default="true"/>
-  <arg name="bag_name" default="dsvp_forest"/>
+  <arg name="bag_name" default="forest"/>
   <arg name="simulation" default="false"/>
   <arg name="planner_param_file" default="$(find drrt_planner_interface)/config/exploration_forest.yaml" />
   <arg name="octomap_param_file" default="$(find drrt_planner_interface)/config/octomap_forest.yaml" />

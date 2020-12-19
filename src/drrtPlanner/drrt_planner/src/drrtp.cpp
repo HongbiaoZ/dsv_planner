@@ -114,7 +114,10 @@ bool drrt_planner_ns::drrtPlanner::plannerServiceCallback(drrt_planner::drrt_pla
   if (!drrt_->nextNodeFound_ && drrt_->global_plan_pre_ && drrt_->gainFound() <= 0)
   {
     drrt_->global_plan_ = true;
-    ros::shutdown();
+    // ros::shutdown();
+    std_msgs::Bool shutdown;
+    shutdown.data = true;
+    params_.shutdownSignalPub.publish(shutdown);
     return true;
   }
   else if (!drrt_->nextNodeFound_ && !drrt_->global_plan_pre_ && dual_state_graph_->getGain(robot_position) <= 0)
@@ -253,6 +256,7 @@ bool drrt_planner_ns::drrtPlanner::setParams()
   nh_private_.getParam("/planner/nextGoalPubTopic", nextGoalPubTopic);
   nh_private_.getParam("/planner/pointInSensorRangePubTopic", pointInSensorRangePubTopic);
   nh_private_.getParam("/planner/terrainNoGroundPubTopic", terrainNoGroundPubTopic);
+  nh_private_.getParam("/planner/shutDownTopic", shutDownTopic);
   nh_private_.getParam("/planner/plannerServiceName", plannerServiceName);
   nh_private_.getParam("/planner/cleanFrontierServiceName", cleanFrontierServiceName);
 
@@ -277,6 +281,7 @@ bool drrt_planner_ns::drrtPlanner::init()
   params_.terrainNoGroundPub_ = nh_.advertise<sensor_msgs::PointCloud2>(terrainNoGroundPubTopic, 1000);
   params_.plantimePub_ = nh_.advertise<std_msgs::Float32>(plantimePubTopic, 1000);
   params_.nextGoalPub_ = nh_.advertise<geometry_msgs::PointStamped>(nextGoalPubTopic, 1000);
+  params_.shutdownSignalPub = nh_.advertise<std_msgs::Bool>(shutDownTopic, 1000);
 
   plannerService_ =
       nh_.advertiseService(plannerServiceName, &drrt_planner_ns::drrtPlanner::plannerServiceCallback, this);

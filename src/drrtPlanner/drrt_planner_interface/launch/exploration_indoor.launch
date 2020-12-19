@@ -1,6 +1,6 @@
 <launch>
   <arg name="enable_bag_record" default="true"/>
-  <arg name="bag_name" default="dsvp_indoor"/>
+  <arg name="bag_name" default="indoor"/>
   <arg name="simulation" default="false"/>
   <arg name="planner_param_file" default="$(find drrt_planner_interface)/config/exploration_indoor.yaml" />
   <arg name="octomap_param_file" default="$(find drrt_planner_interface)/config/octomap_indoor.yaml" />

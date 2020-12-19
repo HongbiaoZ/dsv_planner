@@ -1,5 +1,5 @@
 <launch>
     <arg name="bag_name" default="garage"/>
     <node pkg="rosbag" type="record" name="rosbag_record_zhbp_planner"
-          args="record -o $(env HOME)/Desktop/$(arg bag_name) /tf /registered_scan /state_estimation /state_estimation_at_scan /sensor_scan /terrainWithoutGround /way_point /local_graph_markers /global_graph_markers /local_graph /global_graph /new_tree_path /remaining_tree_path /planner_boundry /globalSelectedfrontier /threefrontier /drrt_planner/octomap_occupied /graph_planner_command /graph_planner_status /graph_planner_path /global_frontier /local_frontier /threefrontier /octomap_unknown /plan_time /runtime" />
+          args="record -o $(env HOME)/Desktop/simulation_bags/dsvp/$(arg bag_name)/ /tf /registered_scan /state_estimation /state_estimation_at_scan /terrainWithoutGround /way_point /local_graph_markers /global_graph_markers /local_graph /global_graph /new_tree_path /remaining_tree_path /planner_boundry /globalSelectedfrontier /threefrontier /drrt_planner/octomap_occupied /graph_planner_command /graph_planner_status /graph_planner_path /global_frontier /local_frontier /threefrontier /octomap_unknown /plan_time /runtime /totaltime /next_goal" />
 </launch>

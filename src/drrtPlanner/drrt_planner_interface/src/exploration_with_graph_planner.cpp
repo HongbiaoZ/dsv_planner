@@ -31,6 +31,7 @@ geometry_msgs::Point wayPoint_pre;
 // geometry_msgs::PointStamped effective_time;
 graph_planner::GraphPlannerCommand graph_planner_command;
 std_msgs::Float32 effective_time;
+std_msgs::Float32 total_time;
 
 bool simulation = false;    // control whether use graph planner to follow path
 bool begin_signal = false;  // trigger the planner
@@ -95,6 +96,7 @@ int main(int argc, char** argv)
   ros::Publisher gp_command_pub = nh.advertise<graph_planner::GraphPlannerCommand>("/graph_planner_command", 1);
   //  ros::Publisher effective_plan_time_pub = nh.advertise<geometry_msgs::PointStamped>("/effective_plan_time", 1);
   ros::Publisher effective_plan_time_pub = nh.advertise<std_msgs::Float32>("/runtime", 1);
+  ros::Publisher total_plan_time_pub = nh.advertise<std_msgs::Float32>("/totaltime", 1);
   ros::Subscriber gp_status_sub =
       nh.subscribe<graph_planner::GraphPlannerStatus>("/graph_planner_status", 1, gp_status_callback);
   ros::Subscriber waypoint_sub = nh.subscribe<geometry_msgs::PointStamped>("/way_point", 1, waypoint_callback);
@@ -144,6 +146,7 @@ int main(int argc, char** argv)
       wp_ongoing = false;
   }
 
+  total_time.data = 0;
   plan_start = ros::Time::now();
   // Start planning: The planner is called and the computed goal point sent to the graph planner.
   int iteration = 0;
@@ -170,6 +173,8 @@ int main(int argc, char** argv)
         //      effective_time.point.x = (plan_over - plan_start).toSec();
         effective_time.data = (plan_over - plan_start).toSec();
         effective_plan_time_pub.publish(effective_time);
+        total_time.data += effective_time.data;
+        total_plan_time_pub.publish(total_time);
 
         if (!simulation)
         {  // when not in simulation mode, the robot will go to the goal point according to graph planner

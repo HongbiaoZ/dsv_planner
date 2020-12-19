@@ -63,6 +63,7 @@ private:
   std::string nextGoalPubTopic;
   std::string pointInSensorRangePubTopic;
   std::string terrainNoGroundPubTopic;
+  std::string shutDownTopic;
   std::string plannerServiceName;
   std::string cleanFrontierServiceName;
 };

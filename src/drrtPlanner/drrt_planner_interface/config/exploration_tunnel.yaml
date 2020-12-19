@@ -27,6 +27,7 @@ planner/plantimePubTopic: /plan_time
 planner/nextGoalPubTopic: /next_goal
 planner/pointInSensorRangePubTopic: /pointInrange
 planner/terrainNoGroundPubTopic: /terrainWithoutGround
+planner/shutDownTopic: /stop_exploring
 planner/plannerServiceName: /drrtPlannerSrv
 planner/cleanFrontierServiceName: /cleanFrontierSrv
 
