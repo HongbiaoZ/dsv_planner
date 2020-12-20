@@ -75,7 +75,7 @@ rm/kSensorHorizontal: 360.0
 rm/kSensorVertical: 30.0
 rm/kBoundX: 0.5
 rm/kBoundY: 0.5
-rm/kBoundZ: 0.4
+rm/kBoundZ: 0.6
 rm/kVehicleHeight: 0.75
 
 #Collision Check Constants

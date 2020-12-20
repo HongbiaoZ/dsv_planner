@@ -66,6 +66,7 @@ protected:
   kdtree* kdTree_;
   Params params_;
   bool localPlanOnceMore_;
+  int keepTryingNum_;
   int iterationCount_;
   int nodeCounter_;
   int remainingNodeCount_;

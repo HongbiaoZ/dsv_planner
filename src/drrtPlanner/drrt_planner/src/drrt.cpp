@@ -617,6 +617,7 @@ void drrt_planner_ns::Drrt::plannerInit()
       // if (true)
       //{
       localPlanOnceMore_ = true;
+      keepTryingNum_ = 2;
       remainingFrontier_ = true;
       getThreeLocalFrontierPoint();
       pruneTree(root_);
@@ -642,6 +643,8 @@ void drrt_planner_ns::Drrt::plannerInit()
         dual_state_graph_->clearLocalGraph();
         dual_state_graph_->local_graph_ = dual_state_graph_->pruned_graph_;
         dual_state_graph_->execute();
+        //        keepTryingNum_--;
+        //        if (keepTryingNum_ <= 0)
         localPlanOnceMore_ = false;
       }
     }
