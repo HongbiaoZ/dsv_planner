@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Global Options1
         - /Status1
         - /Autonomy1/stateEstimation1/Shape1
         - /Exploration1
@@ -109,9 +110,9 @@ Visualization Manager:
           Enabled: true
           Invert Rainbow: false
           Max Color: 255; 255; 255
-          Max Intensity: 0.9989943504333496
+          Max Intensity: 0.999474287033081
           Min Color: 0; 0; 0
-          Min Intensity: 0.20005013048648834
+          Min Intensity: 0.2003614455461502
           Name: terrainWithoutGround
           Position Transformer: XYZ
           Queue Size: 10
@@ -637,25 +638,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 70.12682342529297
+      Distance: 366.9193420410156
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: 77.87448120117188
-        Y: -19.764280319213867
+        X: 18.34391212463379
+        Y: -30.15746307373047
         Z: -7.128598554118071e-6
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5497963428497314
+      Pitch: 1.5547963380813599
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 4.693565845489502
+      Yaw: 4.683566093444824
     Saved: ~
 Window Geometry:
   Displays:
