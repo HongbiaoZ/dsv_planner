@@ -6,12 +6,12 @@ drrt/gain/kRange: 5
 drrt/gain/kRangeZMinus: 0.4
 drrt/gain/kRangeZPlus: 1.0
 drrt/gain/kZero: 0.0
-drrt/tree/kExtensionRange: 1.0
-drrt/tree/kMinExtensionRange: 0.8
+drrt/tree/kExtensionRange: 1.5
+drrt/tree/kMinExtensionRange: 1.2
 drrt/tree/kMaxExtensionAlongZ: 0.5
 drrt/tree/kExactRoot: false
 drrt/tree/kGlobalExtraIterations_: 300
-drrt/tree/kCuttoffIterations: 200
+drrt/tree/kCuttoffIterations: 150
 drrt/vertexSize: 120
 drrt/tfFrame: /map
 
@@ -62,12 +62,12 @@ lb/kMaxZLocal: 5.0
 #gb/kMaxYGlobal: 100.0
 #gb/kMaxZGlobal: 10.0
 
-gb/kMinXGlobal: -300.0
-gb/kMinYGlobal: -300.0
-gb/kMinZGlobal: -30.0
-gb/kMaxXGlobal: 300.0
-gb/kMaxYGlobal: 300.0
-gb/kMaxZGlobal: 25.0
+gb/kMinXGlobal: -130.0
+gb/kMinYGlobal: -130.0
+gb/kMinZGlobal: -5.0
+gb/kMaxXGlobal: 130.0
+gb/kMaxYGlobal: 130.0
+gb/kMaxZGlobal: 30.0
 
 # Robot Model (including robot bounding box and sensor model)
 rm/kSensorPitch: 0.0
