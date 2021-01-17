@@ -66,7 +66,7 @@ gb/kMinXGlobal: -130.0
 gb/kMinYGlobal: -130.0
 gb/kMinZGlobal: -5.0
 gb/kMaxXGlobal: 130.0
-gb/kMaxYGlobal: 130.0
+gb/kMaxYGlobal: 125.0
 gb/kMaxZGlobal: 30.0
 
 # Robot Model (including robot bounding box and sensor model)
