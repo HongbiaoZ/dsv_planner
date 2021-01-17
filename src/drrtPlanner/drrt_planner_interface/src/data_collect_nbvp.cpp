@@ -26,7 +26,6 @@ Created and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 #include <tf/transform_datatypes.h>
 
-
 using namespace std;
 using namespace pcl;
 ros::Time time_start;
@@ -52,10 +51,9 @@ std::string dist_plantime_name;
 std::string time_localplan_name;
 std::string dist_localplan_name;
 
-
-PointCloud<PointXYZ>::Ptr keyposecloud (new PointCloud<PointXYZ>);
-PointCloud<PointXYZ>::Ptr mapcloud (new PointCloud<PointXYZ>);
-PointCloud<PointXYZ>::Ptr mapcloudDS (new PointCloud<PointXYZ>);
+PointCloud<PointXYZ>::Ptr keyposecloud(new PointCloud<PointXYZ>);
+PointCloud<PointXYZ>::Ptr mapcloud(new PointCloud<PointXYZ>);
+PointCloud<PointXYZ>::Ptr mapcloudDS(new PointCloud<PointXYZ>);
 sensor_msgs::PointCloud2 dscloud;
 
 nav_msgs::Odometry previous_odom;
@@ -71,7 +69,6 @@ ofstream dist_plantime_file;
 ofstream time_localplantime_file;
 ofstream dist_localplantime_file;
 
-
 std::ostream& out1 = time_volume_file;
 std::ostream& out2 = time_dist_file;
 std::ostream& out3 = time_plantime_file;
@@ -79,69 +76,65 @@ std::ostream& out4 = dist_plantime_file;
 std::ostream& out5 = time_localplantime_file;
 std::ostream& out6 = dist_localplantime_file;
 
-
 ros::Publisher mapcloudDS_pub;
 
 int pointvolume(PointCloud<PointXYZ>::Ptr cloud)
 {
-  for (int i=0; i<cloud->points.size(); i++)
+  for (int i = 0; i < cloud->points.size(); i++)
   {
     mapcloud->points.push_back(cloud->points[i]);
   }
   point_ds.setLeafSize(0.1, 0.1, 0.1);
   point_ds.setInputCloud(mapcloud);
   point_ds.filter(*mapcloudDS);
-//  pcl::toROSMsg(*mapcloudDS, dscloud);
-//  dscloud.header.frame_id = "/map";
-//  mapcloudDS_pub.publish(dscloud);
+  //  pcl::toROSMsg(*mapcloudDS, dscloud);
+  //  dscloud.header.frame_id = "/map";
+  //  mapcloudDS_pub.publish(dscloud);
   return mapcloudDS->points.size();
 }
 
 void write_to_volume_file(double timeInt, int volume)
 {
-  out1<<timeInt<<" "<<volume<<endl;
+  out1 << timeInt << " " << volume << endl;
 }
 
 void write_to_dist_file(double timeInt, double dist)
 {
-  out2<<timeInt<<" "<<dist<<endl;
+  out2 << timeInt << " " << dist << endl;
 }
 
 void write_to_time_plantime_file(double timeInt, double plantimeInt)
 {
-  out3<<timeInt<<" "<<plantimeInt<<endl;
+  out3 << timeInt << " " << plantimeInt << endl;
 }
 
 void write_to_dist_plantime_file(double dist, double plantimeInt)
 {
-  out4<<dist<<" "<<plantimeInt<<endl;
+  out4 << dist << " " << plantimeInt << endl;
 }
-
 
 void write_to_time_localplantime_file(double timeInt, double plantimeInt)
 {
-  out5<<timeInt<<" "<<plantimeInt<<endl;
+  out5 << timeInt << " " << plantimeInt << endl;
 }
-
 
 void write_to_dist_localplantime_file(double dist, double plantimeInt)
 {
-  out6<<dist<<" "<<plantimeInt<<endl;
+  out6 << dist << " " << plantimeInt << endl;
 }
 
-void keyposeCloudToMap(const nav_msgs::Odometry::ConstPtr &keypose_msg, const sensor_msgs::PointCloud2ConstPtr &keypose_cloud_msg){
-
-  //get position and orientation of the robot in keypose frame
+void keyposeCloudToMap(const nav_msgs::Odometry::ConstPtr& keypose_msg,
+                       const sensor_msgs::PointCloud2ConstPtr& keypose_cloud_msg)
+{
+  // get position and orientation of the robot in keypose frame
   float robot_x = (float)keypose_msg->pose.pose.position.x;
   float robot_y = (float)keypose_msg->pose.pose.position.y;
   float robot_z = (float)keypose_msg->pose.pose.position.z;
 
-  //std::cout<<"x="<<robot_x<<"y="<<robot_y<<"z="<<robot_z<<std::endl;
+  // std::cout<<"x="<<robot_x<<"y="<<robot_y<<"z="<<robot_z<<std::endl;
 
-  tf::Quaternion tf_q(keypose_msg->pose.pose.orientation.x,
-                      keypose_msg->pose.pose.orientation.y,
-                      keypose_msg->pose.pose.orientation.z,
-                      keypose_msg->pose.pose.orientation.w);
+  tf::Quaternion tf_q(keypose_msg->pose.pose.orientation.x, keypose_msg->pose.pose.orientation.y,
+                      keypose_msg->pose.pose.orientation.z, keypose_msg->pose.pose.orientation.w);
   tf::Matrix3x3 tf_m(tf_q);
   double robot_roll, robot_pitch, robot_yaw;
   tf_m.getRPY(robot_roll, robot_pitch, robot_yaw);
@@ -153,16 +146,17 @@ void keyposeCloudToMap(const nav_msgs::Odometry::ConstPtr &keypose_msg, const se
   float sin_yaw = (float)sin(robot_yaw);
   float cos_yaw = (float)cos(robot_yaw);
 
-/**get keypose cloud in map**/
+  /**get keypose cloud in map**/
   pcl::fromROSMsg(*keypose_cloud_msg, *keyposecloud);
-  //transfer from PointXYZ to PointXYZI
+  // transfer from PointXYZ to PointXYZI
 
   size_t keypose_cloud_size = keyposecloud->size();
-  for (int i =0; i < keypose_cloud_size; i++){
+  for (int i = 0; i < keypose_cloud_size; i++)
+  {
     PointXYZ point;
     point = keyposecloud->points[i];
 
-    //from keypose to map_rot
+    // from keypose to map_rot
     float x1 = point.x;
     float y1 = point.y;
     float z1 = point.z;
@@ -192,13 +186,13 @@ void keyposeCloudToMap(const nav_msgs::Odometry::ConstPtr &keypose_msg, const se
     keyposecloud->points[i].y = point.y;
     keyposecloud->points[i].z = point.z;
   }
-
 }
 
-void keyPoseAndKeyPoseCloudCallback(const nav_msgs::Odometry::ConstPtr &keypose_msg, const sensor_msgs::PointCloud2ConstPtr &keypose_cloud_msg)
+void keyPoseAndKeyPoseCloudCallback(const nav_msgs::Odometry::ConstPtr& keypose_msg,
+                                    const sensor_msgs::PointCloud2ConstPtr& keypose_cloud_msg)
 {
   keyposecloud->clear();
-  if(first_iteration == false)
+  if (first_iteration == false)
   {
     current_time = ros::Time::now();
     timeInterval = (current_time - time_start).toSec();
@@ -208,18 +202,20 @@ void keyPoseAndKeyPoseCloudCallback(const nav_msgs::Odometry::ConstPtr &keypose_
   }
 }
 
-
 void OdometryCallback(const nav_msgs::Odometry::ConstPtr& msg)
 {
   previous_odom = current_odom;
   current_odom = *msg;
-  if(first_iteration == false)
+  if (first_iteration == false)
   {
     current_time = ros::Time::now();
     timeInterval = (current_time - time_start).toSec();
-    double currentdist = sqrt((current_odom.pose.pose.position.x - previous_odom.pose.pose.position.x) * (current_odom.pose.pose.position.x - previous_odom.pose.pose.position.x) +
-                         (current_odom.pose.pose.position.y - previous_odom.pose.pose.position.y) * (current_odom.pose.pose.position.y - previous_odom.pose.pose.position.y) +
-                         (current_odom.pose.pose.position.z - previous_odom.pose.pose.position.z) * (current_odom.pose.pose.position.z - previous_odom.pose.pose.position.z));
+    double currentdist = sqrt((current_odom.pose.pose.position.x - previous_odom.pose.pose.position.x) *
+                                  (current_odom.pose.pose.position.x - previous_odom.pose.pose.position.x) +
+                              (current_odom.pose.pose.position.y - previous_odom.pose.pose.position.y) *
+                                  (current_odom.pose.pose.position.y - previous_odom.pose.pose.position.y) +
+                              (current_odom.pose.pose.position.z - previous_odom.pose.pose.position.z) *
+                                  (current_odom.pose.pose.position.z - previous_odom.pose.pose.position.z));
     travelDist = travelDist + currentdist;
     write_to_dist_file(timeInterval, travelDist);
   }
@@ -229,7 +225,7 @@ void pathCallback(const visualization_msgs::Marker::ConstPtr& msg)
 {
   visualization_msgs::Marker p;
   p = *msg;
-  if(first_iteration)
+  if (first_iteration)
   {
     plan_beginning = ros::Time::now();
     localplan_beginning = ros::Time::now();
@@ -242,7 +238,7 @@ void pathCallback(const visualization_msgs::Marker::ConstPtr& msg)
   }
   else
   {
-    if(p.type == visualization_msgs::Marker::CUBE && plan_end < localplan_beginning)
+    if (p.type == visualization_msgs::Marker::CUBE && plan_end < localplan_beginning)
     {
       previous_localplan_beginning = localplan_beginning;
       localplan_beginning = ros::Time::now();
@@ -252,11 +248,11 @@ void pathCallback(const visualization_msgs::Marker::ConstPtr& msg)
       write_to_time_localplantime_file(timeInterval, localplanInterval);
       write_to_dist_localplantime_file(travelDist, localplanInterval);
     }
-    if(p.type == visualization_msgs::Marker::CUBE && plan_end > plan_beginning)
+    if (p.type == visualization_msgs::Marker::CUBE && plan_end > plan_beginning)
     {
       plan_beginning = ros::Time::now();
       localplan_beginning = ros::Time::now();
-      std::cout<<"plan_beginning1"<<plan_beginning.toSec()<<std::endl;
+      std::cout << "plan_beginning1" << plan_beginning.toSec() << std::endl;
     }
   }
 }
@@ -265,7 +261,7 @@ void wayPointCallback(const geometry_msgs::PointStamped::ConstPtr& msg)
 {
   prev_wp = wp_time;
   wp_time = ros::Time::now();
-  if(first_iteration == false && prev_wp < plan_beginning)
+  if (first_iteration == false && prev_wp < plan_beginning)
   {
     current_time = ros::Time::now();
     plan_end = ros::Time::now();
@@ -283,9 +279,9 @@ int main(int argc, char** argv)
 {
   ros::init(argc, argv, "exploration_with_lp");
   ros::NodeHandle nh;
-  ros::Subscriber odometry_sub = nh.subscribe < nav_msgs::Odometry > ("/aft_mapped_to_init", 1, OdometryCallback);
-  ros::Subscriber inspectionpath_sub = nh.subscribe < visualization_msgs::Marker > ("/inspectionPath", 10, pathCallback);
-  ros::Subscriber gp_statur_sub = nh.subscribe< geometry_msgs::PointStamped >("/way_point", 5, wayPointCallback);
+  ros::Subscriber odometry_sub = nh.subscribe<nav_msgs::Odometry>("/aft_mapped_to_init", 1, OdometryCallback);
+  ros::Subscriber inspectionpath_sub = nh.subscribe<visualization_msgs::Marker>("/inspectionPath", 10, pathCallback);
+  ros::Subscriber gp_statur_sub = nh.subscribe<geometry_msgs::PointStamped>("/way_point", 5, wayPointCallback);
 
   message_filters::Subscriber<nav_msgs::Odometry> keypose_sub;
   message_filters::Subscriber<sensor_msgs::PointCloud2> keypose_cloud_sub;
@@ -302,13 +298,12 @@ int main(int argc, char** argv)
 
   ROS_INFO("Started Timing");
 
-  time_volume_name = ros::package::getPath("interface_nbvp_rotors") + "/data/nbvp_time_volume.txt";
-  time_dist_name = ros::package::getPath("interface_nbvp_rotors") + "/data/nbvp_time_dist.txt";
-  time_plantime_name = ros::package::getPath("interface_nbvp_rotors") + "/data/nbvp_time_plantime.txt";
-  dist_plantime_name = ros::package::getPath("interface_nbvp_rotors") + "/data/nbvp_dist_plantime.txt";
-  time_localplan_name = ros::package::getPath("interface_nbvp_rotors") + "/data/nbvp_time_localplantime.txt";
-  dist_localplan_name = ros::package::getPath("interface_nbvp_rotors") + "/data/nbvp_dist_localplantime.txt";
-
+  time_volume_name = ros::package::getPath("drrt_planner_interface") + "/data/nbvp_time_volume.txt";
+  time_dist_name = ros::package::getPath("drrt_planner_interface") + "/data/nbvp_time_dist.txt";
+  time_plantime_name = ros::package::getPath("drrt_planner_interface") + "/data/nbvp_time_plantime.txt";
+  dist_plantime_name = ros::package::getPath("drrt_planner_interface") + "/data/nbvp_dist_plantime.txt";
+  time_localplan_name = ros::package::getPath("drrt_planner_interface") + "/data/nbvp_time_localplantime.txt";
+  dist_localplan_name = ros::package::getPath("drrt_planner_interface") + "/data/nbvp_dist_localplantime.txt";
 
   time_volume_file.open(time_volume_name);
   time_dist_file.open(time_dist_name);
@@ -324,17 +319,17 @@ int main(int argc, char** argv)
   time_localplantime_file.app;
   dist_localplantime_file.app;
 
-  out1<<"time volume"<<endl;
-  out2<<"time dist"<<endl;
-  out3<<"time plan_Interval"<<endl;
-  out4<<"dist plan_Interval"<<endl;
-  out5<<"time localplan_Interval"<<endl;
-  out6<<"dist localplan_Interval"<<endl;
-
+  out1 << "time volume" << endl;
+  out2 << "time dist" << endl;
+  out3 << "time plan_Interval" << endl;
+  out4 << "dist plan_Interval" << endl;
+  out5 << "time localplan_Interval" << endl;
+  out6 << "dist localplan_Interval" << endl;
 
   // Start planning: The planner is called and the computed path sent to the controller.
   ros::Rate loop_rate(20);
-  while (ros::ok()) {
+  while (ros::ok())
+  {
     ros::spinOnce();
     loop_rate.sleep();
   }

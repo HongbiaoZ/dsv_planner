@@ -53,6 +53,11 @@ target_link_libraries(data_collect_keypose
 )
 add_dependencies(data_collect_keypose ${catkin_EXPORTED_TARGETS})
 
+add_executable(data_process_mbp src/data_process_mbp.cpp)
+target_link_libraries(data_process_mbp
+  ${catkin_LIBRARIES}
+)
+add_dependencies(data_process_mbp ${catkin_EXPORTED_TARGETS})
 
 add_executable(motion src/motion.cpp)
 target_link_libraries(motion
