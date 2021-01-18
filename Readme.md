@@ -1,5 +1,6 @@
-<img src="image/system_overview.jpg" alt="Header" width="100%"/>
 Dual-Stage Viewpoint Planner incorporates two planning stages in autonomous exploration - an exploration stage for extending the boundary of the map, and a relocation stage for explicitly transiting the robot to different sub-areas in the environment. The exploration stage develops Rapidly-exploring Random Tree (RRT) and dynamically expand the RRT over replanning steps. The relocation stage maintains a graph through the mapped environment. During the course of exploration, the method transitions back-and-forth between the two stages to explore all areas in the environment.<br/>
+<img src="image/system_overview.jpg" alt="Header" width="60%"/>
+
 
 Please use instructions on our [project page](https://www.cmu-exploration.com/dsv-planner).
 
