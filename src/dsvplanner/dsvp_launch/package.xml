@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>dsvplanner_launch</name>
+  <name>dsvp_launch</name>
   <version>0.0.0</version>
   <description>The package that interfaces and launches the drrt planner</description>
 
