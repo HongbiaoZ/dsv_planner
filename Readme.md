@@ -10,7 +10,7 @@ The repository has been tested in Ubuntu 18.04 with ROS Melodic and Ubuntu 20.04
 To setup DSV Planner, install dependencies with command lines below. Replace 'distribution' with 'melodic' or 'noetic' to match the computer setup.
 ```bash
 sudo apt update
-sudo apt install ros-distribution-octomap
+sudo apt install ros-distribution-octomap-ros
 ```
 ### Clone and Compile ###
 ```bash
