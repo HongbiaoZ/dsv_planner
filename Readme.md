@@ -14,7 +14,7 @@ sudo apt install ros-distribution-octomap-ros
 ```
 ### Clone and Compile ###
 ```bash
-git clone https://github.com/HongbiaoZ/dsvplanner.git
+git clone https://github.com/HongbiaoZ/dsv_planner.git
 ```
 In a terminal, go to the folder and checkout the correct branch. Replace 'distribution' with 'melodic' or 'noetic'. Then, compile.
 ```bash
