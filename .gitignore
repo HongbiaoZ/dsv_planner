@@ -1,4 +1,4 @@
-src/drrtPlanner/drrt_planner_interface/data/
+src/dsvplanner/dsvp_launch/data/
 src/CMakeLists.txt
 .catkin_tools
 dsvplanner.workspace

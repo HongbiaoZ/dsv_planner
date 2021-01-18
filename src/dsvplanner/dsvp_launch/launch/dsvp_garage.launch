@@ -2,25 +2,25 @@
   <arg name="enable_bag_record" default="false"/>
   <arg name="bag_name" default="garage"/>
   <arg name="simulation" default="false"/>
-  <arg name="planner_param_file" default="$(find dsvplanner_launch)/config/exploration_garage.yaml" />
-  <arg name="octomap_param_file" default="$(find dsvplanner_launch)/config/octomap_garage.yaml" />
+  <arg name="planner_param_file" default="$(find dsvp_launch)/config/exploration_garage.yaml" />
+  <arg name="octomap_param_file" default="$(find dsvp_launch)/config/octomap_garage.yaml" />
 
   <rosparam command="load" file="$(arg planner_param_file)" />
   <rosparam command="load" file="$(arg octomap_param_file)" />
 
   <node name="dsvplanner" pkg="dsvplanner" type="dsvplanner" output="screen" />
 
-  <node name="exploration" pkg="dsvplanner_launch" type="exploration_with_graph_planner" output="screen" >
+  <node name="exploration" pkg="dsvp_launch" type="exploration_with_graph_planner" output="screen" >
     <param name="simulation" type="bool" value="$(arg simulation)" />
   </node>
 
   <include file="$(find graph_planner)/launch/graph_planner.launch"/>
 
   <group if="$(arg enable_bag_record)">
-    <include file="$(find dsvplanner_launch)/launch/rosbag_record.launch">
+    <include file="$(find dsvp_launch)/launch/rosbag_record.launch">
         <arg name="bag_name" value="$(arg bag_name)" />
     </include>
   </group>
 
-  <node pkg="rviz" type="rviz" name="dsvp_rviz" args="-d $(find dsvplanner_launch)/default.rviz"/>
+  <node pkg="rviz" type="rviz" name="dsvp_rviz" args="-d $(find dsvp_launch)/default.rviz"/>
 </launch>
