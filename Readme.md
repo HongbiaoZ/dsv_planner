@@ -6,10 +6,12 @@ Dual-Stage Viewpoint Planner incorporates two planning stages in autonomous expl
 Please use instructions on our [project page](https://www.cmu-exploration.com/dsv-planner).
 
 ## Instructions ##
-The repository has been tested in Ubuntu 18.04 with ROS Melodic and Ubuntu 20.04 with ROS Noetic. Follow instructions in [Autonomous Exploration Development Environment](https://www.cmu-exploration.com/) to setup the development environment. Make sure to checkout the branch that matches the computer setup, compile, and download the simulation environments.
+The repository has been tested in Ubuntu 18.04 with ROS Melodic and Ubuntu 20.04 with ROS Noetic. Follow instructions in [Autonomous Exploration Development Environment](https://www.cmu-exploration.com/) to setup the development environment. Make sure to checkout the branch that matches the computer setup, compile, and download the simulation environments.  
 To setup DSV Planner, install dependencies with command lines below. Replace 'distribution' with 'melodic' or 'noetic' to match the computer setup.
+```bash
 sudo apt update
 sudo apt install ros-distribution-octomap
+```
 ### Clone and Compile ###
 ```bash
 git clone https://github.com/HongbiaoZ/dsvplanner.git
