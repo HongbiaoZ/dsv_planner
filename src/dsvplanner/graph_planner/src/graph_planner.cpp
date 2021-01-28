@@ -63,9 +63,9 @@ bool GraphPlanner::readParameters()
     ROS_ERROR("Cannot read parameter: kLookAheadDist");
     return false;
   }
-  if (!nh_.getParam("kWaypointToRobotDistance", kWaypointToRobotDistance))
+  if (!nh_.getParam("kWaypointProjectionDistance", kWaypointProjectionDistance))
   {
-    ROS_ERROR("Cannot read parameter: kWaypointToRobotDistance");
+    ROS_ERROR("Cannot read parameter: kWaypointProjectionDistance");
     return false;
   }
 
@@ -150,7 +150,7 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
 
   if (shortest_path.size() <= 0)
   {
-    ROS_WARN("!!!!!!!!!graph planner did not find path to selected goal!!!!!!!!!!!");
+    ROS_WARN("Graph planner did not find path to selected goal!");
 
     // clear the saved path
     planned_path_.clear();
@@ -201,6 +201,10 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
     }
 
     geometry_msgs::Point next_waypoint = planned_graph_.vertices[next_vertex_id].location;
+    if (next_vertex_id != shortest_path.back())
+    {
+      next_waypoint = projectWayPoint(next_waypoint, robot_pos_);
+    }
     waypoint_.header.stamp = ros::Time::now();
     waypoint_.point.x = next_waypoint.x;
     waypoint_.point.y = next_waypoint.y;
@@ -242,6 +246,17 @@ bool GraphPlanner::goToPoint(geometry_msgs::Point point)
 
   // Set the waypoint
   return goToVertex(current_vertex_idx, goal_vertex_idx);
+}
+
+geometry_msgs::Point GraphPlanner::projectWayPoint(geometry_msgs::Point next_vertex_pos, geometry_msgs::Point robot_pos)
+{
+  double ratio = misc_utils_ns::PointXYDist<geometry_msgs::Point, geometry_msgs::Point>(robot_pos, next_vertex_pos) /
+                 kWaypointProjectionDistance;
+  double x = (next_vertex_pos.x - robot_pos.x) / ratio + robot_pos.x;
+  double y = (next_vertex_pos.y - robot_pos.y) / ratio + robot_pos.y;
+  double z = (next_vertex_pos.z - robot_pos.z) / ratio + robot_pos.z;
+  geometry_msgs::Point way_point = misc_utils_ns::GeoMsgPoint(x, y, z);
+  return way_point;
 }
 
 bool GraphPlanner::initialize()

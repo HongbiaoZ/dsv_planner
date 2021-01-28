@@ -75,7 +75,7 @@ private:
 
   // Constants
   float kLookAheadDist;
-  double kWaypointToRobotDistance;
+  double kWaypointProjectionDistance;
 
   // "State" variables
   enum GraphPlannerState
@@ -112,6 +112,7 @@ private:
   void publishInProgress(bool in_progress);
   bool goToVertex(int current_vertex_idx, int goal_vertex_idx);
   bool goToPoint(geometry_msgs::Point point);
+  geometry_msgs::Point projectWayPoint(geometry_msgs::Point next_vertex_pos, geometry_msgs::Point robot_pos);
 
   // Execute function variants
   void executeGoToOrigin();    // for returning home

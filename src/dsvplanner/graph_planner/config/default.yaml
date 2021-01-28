@@ -9,5 +9,5 @@ sub_odometry_topic                  : /state_estimation
 
 # Constants
 kLookAheadDist                      : 2.5 # the minimum distance between next goal vertex and current vertex
-kWaypointToRobotDistance            : 3.0 # distance between waypoint and robot must larger than this value when going to location or home
+kWaypointProjectionDistance         : 5.0 # distance between waypoint and robot must larger than this value when going to location or home
 
