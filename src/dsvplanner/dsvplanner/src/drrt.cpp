@@ -32,6 +32,7 @@ dsvplanner_ns::Drrt::Drrt(volumetric_mapping::OctomapManager* manager, DualState
   local_plan_ = true;
   nextNodeFound_ = false;
   remainingFrontier_ = true;
+  return_home_ = false;
   global_vertex_size_ = 0;
   NextBestNodeIdx_ = 0;
 

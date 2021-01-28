@@ -37,6 +37,7 @@ bool simulation = false;    // control whether use graph planner to follow path
 bool begin_signal = false;  // trigger the planner
 bool gp_in_progress = false;
 bool wp_state = false;
+bool return_home = false;
 double current_odom_x = 0;
 double current_odom_y = 0;
 double current_odom_z = 0;
@@ -146,13 +147,14 @@ int main(int argc, char** argv)
       wp_ongoing = false;
   }
 
+  ROS_INFO("Exploration started");
   total_time.data = 0;
   plan_start = ros::Time::now();
   // Start planning: The planner is called and the computed goal point sent to the graph planner.
   int iteration = 0;
   while (ros::ok())
   {
-    if (true)
+    if (!return_home)
     {
       ROS_INFO_THROTTLE(0.5, "Planning iteration %i", iteration);
       dsvplanner::dsvplanner_srv planSrv;
@@ -168,11 +170,20 @@ int main(int argc, char** argv)
           continue;
         }
 
-        plan_over = ros::Time::now();
-        //      effective_time.header.stamp = ros::Time::now();
-        //      effective_time.point.x = (plan_over - plan_start).toSec();
-        effective_time.data = (plan_over - plan_start).toSec();
-        effective_plan_time_pub.publish(effective_time);
+        if (planSrv.response.goal[0].x + planSrv.response.goal[0].y + planSrv.response.goal[0].z == 0)
+        {
+          return_home = true;
+          ROS_INFO("Exploration completed, returning home");
+          effective_time.data = 0;
+          effective_plan_time_pub.publish(effective_time);
+        }
+        else
+        {
+          return_home = false;
+          plan_over = ros::Time::now();
+          effective_time.data = (plan_over - plan_start).toSec();
+          effective_plan_time_pub.publish(effective_time);
+        }
         total_time.data += effective_time.data;
         total_plan_time_pub.publish(total_time);
 
@@ -237,6 +248,7 @@ int main(int argc, char** argv)
     else
     {
       ros::spinOnce();
+      ROS_INFO_THROTTLE(1, "Return home completed");
       ros::Duration(0.1).sleep();
     }
   }

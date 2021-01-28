@@ -113,11 +113,13 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
   robot_position.z = drrt_->root_[2];
   if (!drrt_->nextNodeFound_ && drrt_->global_plan_pre_ && drrt_->gainFound() <= 0)
   {
-    drrt_->global_plan_ = true;
-    // ros::shutdown();
-    std_msgs::Bool shutdown;
-    shutdown.data = true;
-    params_.shutdownSignalPub.publish(shutdown);
+    drrt_->return_home_ = true;
+    geometry_msgs::Point home_position;
+    home_position.x = 0;
+    home_position.y = 0;
+    home_position.z = 0;
+    res.goal.push_back(home_position);
+
     return true;
   }
   else if (!drrt_->nextNodeFound_ && !drrt_->global_plan_pre_ && dual_state_graph_->getGain(robot_position) <= 0)

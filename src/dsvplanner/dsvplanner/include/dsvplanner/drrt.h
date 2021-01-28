@@ -32,6 +32,7 @@ public:
   bool local_plan_;
   bool nextNodeFound_;
   bool remainingFrontier_;
+  bool return_home_;
   int global_vertex_size_;
   int NextBestNodeIdx_;  // this is for global planner that still can find global frontier
   int bestNodeId_;       // this is for global plan that cannot find global frontier
