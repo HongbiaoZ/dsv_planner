@@ -1,10 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(dsvplanner_launch)
+project(dsvp_launch)
 
 set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin REQUIRED COMPONENTS
-  trajectory_msgs
   tf
   geometry_msgs
   pcl_conversions
@@ -13,6 +12,8 @@ find_package(catkin REQUIRED COMPONENTS
   visualization_msgs
   graph_utils
   nav_msgs
+  dsvplanner
+  graph_planner
 )
 
 include_directories(${Eigen_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
@@ -20,7 +21,7 @@ include_directories(${Eigen_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 catkin_package(
   INCLUDE_DIRS ${Eigen_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
   LIBRARIES ${catkin_LIBRARIES}
-  CATKIN_DEPENDS trajectory_msgs tf visualization_msgs graph_utils
+  CATKIN_DEPENDS tf visualization_msgs graph_utils dsvplanner graph_planner
 )
 
 add_executable(exploration_with_graph_planner src/exploration_with_graph_planner.cpp)

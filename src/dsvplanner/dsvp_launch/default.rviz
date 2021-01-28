@@ -4,13 +4,9 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
-        - /Global Options1
-        - /Status1
         - /Autonomy1/stateEstimation1/Shape1
-        - /Exploration1
         - /Exploration1/LocalGraph1/Namespaces1
         - /Exploration1/GlobalGraph1/Namespaces1
-        - /Exploration1/LocalFrontier1
       Splitter Ratio: 0.5676959753036499
     Tree Height: 767
   - Class: rviz/Selection
@@ -56,13 +52,6 @@ Visualization Manager:
       Plane Cell Count: 10
       Reference Frame: <Fixed Frame>
       Value: false
-    - Class: rviz/Axes
-      Enabled: false
-      Length: 4
-      Name: Axes
-      Radius: 0.5
-      Reference Frame: sensor
-      Value: false
     - Class: rviz/Group
       Displays:
         - Alpha: 1
@@ -77,7 +66,7 @@ Visualization Manager:
           Color: 252; 233; 79
           Color Transformer: FlatColor
           Decay Time: 0
-          Enabled: false
+          Enabled: true
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Max Intensity: 1
@@ -94,7 +83,7 @@ Visualization Manager:
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
-          Value: false
+          Value: true
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -110,9 +99,9 @@ Visualization Manager:
           Enabled: true
           Invert Rainbow: false
           Max Color: 255; 255; 255
-          Max Intensity: 0.9916408658027649
+          Max Intensity: 0.9987450838088989
           Min Color: 0; 0; 0
-          Min Intensity: 0.20005057752132416
+          Min Intensity: 0.20025303959846497
           Name: terrainWithoutGround
           Position Transformer: XYZ
           Queue Size: 10
@@ -137,10 +126,10 @@ Visualization Manager:
           Color: 255; 255; 255
           Color Transformer: Intensity
           Decay Time: 0
-          Enabled: true
+          Enabled: false
           Invert Rainbow: false
           Max Color: 255; 255; 255
-          Max Intensity: 1.4998682737350464
+          Max Intensity: 1.4999558925628662
           Min Color: 0; 0; 0
           Min Intensity: 0
           Name: terrainMapLarge
@@ -150,11 +139,11 @@ Visualization Manager:
           Size (Pixels): 3
           Size (m): 0.029999999329447746
           Style: Squares
-          Topic: /velodyne_cloud_terrain_large
+          Topic: /terrain_map_ext
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
-          Value: true
+          Value: false
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -167,7 +156,7 @@ Visualization Manager:
           Color: 255; 255; 255
           Color Transformer: FlatColor
           Decay Time: 0
-          Enabled: false
+          Enabled: true
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Max Intensity: 0
@@ -180,11 +169,11 @@ Visualization Manager:
           Size (Pixels): 2
           Size (m): 0.20000000298023224
           Style: Points
-          Topic: /velodyne_cloud_registered
+          Topic: /registered_scan
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
-          Value: false
+          Value: true
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -317,7 +306,7 @@ Visualization Manager:
         - Class: rviz/Marker
           Enabled: true
           Marker Topic: /new_tree_path
-          Name: rrt path
+          Name: new_rrt path
           Namespaces:
             drrt_branches: true
             drrt_node: true
@@ -326,7 +315,7 @@ Visualization Manager:
         - Class: rviz/Marker
           Enabled: true
           Marker Topic: /remaining_tree_path
-          Name: rrt path
+          Name: prev_rrt path
           Namespaces:
             drrt_branches: true
             drrt_node: true
@@ -531,90 +520,6 @@ Visualization Manager:
           Value: false
       Enabled: true
       Name: Exploration
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 10
-        Min Value: -10
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: ""
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 1000
-      Min Color: 0; 0; 0
-      Min Intensity: -0.0480189323425293
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.10000000149011612
-      Style: Boxes
-      Topic: /explored_areas
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Autocompute Intensity Bounds: true
-      Autocompute Value Bounds:
-        Max Value: 1.912900686264038
-        Min Value: -0.04611361026763916
-        Value: true
-      Axis: Z
-      Channel Name: intensity
-      Class: rviz/PointCloud2
-      Color: 255; 255; 255
-      Color Transformer: Intensity
-      Decay Time: 0
-      Enabled: false
-      Invert Rainbow: false
-      Max Color: 255; 255; 255
-      Max Intensity: 1.2599830627441406
-      Min Color: 0; 0; 0
-      Min Intensity: -0.04551279544830322
-      Name: PointCloud2
-      Position Transformer: XYZ
-      Queue Size: 10
-      Selectable: true
-      Size (Pixels): 3
-      Size (m): 0.10000000149011612
-      Style: Boxes
-      Topic: /elevation_map
-      Unreliable: false
-      Use Fixed Frame: true
-      Use rainbow: true
-      Value: false
-    - Alpha: 1
-      Class: rviz/PointStamped
-      Color: 252; 175; 62
-      Enabled: false
-      History Length: 1
-      Name: PointStamped
-      Radius: 2
-      Topic: /plan_time
-      Unreliable: false
-      Value: false
-    - Class: rviz/TF
-      Enabled: false
-      Frame Timeout: 15
-      Frames:
-        All Enabled: true
-      Marker Scale: 1
-      Name: TF
-      Show Arrows: true
-      Show Axes: true
-      Show Names: true
-      Tree:
-        {}
-      Update Interval: 0
-      Value: false
   Enabled: true
   Global Options:
     Background Color: 0; 0; 0
@@ -638,7 +543,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/XYOrbit
-      Distance: 72.6146240234375
+      Distance: 143.32838439941406
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -656,7 +561,7 @@ Visualization Manager:
       Pitch: 1.5697963237762451
       Target Frame: <Fixed Frame>
       Value: XYOrbit (rviz)
-      Yaw: 1.4535359144210815
+      Yaw: 1.4485359191894531
     Saved: ~
 Window Geometry:
   Displays:
