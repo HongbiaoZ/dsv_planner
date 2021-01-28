@@ -31,12 +31,12 @@ roslaunch vehicle_simulator system_garage.launch
 In another terminal, go to the DSV Planner folder, source the ROS workspace, and launch.
 ```bash
 source devel/setup.sh
-roslaunch dsv_planner dsvp_garage.launch
+roslaunch dsvp_launch dsvp_garage.launch
 ```
 Now, users should see autonomous exploration in action. To launch with a different environment, use the command lines below instead and replace 'environment' with one of the environment names in the development environment, i.e. 'campus', 'indoor', 'garage', 'tunnel', and 'forest'.
 ```bash
 roslaunch vehicle_simulator system_environment.launch
-roslaunch dsv_planner dsvp_environment.launch
+roslaunch dsvp_launch dsvp_environment.launch
 ```
 ### Who do I talk to? ###
 Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
