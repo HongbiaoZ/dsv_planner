@@ -51,8 +51,7 @@ void dsvplanner_ns::drrtPlanner::odomCallback(const nav_msgs::Odometry& pose)
 bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_srv::Request& req,
                                                         dsvplanner::dsvplanner_srv::Response& res)
 {
-  ros::Time computationTime = ros::Time::now();
-
+  plan_start_ = std::chrono::steady_clock::now();
   // Check if the planner is ready.
   if (!drrt_->plannerReady_)
   {
@@ -99,7 +98,10 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
   drrt_->publishNode();
   ROS_INFO("Total node number is %d \n Current local graph size is %d \n Current global graph size is %d",
            drrt_->getNodeCounter(), dual_state_graph_->getLocalVertexSize(), drrt_->global_vertex_size_);
-  double rrtGenerateTime = (ros::Time::now() - computationTime).toSec();
+  RRT_generate_over_ = std::chrono::steady_clock::now();
+  time_span = RRT_generate_over_ - plan_start_;
+  double rrtGenerateTime =
+      double(time_span.count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
   ROS_INFO("RRT generation lasted %2.3fs", rrtGenerateTime);
   // Reset planner state
   drrt_->global_plan_pre_ = drrt_->global_plan_;
@@ -119,7 +121,7 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
     home_position.y = 0;
     home_position.z = 0;
     res.goal.push_back(home_position);
-
+    res.mode.data = 2;  // mode 2 means returning home
     return true;
   }
   else if (!drrt_->nextNodeFound_ && !drrt_->global_plan_pre_ && dual_state_graph_->getGain(robot_position) <= 0)
@@ -131,7 +133,10 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
   {
     drrt_->local_plan_ = true;
   }
-  double getGainTime = (ros::Time::now() - computationTime).toSec();
+  gain_computation_over_ = std::chrono::steady_clock::now();
+  time_span = gain_computation_over_ - RRT_generate_over_;
+  double getGainTime =
+      double(time_span.count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
   ROS_INFO("Computiong gain lasted %2.3fs", getGainTime);
 
   // Extract next goal.
@@ -144,36 +149,30 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
   }
   else if (drrt_->global_plan_pre_ == true && drrt_->gainFound())
   {
-    std::cout << "false id = " << drrt_->bestNodeId_ << std::endl;
-
     dual_state_graph_->best_vertex_id_ = drrt_->bestNodeId_;
     dual_state_graph_->updateExploreDirection();
     next_goal_position = dual_state_graph_->getBestLocalVertexPosition();
   }
   else
   {
-    std::cout << "true" << std::endl;
-
     dual_state_graph_->updateGlobalGraph();
     dual_state_graph_->updateExploreDirection();
     next_goal_position = dual_state_graph_->getBestLocalVertexPosition();
   }
   dual_state_graph_->setCurrentPlannerStatus(drrt_->global_plan_pre_);
   res.goal.push_back(next_goal_position);
-
-  // Publish plan time of this iteration
-  double plantime = (ros::Time::now() - computationTime).toSec();
-  std_msgs::Float32 current_plantime;
-  current_plantime.data = plantime;
-  params_.plantimePub_.publish(current_plantime);
+  res.mode.data = 1;  // mode 1 means exploration
 
   geometry_msgs::PointStamped next_goal_point;
-  //  current_plantime.point.x = plantime;
-  //  current_plantime.header.stamp = ros::Time::now();
   next_goal_point.header.frame_id = "/map";
   next_goal_point.point = next_goal_position;
   params_.nextGoalPub_.publish(next_goal_point);
-  ROS_INFO("Path computation lasted %2.3fs", plantime);
+
+  plan_over_ = std::chrono::steady_clock::now();
+  time_span = plan_over_ - plan_start_;
+  double plantime =
+      double(time_span.count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
+  ROS_INFO("Total plan lasted %2.3fs", plantime);
   return true;
 }
 

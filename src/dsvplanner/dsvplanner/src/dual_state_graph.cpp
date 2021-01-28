@@ -520,7 +520,6 @@ bool DualStateGraph::zCollisionCheck(int start_vertex_idx, int end_vertex_idx, g
   float ang_diff = atan(fabs(z_diff) / sqrt(x_diff * x_diff + y_diff * y_diff)) * 180 / PI;
   if (fabs(ang_diff) > kMaxVertexAngleAlongZ || fabs(z_diff) > kMaxVertexDiffAlongZ)
   {
-    // std::cout<<"ang_diff is "<<ang_diff<<std::endl;
     return true;
   }
   return false;
@@ -586,7 +585,6 @@ void DualStateGraph::pruneGraph(geometry_msgs::Point root)
       addNewPrunedVertex(tempvertex_, pruned_graph_);
     }
   }
-  std::cout << "prune over" << std::endl;
 }
 
 void DualStateGraph::pruneGlobalGraph()
@@ -708,7 +706,7 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position)
       }
     }
   }
-  std::cout << best_gain_ << "  " << best_vertex_id_ << std::endl;
+  ROS_INFO("Best gain is %f.\n Best vertex id is %d", best_gain_, best_vertex_id_);
   return best_gain_;
 }
 
@@ -890,7 +888,6 @@ void DualStateGraph::pathCallback(const nav_msgs::Path::ConstPtr& graph_path)
                                                                 j);
             if (planner_status_ == true)
             {
-              std::cout << "delete edge in global graph" << std::endl;
               global_graph_.vertices[origin_vertex_id].edges.erase(
                   global_graph_.vertices[origin_vertex_id].edges.begin() + j);
             }
@@ -929,7 +926,6 @@ void DualStateGraph::graphPlannerStatusCallback(const graph_planner::GraphPlanne
     {
       pruneGlobalGraph();
       publishGlobalGraph();
-      std::cout << "pruned global graph" << std::endl;
     }
   }
 }

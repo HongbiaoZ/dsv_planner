@@ -65,6 +65,12 @@ private:
   std::string shutDownTopic;
   std::string plannerServiceName;
   std::string cleanFrontierServiceName;
+
+  std::chrono::steady_clock::time_point plan_start_;
+  std::chrono::steady_clock::time_point RRT_generate_over_;
+  std::chrono::steady_clock::time_point gain_computation_over_;
+  std::chrono::steady_clock::time_point plan_over_;
+  std::chrono::steady_clock::duration time_span;
 };
 }
 

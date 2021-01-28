@@ -135,9 +135,7 @@ bool dsvplanner_ns::Drrt::inSensorRange(StateVec& node)
     node[1] = init_node[1] + frontier_point[1];
     double x_position = node[0] - root_node[0];
     double y_position = node[1] - root_node[1];
-    // std::cout << "start terrain elevation" << std::endl;
     node[2] = getZvalue(x_position, y_position);
-    // std::cout << "end terrain elevation" << std::endl;
     if (!inPlanningBoundary(node))
       continue;
 
@@ -340,11 +338,11 @@ void dsvplanner_ns::Drrt::getNextNodeToClosestGlobalFrontier()
       p3.z = p1.z();
     }
     globalSelectedFrontier->points.push_back(p3);
-    ROS_INFO("global goal is found. The next best id is %d", NextBestNodeIdx_);
+    ROS_INFO("Global goal is found. The next best id is %d", NextBestNodeIdx_);
   }
   else
   {
-    ROS_INFO("global goal is not found.");
+    ROS_INFO("Global goal is not found.");
   }
   sensor_msgs::PointCloud2 globalFrontier;
   pcl::toROSMsg(*globalSelectedFrontier, globalFrontier);
@@ -394,8 +392,8 @@ void dsvplanner_ns::Drrt::getThreeLocalFrontierPoint()  // Three local frontiers
       p3 = dual_state_frontier_->local_frontier_->points[i];
     }
   }
-  ROS_INFO("explore direction is %f.\n The first frontier direction is %f.\n The third frontier direction is %f.",
-           atan2(exploreDirection[1], exploreDirection[0]) * 180 / PI, firstDirection, secondDirection, thirdDirection);
+  ROS_INFO("Explore direction is %f.\n The first frontier direction is %f.\n The third frontier direction is %f.",
+           atan2(exploreDirection[1], exploreDirection[0]) * 180 / PI, firstDirection, secondDirection);
   localThreeFrontier_->clear();
   localThreeFrontier_->points.push_back(p1);
   localThreeFrontier_->points.push_back(p2);
@@ -524,13 +522,11 @@ void dsvplanner_ns::Drrt::plannerIterate()
 
   double x_position = newState[0] - root_[0];
   double y_position = newState[1] - root_[1];
-  // std::cout << "start terrain elevation" << std::endl;
   newState[2] = getZvalue(x_position, y_position);
   if (newState[2] >= 1000)  // the sampled position is above the untraversed area
   {
     return;
   }
-  // std::cout << "end terrain elevation" << std::endl;
   // Check if the new node is too close to any existing nodes after extension
   kdres* nearest_node = kd_nearest3(kdTree_, newState.x(), newState.y(), newState.z());
   if (kd_res_size(nearest_node) <= 0)
@@ -571,7 +567,6 @@ void dsvplanner_ns::Drrt::plannerIterate()
       newParent->children_.push_back(newNode);
       newNode->gain_ = gain(newNode->state_);
 
-      // std::cout<<"finish gain!!!"<<std::endl;
       kd_insert3(kdTree_, newState.x(), newState.y(), newState.z(), newNode);
 
       geometry_msgs::Pose p1;

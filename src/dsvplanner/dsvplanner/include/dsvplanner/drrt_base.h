@@ -11,6 +11,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 
 #include <sstream>
 #include <fstream>
+#include <chrono>
 #include <vector>
 #include <eigen3/Eigen/Dense>
 

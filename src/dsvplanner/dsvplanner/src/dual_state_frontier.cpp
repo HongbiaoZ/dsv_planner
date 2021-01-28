@@ -283,7 +283,6 @@ bool DualStateFrontier::inSensorRangeofGraphPoints(StateVec point)
   std::vector<float> pointSearchDist;
   if (graphPoints_->points.size() > 0)
   {
-    // std::cout<<"points size= "<<graphPoints_->points.size()<<std::endl;
     kdtree_->setInputCloud(graphPoints_);
     kdtree_->radiusSearch(check_point, kSearchRadius, pointSearchInd, pointSearchDist);
     for (int i = 0; i < pointSearchInd.size(); i++)
@@ -409,7 +408,6 @@ void DualStateFrontier::terrainCloudAndOdomCallback(const nav_msgs::Odometry::Co
   robot_position_[0] = odom_msg->pose.pose.position.x;
   robot_position_[1] = odom_msg->pose.pose.position.y;
   robot_position_[2] = odom_msg->pose.pose.position.z;
-  ros::Time start = ros::Time::now();
   terrain_cloud_->clear();
   terrain_cloud_ds->clear();
   terrain_cloud_crop_->clear();
@@ -475,7 +473,6 @@ void DualStateFrontier::terrainCloudAndOdomCallback(const nav_msgs::Odometry::Co
       }
     }
   }
-  // std::cout << "update crop point" << std::endl;
   // update elevation for all known voxels
   for (int i = 0; i < kTerrainVoxelWidth * kTerrainVoxelWidth; i++)
   {
@@ -503,7 +500,6 @@ void DualStateFrontier::terrainCloudAndOdomCallback(const nav_msgs::Odometry::Co
       terrain_elev_cloud_->push_back(point);
     }
   }
-  // std::cout << "update known elevation point" << std::endl;
   // update elevation for all unknown voxels
   pcl::KdTreeFLANN<pcl::PointXYZI> kdtree;
   std::vector<int> pointIdxNKNSearch(1);
@@ -547,8 +543,6 @@ void DualStateFrontier::terrainCloudAndOdomCallback(const nav_msgs::Odometry::Co
   elevVoxel2.header.stamp = ros::Time::now();
   elevVoxel2.header.frame_id = "/map";
   terrain_elev_cloud_pub_.publish(elevVoxel2);
-  ros::Time end = ros::Time::now();
-  // std::cout << "publish elevation point end" << (end - start).toSec() << std::endl;
 }
 
 void DualStateFrontier::graphPointsCallback(const sensor_msgs::PointCloud2& graph_msg)

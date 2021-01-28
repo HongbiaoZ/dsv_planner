@@ -8,6 +8,7 @@ Created and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <chrono>
 
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -26,9 +27,10 @@ Created and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include "graph_planner/GraphPlannerCommand.h"
 #include "graph_planner/GraphPlannerStatus.h"
 
+using namespace std::chrono;
+
 geometry_msgs::Point wayPoint;
 geometry_msgs::Point wayPoint_pre;
-// geometry_msgs::PointStamped effective_time;
 graph_planner::GraphPlannerCommand graph_planner_command;
 std_msgs::Float32 effective_time;
 std_msgs::Float32 total_time;
@@ -47,8 +49,9 @@ double init_y = 0;
 double init_z = 2;
 std::string map_frame = "map";
 
-ros::Time plan_start;
-ros::Time plan_over;
+steady_clock::time_point plan_start;
+steady_clock::time_point plan_over;
+steady_clock::duration time_span;
 
 void gp_status_callback(const graph_planner::GraphPlannerStatus::ConstPtr& msg)
 {
@@ -124,7 +127,7 @@ int main(int argc, char** argv)
     ROS_INFO("Waiting for Odometry");
   }
 
-  ROS_INFO("Starting the planner: Performing initialization motion");
+  ROS_WARN("Starting the planner: Performing initialization motion");
   geometry_msgs::PointStamped wp;
   wp.header.frame_id = map_frame;
   wp.header.stamp = ros::Time::now();
@@ -147,9 +150,9 @@ int main(int argc, char** argv)
       wp_ongoing = false;
   }
 
-  ROS_INFO("Exploration started");
+  ROS_WARN("Exploration started");
   total_time.data = 0;
-  plan_start = ros::Time::now();
+  plan_start = steady_clock::now();
   // Start planning: The planner is called and the computed goal point sent to the graph planner.
   int iteration = 0;
   while (ros::ok())
@@ -170,18 +173,19 @@ int main(int argc, char** argv)
           continue;
         }
 
-        if (planSrv.response.goal[0].x + planSrv.response.goal[0].y + planSrv.response.goal[0].z == 0)
+        if (planSrv.response.mode.data == 2)
         {
           return_home = true;
-          ROS_INFO("Exploration completed, returning home");
+          ROS_WARN("Exploration completed, returning home");
           effective_time.data = 0;
           effective_plan_time_pub.publish(effective_time);
         }
         else
         {
           return_home = false;
-          plan_over = ros::Time::now();
-          effective_time.data = (plan_over - plan_start).toSec();
+          plan_over = steady_clock::now();
+          time_span = plan_over - plan_start;
+          effective_time.data = float(time_span.count()) * steady_clock::period::num / steady_clock::period::den;
           effective_plan_time_pub.publish(effective_time);
         }
         total_time.data += effective_time.data;
@@ -189,14 +193,14 @@ int main(int argc, char** argv)
 
         if (!simulation)
         {  // when not in simulation mode, the robot will go to the goal point according to graph planner
-          for (int i = 0; i < planSrv.response.goal.size(); i++)
+          for (size_t i = 0; i < planSrv.response.goal.size(); i++)
           {
             graph_planner_command.command = graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
             graph_planner_command.location = planSrv.response.goal[i];
             gp_command_pub.publish(graph_planner_command);
             ros::Duration(dtime).sleep();  // give sometime to graph planner for searching path to goal point
             ros::spinOnce();               // update gp_in_progree
-            double count = 200;
+            int count = 200;
             while (gp_in_progress)
             {                              // if the waypoint keep the same for 20 (200*0.1)
               ros::Duration(0.1).sleep();  // seconds, then give up the goal
@@ -227,7 +231,7 @@ int main(int argc, char** argv)
         else
         {  // simulation mode is used when testing this planning algorithm with bagfiles where robot will
           // not move to the planned goal. When in simulation mode, robot will keep replanning every two seconds
-          for (int i = 0; i < planSrv.response.goal.size(); i++)
+          for (size_t i = 0; i < planSrv.response.goal.size(); i++)
           {
             graph_planner_command.command = graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
             graph_planner_command.location = planSrv.response.goal[i];
@@ -236,7 +240,7 @@ int main(int argc, char** argv)
             break;
           }
         }
-        plan_start = ros::Time::now();
+        plan_start = steady_clock::now();
       }
       else
       {
@@ -248,7 +252,7 @@ int main(int argc, char** argv)
     else
     {
       ros::spinOnce();
-      ROS_INFO_THROTTLE(1, "Return home completed");
+      ROS_WARN_THROTTLE(1, "Return home completed");
       ros::Duration(0.1).sleep();
     }
   }
