@@ -690,7 +690,7 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position)
       if (path_information_gain > 0)
       {
         gainID_.push_back(graph_vertex.vertex_id);
-        if (isnan(explore_direction_.x()) || isnan(explore_direction_.y()))
+        if (std::isnan(explore_direction_.x()) || std::isnan(explore_direction_.y()))
           DTWValue_ = exp(1);
         else
         {
