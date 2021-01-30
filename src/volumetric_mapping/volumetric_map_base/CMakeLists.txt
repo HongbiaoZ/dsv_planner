@@ -14,6 +14,7 @@ include_directories(${Eigen_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 cs_add_library(${PROJECT_NAME}
   src/world_base.cc
 )
+target_link_libraries(${PROJECT_NAME} glog gflags)
 
 ##########
 # EXPORT #

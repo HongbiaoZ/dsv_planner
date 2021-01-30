@@ -20,6 +20,7 @@ float PathLength(const std::vector<int>& path, const graph_utils::TopologicalGra
 int GetClosestVertexIdxToPoint(const graph_utils::TopologicalGraph& graph, const geometry_msgs::Point& pnt);
 int GetFirstVertexBeyondThreshold(const geometry_msgs::Point& start_location, const std::vector<int>& path,
                                   const graph_utils::TopologicalGraph& graph, const float distance_threshold);
+bool PathCircleDetect(std::vector<int>& path, const graph_utils::TopologicalGraph& graph, int next_vertex_index);
 }
 
 #endif  // GRAPH_UTILS_H

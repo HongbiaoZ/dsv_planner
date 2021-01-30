@@ -195,4 +195,37 @@ int GetFirstVertexBeyondThreshold(const geometry_msgs::Point& start_location, co
   // if none are above the threshold, return index of last point on path
   return path.back();
 }
+
+bool PathCircleDetect(std::vector<int>& path, const graph_utils::TopologicalGraph& graph, int next_vertex_index)
+{
+  double accumulated_angle_difference = 0;
+  geometry_msgs::Point pointA, pointB, pointC;
+  std::vector<int>::iterator it = std::find(path.begin(), path.end(), next_vertex_index);
+  if (it != path.end())
+  {
+    int index = it - path.begin();
+    if (index >= 2)
+    {
+      for (int i = 2; i < path.size(); i++)
+      {
+        if (path[i] <= next_vertex_index)
+        {
+          pointA = graph.vertices[path[i - 2]].location;
+          pointB = graph.vertices[path[i - 1]].location;
+          pointC = graph.vertices[path[i]].location;
+          double angle1 = atan2(pointB.x - pointA.x, pointB.y - pointA.y);
+          double angle2 = atan2(pointC.x - pointB.x, pointC.y - pointB.y);
+          accumulated_angle_difference += angle2 - angle1;
+        }
+        else
+        {
+        }
+      }
+    }
+  }
+  else
+  {
+    return false;
+  }
+}
 }
