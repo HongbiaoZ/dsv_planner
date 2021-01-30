@@ -11,6 +11,8 @@ To setup DSV Planner, install dependencies with command lines below. Replace 'di
 ```bash
 sudo apt update
 sudo apt install ros-distribution-octomap-ros
+sudo apt install libgoogle-glog-dev
+sudo apt install libgflags-dev
 ```
 ### Clone and Compile ###
 ```bash
