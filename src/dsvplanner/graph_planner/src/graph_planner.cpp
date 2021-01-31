@@ -109,7 +109,11 @@ void GraphPlanner::commandCallback(const graph_planner::GraphPlannerCommand::Con
 {
   graph_planner_command_ = *msg;
   if (graph_planner_command_.command == graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION)
+  {
     previous_shortest_path_size_ = 100000;
+    wrong_id_shortest_path_size_ = 100000;
+    previous_shortest_path_size_when_pathrewind = 100000;
+  }
 }
 
 void GraphPlanner::graphCallback(const graph_utils::TopologicalGraph::ConstPtr& graph_msg)
@@ -157,11 +161,11 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
 
     return false;
   }
-  else if (shortest_path.size() == 1)
+  else if (shortest_path.size() <= 2)
   {
     // picked my current vertex -- therefore pick currently visible and unvisited opening
     geometry_msgs::Point next_waypoint =
-        planned_graph_.vertices[shortest_path[0]].location;  // why vertices[0] but not vertices[goal_vertex_idx]???
+        planned_graph_.vertices[shortest_path.back()].location;  // why vertices[0] but not vertices[goal_vertex_idx]???
 
     waypoint_.header.stamp = ros::Time::now();
     waypoint_.point.x = next_waypoint.x;
@@ -184,20 +188,56 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
         graph_utils_ns::GetFirstVertexBeyondThreshold(robot_pos_, shortest_path, planned_graph_, kLookAheadDist);
     std::vector<int> next_shortest_path;
     graph_utils_ns::ShortestPathBtwVertex(next_shortest_path, planned_graph_, next_vertex_id, goal_vertex_idx);
-    if (next_shortest_path.size() > previous_shortest_path_size_)
+
+    // when the path is bypassed a thin wall, follow the path one vertex by one vertex.
+    bool pathRewind = graph_utils_ns::PathCircleDetect(shortest_path, planned_graph_, next_vertex_id);
+    if (pathRewind)
     {
-      next_vertex_id = previous_vertex_id_;
-      backTraceCount_++;
-      if (backTraceCount_ > 15)
+      wrong_id_ = true;
+      wrong_id_shortest_path_size_ = next_shortest_path.size();
+    }
+
+    if (!wrong_id_)
+    {
+      // prevent back and forth between two vertices
+      if (next_shortest_path.size() > previous_shortest_path_size_)
       {
-        backTraceCount_ = 0;
-        previous_shortest_path_size_ = 100000;
+        next_vertex_id = previous_vertex_id_;
+        backTraceCount_++;
+        if (backTraceCount_ > 15)
+        {
+          backTraceCount_ = 0;
+          previous_shortest_path_size_ = 100000;
+        }
+      }
+      else
+      {
+        previous_vertex_id_ = next_vertex_id;
+        previous_shortest_path_size_ = next_shortest_path.size();
       }
     }
     else
     {
-      previous_vertex_id_ = next_vertex_id;
-      previous_shortest_path_size_ = next_shortest_path.size();
+      next_vertex_id = shortest_path[2];
+      if (shortest_path.size() >= previous_shortest_path_size_when_pathrewind)
+      {
+        next_vertex_id = previous_vertex_id_;
+        backTraceCount_++;
+        if (backTraceCount_ > 15)
+        {
+          backTraceCount_ = 0;
+          previous_shortest_path_size_when_pathrewind = 100000;
+        }
+      }
+      else
+      {
+        previous_vertex_id_ = next_vertex_id;
+        previous_shortest_path_size_when_pathrewind = shortest_path.size();
+      }
+      if (shortest_path.size() <= wrong_id_shortest_path_size_)
+      {
+        wrong_id_ = false;
+      }
     }
 
     geometry_msgs::Point next_waypoint = planned_graph_.vertices[next_vertex_id].location;

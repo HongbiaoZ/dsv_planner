@@ -95,9 +95,12 @@ private:
                                                     // output
   double robot_yaw_;                                // current robot yaw
   bool in_progress_ = false;                        // current graph planner status
+  bool wrong_id_ = false;
   int backTraceCount_ = 0;
   int previous_shortest_path_size_ =
-      100000;               // the size of the previous planned path. used to avoid moving back and forth in some cases
+      100000;  // the size of the previous planned path. used to avoid moving back and forth in some cases
+  int wrong_id_shortest_path_size_ = 0;
+  int previous_shortest_path_size_when_pathrewind = 100000;
   int previous_vertex_id_;  // the id of the previous planned goal vertex
 
   // Callbacks

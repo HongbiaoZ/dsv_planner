@@ -36,6 +36,7 @@ interface/dtime: 1
 interface/initX: 4
 interface/initY: 0
 interface/initZ: 0
+interface/returnHomeThres: 1.5
 interface/tfFrame: /map
 interface/autoExp: true
 

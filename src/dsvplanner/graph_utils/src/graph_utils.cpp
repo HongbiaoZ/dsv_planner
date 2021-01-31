@@ -8,7 +8,7 @@
 #include <math.h>
 #include <bits/stdc++.h>
 #define INF 0x3f3f3f3f  // integer infinity
-
+#define PI 3.14159265358979323846
 using namespace std;
 
 namespace graph_utils_ns
@@ -204,22 +204,33 @@ bool PathCircleDetect(std::vector<int>& path, const graph_utils::TopologicalGrap
   if (it != path.end())
   {
     int index = it - path.begin();
-    if (index >= 2)
+    if (index >= 3)
     {
-      for (int i = 2; i < path.size(); i++)
+      for (int i = 2; i < index + 1; i++)
       {
-        if (path[i] <= next_vertex_index)
+        pointA = graph.vertices[path[i - 2]].location;
+        pointB = graph.vertices[path[i - 1]].location;
+        pointC = graph.vertices[path[i]].location;
+        double angle1 = atan2(pointB.y - pointA.y, pointB.x - pointA.x);
+        double angle2 = atan2(pointC.y - pointB.y, pointC.x - pointB.x);
+        double angle_difference = angle2 - angle1;
+        if (angle_difference > PI)
         {
-          pointA = graph.vertices[path[i - 2]].location;
-          pointB = graph.vertices[path[i - 1]].location;
-          pointC = graph.vertices[path[i]].location;
-          double angle1 = atan2(pointB.x - pointA.x, pointB.y - pointA.y);
-          double angle2 = atan2(pointC.x - pointB.x, pointC.y - pointB.y);
-          accumulated_angle_difference += angle2 - angle1;
+          angle_difference = 2 * PI - angle_difference;
         }
-        else
+        else if (angle_difference < -PI)
         {
+          angle_difference = 2 * PI + angle_difference;
         }
+        accumulated_angle_difference += angle_difference;
+      }
+      if (std::fabs(accumulated_angle_difference) > 2.0 / 3 * PI)
+      {
+        return true;
+      }
+      else
+      {
+        return false;
       }
     }
   }

@@ -47,6 +47,7 @@ double dtime = 0.0;
 double init_x = 2;
 double init_y = 0;
 double init_z = 2;
+double return_home_threshold = 1.5;
 std::string map_frame = "map";
 
 steady_clock::time_point plan_start;
@@ -114,6 +115,7 @@ int main(int argc, char** argv)
   nhPrivate.getParam("/interface/initX", init_x);
   nhPrivate.getParam("/interface/initY", init_y);
   nhPrivate.getParam("/interface/initZ", init_z);
+  nhPrivate.getParam("/interface/returnHomeThres", return_home_threshold);
   nhPrivate.getParam("/interface/tfFrame", map_frame);
   nhPrivate.getParam("/interface/autoExp", begin_signal);
 
@@ -252,7 +254,14 @@ int main(int argc, char** argv)
     else
     {
       ros::spinOnce();
-      ROS_WARN_THROTTLE(1, "Return home completed");
+      if (current_odom_x + current_odom_y + current_odom_z <= return_home_threshold)
+      {
+        ROS_WARN("Return home completed");
+        while (true)
+        {
+          ros::Duration(0.1).sleep();
+        }
+      }
       ros::Duration(0.1).sleep();
     }
   }
