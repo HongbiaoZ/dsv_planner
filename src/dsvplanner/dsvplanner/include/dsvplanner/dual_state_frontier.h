@@ -120,6 +120,7 @@ public:
   void updateToCleanFrontier(pcl::PointXYZ point);
   void gloabalFrontierUpdate();
   void localFrontierUpdate(StateVec& center);
+  void cleanAllUselessFrontiers();
   bool frontierDetect(octomap::point3d point) const;
   bool collisionCheckByTerrain(StateVec origin_point, StateVec goal_point);
   bool inSensorRangeofGraphPoints(StateVec point);

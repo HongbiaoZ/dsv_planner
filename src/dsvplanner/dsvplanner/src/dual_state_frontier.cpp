@@ -380,6 +380,13 @@ void DualStateFrontier::gloabalFrontierUpdate()
   point_ds_.filter(*global_frontier_);
 }
 
+void DualStateFrontier::cleanAllUselessFrontiers()
+{
+  global_frontier_->clear();
+  local_frontier_->clear();
+  publishFrontiers();
+}
+
 void DualStateFrontier::getFrontiers()
 {
   getUnknowPointcloudInBoundingBox(robot_position_, search_bounding);

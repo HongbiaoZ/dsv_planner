@@ -122,6 +122,8 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
     home_position.z = 0;
     res.goal.push_back(home_position);
     res.mode.data = 2;  // mode 2 means returning home
+
+    dual_state_frontier_->cleanAllUselessFrontiers();
     return true;
   }
   else if (!drrt_->nextNodeFound_ && !drrt_->global_plan_pre_ && dual_state_graph_->getGain(robot_position) <= 0)
