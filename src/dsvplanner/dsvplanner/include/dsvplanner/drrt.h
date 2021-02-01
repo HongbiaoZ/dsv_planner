@@ -51,6 +51,7 @@ public:
   void plannerIterate();
   void pruneTree(StateVec root);
   void publishNode();
+  void gotoxy(int x, int y);
   bool gainFound();
   bool remainingLocalFrontier();
   bool generateRrtNodeToLocalFrontier(StateVec& newNode);

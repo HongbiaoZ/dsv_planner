@@ -82,7 +82,7 @@ rm/kVehicleHeight: 0.75
 #Collision Check Constants
 cc/kFlyingObstacleHeightThre: 1.0
 cc/kObstacleHeightThre: 0.2
-cc/kTerrainCheckDist: 0.35
+cc/kTerrainCheckDist: 0.45
 cc/kTerrainCheckPointNum: 1
 cc/kTerrainVoxelHalfWidth: 50
 cc/kTerrainVoxelWidth: 101

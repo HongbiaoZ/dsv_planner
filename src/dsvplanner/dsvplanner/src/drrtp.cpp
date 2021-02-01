@@ -52,20 +52,21 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
                                                         dsvplanner::dsvplanner_srv::Response& res)
 {
   plan_start_ = std::chrono::steady_clock::now();
+  // drrt_->gotoxy(0, 10);  // Go to the specific line on the screen
   // Check if the planner is ready.
   if (!drrt_->plannerReady_)
   {
-    ROS_ERROR("No odometry. Planner is not ready!");
+    std::cout << "No odometry. Planner is not ready!" << std::endl;
     return true;
   }
   if (manager_ == NULL)
   {
-    ROS_ERROR("No octomap. Planner is not ready!");
+    std::cout << "No octomap. Planner is not ready!" << std::endl;
     return true;
   }
   if (manager_->getMapSize().norm() <= 0.0)
   {
-    ROS_ERROR("Octomap is empty. Planner is not set up!");
+    std::cout << "Octomap is empty. Planner is not set up!" << std::endl;
     return true;
   }
 
@@ -87,7 +88,7 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
   {
     if (loopCount > 1000 * (drrt_->getNodeCounter() + 1))
     {
-      ROS_INFO_THROTTLE(1, "Exceeding maximum failed iterations, give up the current planning!");
+      // ROS_INFO_THROTTLE(1, "Exceeding maximum failed iterations, give up the current planning!");
       break;
     }
     drrt_->plannerIterate();
@@ -96,13 +97,13 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
 
   // Publish rrt
   drrt_->publishNode();
-  ROS_INFO("Total node number is %d \n Current local graph size is %d \n Current global graph size is %d",
-           drrt_->getNodeCounter(), dual_state_graph_->getLocalVertexSize(), drrt_->global_vertex_size_);
+  std::cout << "     New node number is " << drrt_->getNodeCounter() << "\n"
+            << "     Current local RRT size is " << dual_state_graph_->getLocalVertexSize() << "\n"
+            << "     Current global graph size is " << dual_state_graph_->getGlobalVertexSize() << std::endl;
   RRT_generate_over_ = std::chrono::steady_clock::now();
   time_span = RRT_generate_over_ - plan_start_;
   double rrtGenerateTime =
       double(time_span.count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
-  ROS_INFO("RRT generation lasted %2.3fs", rrtGenerateTime);
   // Reset planner state
   drrt_->global_plan_pre_ = drrt_->global_plan_;
   drrt_->global_plan_ = false;
@@ -139,7 +140,6 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
   time_span = gain_computation_over_ - RRT_generate_over_;
   double getGainTime =
       double(time_span.count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
-  ROS_INFO("Computiong gain lasted %2.3fs", getGainTime);
 
   // Extract next goal.
   geometry_msgs::Point next_goal_position;
@@ -174,7 +174,9 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
   time_span = plan_over_ - plan_start_;
   double plantime =
       double(time_span.count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
-  ROS_INFO("Total plan lasted %2.3fs", plantime);
+  std::cout << "     RRT generation lasted  " << rrtGenerateTime << "\n"
+            << "     Computiong gain lasted " << getGainTime << "\n"
+            << "     Total plan lasted " << plantime << std::endl;
   return true;
 }
 

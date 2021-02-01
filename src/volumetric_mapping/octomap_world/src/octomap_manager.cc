@@ -410,11 +410,11 @@ bool OctomapManager::lookupTransformTf(const std::string& from_frame, const std:
     if (timestamp_age < tf_listener_.getCacheLength())
     {
       time_to_lookup = ros::Time(0);
-      ROS_WARN("Using latest TF transform instead of timestamp match.");
+      // ROS_WARN("Using latest TF transform instead of timestamp match.");
     }
     else
     {
-      ROS_ERROR("Requested transform time older than cache limit.");
+      // ROS_ERROR("Requested transform time older than cache limit.");
       return false;
     }
   }

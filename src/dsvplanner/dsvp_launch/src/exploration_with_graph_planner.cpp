@@ -9,6 +9,9 @@ Created and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include <stdio.h>
 #include <stdlib.h>
 #include <chrono>
+#include <unistd.h>
+#include <math.h>
+#include <stdint.h>
 
 #include <ros/ros.h>
 #include <ros/package.h>
@@ -28,6 +31,9 @@ Created and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include "graph_planner/GraphPlannerStatus.h"
 
 using namespace std::chrono;
+#define cursup "\033[A"
+#define cursclean "\033[2K"
+#define curshome "\033[0;0H"
 
 geometry_msgs::Point wayPoint;
 geometry_msgs::Point wayPoint_pre;
@@ -91,6 +97,11 @@ bool wayPointChange(geometry_msgs::Point wp1, geometry_msgs::Point wp2)
   return true;
 }
 
+void gotoxy(int x, int y)
+{
+  printf("%c[%d;%df", 0x1B, y, x);
+}
+
 int main(int argc, char** argv)
 {
   ros::init(argc, argv, "exploration");
@@ -107,8 +118,6 @@ int main(int argc, char** argv)
   ros::Subscriber waypoint_sub = nh.subscribe<geometry_msgs::PointStamped>("/way_point", 1, waypoint_callback);
   ros::Subscriber odom_sub = nh.subscribe<nav_msgs::Odometry>("/state_estimation", 1, odom_callback);
   ros::Subscriber begin_signal_sub = nh.subscribe<std_msgs::Bool>("/start_exploring", 1, begin_signal_callback);
-
-  ROS_INFO("Start exploration");
 
   nhPrivate.getParam("simulation", simulation);
   nhPrivate.getParam("/interface/dtime", dtime);
@@ -152,7 +161,7 @@ int main(int argc, char** argv)
       wp_ongoing = false;
   }
 
-  ROS_WARN("Exploration started");
+  std::cout << "\033[1;32mExploration Started\033[0m\n" << std::endl;
   total_time.data = 0;
   plan_start = steady_clock::now();
   // Start planning: The planner is called and the computed goal point sent to the graph planner.
@@ -161,7 +170,16 @@ int main(int argc, char** argv)
   {
     if (!return_home)
     {
-      ROS_INFO_THROTTLE(0.5, "Planning iteration %i", iteration);
+      if (iteration != 0)
+      {
+        for (int i = 0; i < 8; i++)
+        {
+          printf(cursup);
+          printf(cursclean);
+        }
+        // gotoxy(0, 52);
+      }
+      std::cout << "Planning iteration " << iteration << std::endl;
       dsvplanner::dsvplanner_srv planSrv;
       dsvplanner::clean_frontier_srv cleanSrv;
       planSrv.request.header.stamp = ros::Time::now();
@@ -178,7 +196,7 @@ int main(int argc, char** argv)
         if (planSrv.response.mode.data == 2)
         {
           return_home = true;
-          ROS_WARN("Exploration completed, returning home");
+          std::cout << "\033[1;32mExploration completed, returning home\033[0m" << std::endl;
           effective_time.data = 0;
           effective_plan_time_pub.publish(effective_time);
         }
@@ -246,7 +264,8 @@ int main(int argc, char** argv)
       }
       else
       {
-        ROS_WARN_THROTTLE(1, "Cannot call drrt planner.");
+        std::cout << "Cannot call drrt planner.\r" << std::flush;
+
         ros::Duration(1.0).sleep();
       }
       iteration++;
@@ -256,11 +275,7 @@ int main(int argc, char** argv)
       ros::spinOnce();
       if (current_odom_x + current_odom_y + current_odom_z <= return_home_threshold)
       {
-        ROS_WARN("Return home completed");
-        while (true)
-        {
-          ros::Duration(0.1).sleep();
-        }
+        std::cout << "\033[1;32mReturn home completed\033[0m" << std::endl;
       }
       ros::Duration(0.1).sleep();
     }

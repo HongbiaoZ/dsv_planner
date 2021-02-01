@@ -706,7 +706,7 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position)
       }
     }
   }
-  ROS_INFO("Best gain is %f.\n Best vertex id is %d", best_gain_, best_vertex_id_);
+  // ROS_INFO("Best gain is %f.\n Best vertex id is %d", best_gain_, best_vertex_id_);
   return best_gain_;
 }
 

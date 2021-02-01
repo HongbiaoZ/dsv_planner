@@ -154,7 +154,7 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
 
   if (shortest_path.size() <= 0)
   {
-    ROS_WARN("Graph planner did not find path to selected goal!");
+    // ROS_WARN("Graph planner did not find path to selected goal!");
 
     // clear the saved path
     planned_path_.clear();

@@ -338,11 +338,11 @@ void dsvplanner_ns::Drrt::getNextNodeToClosestGlobalFrontier()
       p3.z = p1.z();
     }
     globalSelectedFrontier->points.push_back(p3);
-    ROS_INFO("Global goal is found. The next best id is %d", NextBestNodeIdx_);
+    // std::cout << "Global goal is found. The next best id is " << NextBestNodeIdx_ << std::endl;
   }
   else
   {
-    ROS_INFO("Global goal is not found.");
+    // std::cout << "Global goal is not found." << std::endl;
   }
   sensor_msgs::PointCloud2 globalFrontier;
   pcl::toROSMsg(*globalSelectedFrontier, globalFrontier);
@@ -392,8 +392,9 @@ void dsvplanner_ns::Drrt::getThreeLocalFrontierPoint()  // Three local frontiers
       p3 = dual_state_frontier_->local_frontier_->points[i];
     }
   }
-  ROS_INFO("Explore direction is %f.\n The first frontier direction is %f.\n The third frontier direction is %f.",
-           atan2(exploreDirection[1], exploreDirection[0]) * 180 / PI, firstDirection, secondDirection);
+
+  // std::cout << "Explore direction is " << atan2(exploreDirection[1], exploreDirection[0]) * 180 / PI << std::endl;
+
   localThreeFrontier_->clear();
   localThreeFrontier_->points.push_back(p1);
   localThreeFrontier_->points.push_back(p2);
@@ -604,6 +605,7 @@ void dsvplanner_ns::Drrt::plannerInit()
   geometry_msgs::Pose p1;
   if (global_plan_ == false)
   {
+    std::cout << "Exploration Stage" << std::endl;
     rootNode_->state_ = root_;
     kd_insert3(kdTree_, rootNode_->state_.x(), rootNode_->state_.y(), rootNode_->state_.z(), rootNode_);
     iterationCount_++;
@@ -654,6 +656,7 @@ void dsvplanner_ns::Drrt::plannerInit()
   }
   else
   {
+    std::cout << "Relocation Stage" << std::endl;
     StateVec node1;
     double gain1;
     if (dual_state_graph_->global_graph_.vertices.size() > 0)
@@ -673,14 +676,16 @@ void dsvplanner_ns::Drrt::plannerInit()
       if (nextNodeFound_)
       {
         dual_state_graph_->local_graph_.vertices[NextBestNodeIdx_].information_gain =
-            300000;  // set a large value as the best gain
+            300000;  // set a large enough value as the best gain
         bestGain_ = 300000;
         nodeCounter_ = dual_state_graph_->global_graph_.vertices.size();
         global_vertex_size_ = nodeCounter_;
         dual_state_graph_->publishGlobalGraph();
       }
       else
-      {  // Rebuild the rrt accordingt to current graph and then extend in plannerIterate
+      {  // Rebuild the rrt accordingt to current graph and then extend in plannerIterate. This only happens when no
+         // global frontiers can be seen. Mostly used at the end of the exploration in case that there are some narrow
+         // areas are ignored.
         for (int i = 1; i < dual_state_graph_->global_graph_.vertices.size(); i++)
         {
           p1.position = dual_state_graph_->global_graph_.vertices[i].location;
@@ -1043,6 +1048,11 @@ void dsvplanner_ns::Drrt::publishNode()
     params_.newTreePathPub_.publish(node);
     params_.newTreePathPub_.publish(branch);
   }
+}
+
+void dsvplanner_ns::Drrt::gotoxy(int x, int y)
+{
+  printf("%c[%d;%df", 0x1B, y, x);
 }
 
 #endif
