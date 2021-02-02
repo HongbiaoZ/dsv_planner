@@ -196,7 +196,7 @@ int main(int argc, char** argv)
         if (planSrv.response.mode.data == 2)
         {
           return_home = true;
-          std::cout << std::endl << "\033[1;32mExploration completed, returning home\033[0m" << std::endl;
+          std::cout << std::endl << "\033[1;32mExploration completed, returning home\033[0m" << std::endl << std::endl;
           effective_time.data = 0;
           effective_plan_time_pub.publish(effective_time);
         }
