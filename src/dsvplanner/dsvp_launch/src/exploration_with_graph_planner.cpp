@@ -264,7 +264,7 @@ int main(int argc, char** argv)
       }
       else
       {
-        std::cout << "Cannot call drrt planner.\r" << std::flush;
+        std::cout << "Cannot call drrt planner." << std::flush;
 
         ros::Duration(1.0).sleep();
       }
@@ -275,7 +275,9 @@ int main(int argc, char** argv)
       ros::spinOnce();
       if (current_odom_x + current_odom_y + current_odom_z <= return_home_threshold)
       {
+        printf(cursclean);
         std::cout << "\033[1;32mReturn home completed\033[0m" << std::endl;
+        printf(cursup);
       }
       ros::Duration(0.1).sleep();
     }

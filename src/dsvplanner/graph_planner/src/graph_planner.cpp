@@ -191,6 +191,7 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
 
     // when the path is bypassed a thin wall, follow the path one vertex by one vertex.
     bool pathRewind = graph_utils_ns::PathCircleDetect(shortest_path, planned_graph_, next_vertex_id);
+    std::cout << "pathrewind = " << pathRewind << std::endl;
     if (pathRewind)
     {
       wrong_id_ = true;
@@ -218,7 +219,7 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
     }
     else
     {
-      next_vertex_id = shortest_path[2];
+      next_vertex_id = shortest_path[1];
       if (shortest_path.size() >= previous_shortest_path_size_when_pathrewind)
       {
         next_vertex_id = previous_vertex_id_;
@@ -241,7 +242,7 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
     }
 
     geometry_msgs::Point next_waypoint = planned_graph_.vertices[next_vertex_id].location;
-    if (next_vertex_id != shortest_path.back())
+    if (next_vertex_id != shortest_path.back() && (!wrong_id_))
     {
       next_waypoint = projectWayPoint(next_waypoint, robot_pos_);
     }
