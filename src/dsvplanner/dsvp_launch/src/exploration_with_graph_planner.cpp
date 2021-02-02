@@ -138,7 +138,7 @@ int main(int argc, char** argv)
     ROS_INFO("Waiting for Odometry");
   }
 
-  ROS_WARN("Starting the planner: Performing initialization motion");
+  ROS_INFO("Starting the planner: Performing initialization motion");
   geometry_msgs::PointStamped wp;
   wp.header.frame_id = map_frame;
   wp.header.stamp = ros::Time::now();
@@ -161,7 +161,7 @@ int main(int argc, char** argv)
       wp_ongoing = false;
   }
 
-  std::cout << "\033[1;32mExploration Started\033[0m\n" << std::endl;
+  std::cout << std::endl << "\033[1;32mExploration Started\033[0m\n" << std::endl;
   total_time.data = 0;
   plan_start = steady_clock::now();
   // Start planning: The planner is called and the computed goal point sent to the graph planner.
@@ -196,7 +196,7 @@ int main(int argc, char** argv)
         if (planSrv.response.mode.data == 2)
         {
           return_home = true;
-          std::cout << "\033[1;32mExploration completed, returning home\033[0m" << std::endl;
+          std::cout << std::endl << "\033[1;32mExploration completed, returning home\033[0m" << std::endl;
           effective_time.data = 0;
           effective_plan_time_pub.publish(effective_time);
         }
@@ -275,9 +275,9 @@ int main(int argc, char** argv)
       ros::spinOnce();
       if (current_odom_x + current_odom_y + current_odom_z <= return_home_threshold)
       {
+        printf(cursup);
         printf(cursclean);
         std::cout << "\033[1;32mReturn home completed\033[0m" << std::endl;
-        printf(cursup);
       }
       ros::Duration(0.1).sleep();
     }

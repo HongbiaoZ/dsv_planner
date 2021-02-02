@@ -191,7 +191,7 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
 
     // when the path is bypassed a thin wall, follow the path one vertex by one vertex.
     bool pathRewind = graph_utils_ns::PathCircleDetect(shortest_path, planned_graph_, next_vertex_id);
-    std::cout << "pathrewind = " << pathRewind << std::endl;
+    // std::cout << "pathrewind = " << pathRewind << std::endl;
     if (pathRewind)
     {
       wrong_id_ = true;
