@@ -48,20 +48,6 @@ lb/kMinZLocal: -5.0
 lb/kMaxXLocal: 14.0
 lb/kMaxYLocal: 14.0
 lb/kMaxZLocal: 5.0
-# This is for smith hall
-#gb/kMinXGlobal: -85.0
-#gb/kMinYGlobal: -125.0
-#gb/kMinZGlobal: -20.0
-#gb/kMaxXGlobal: 27.0
-#gb/kMaxYGlobal: 20.0
-#gb/kMaxZGlobal: 10.0
-#This is for game
-#gb/kMinXGlobal: 0.0
-#gb/kMinYGlobal: 0.0
-#gb/kMinZGlobal: -20.0
-#gb/kMaxXGlobal: 100.0
-#gb/kMaxYGlobal: 100.0
-#gb/kMaxZGlobal: 10.0
 
 gb/kMinXGlobal: -300.0
 gb/kMinYGlobal: -300.0
@@ -108,7 +94,7 @@ graph/kExistingPathRatioThresholdGlobal       : 1.4 # if ratio of existing path 
 graph/kLongEdgePenaltyMultiplier              : 5.0 # edge costs are multiplied by this amount if they are long
 graph/kMaxLongEdgeDist                        : 6.0 # absolute maximum, no edges longer than this (even if marked as bad)
 graph/kMaxVertexAngleAlongZ                   : 38.0 # max angle between two vertex along Z when add edge
-graph/kMaxVertexDiffAlongZ                    : 0.5 # max distance along Z when add edge between two vertex
+graph/kMaxVertexDiffAlongZ                    : 0.2 # max distance along Z when add edge between two vertex
 graph/kMaxDistToPrunedRoot                    : 10 # max distance when pruning the local graph between root and closest vertex
 graph/kMaxPrunedNodeDist                      : 15 # max distance when pruning the local graph between root and new node
 graph/kMinVertexDist                          : 0.6 # new vertex only created if keypose is at least this distance away from existing vertices
@@ -122,7 +108,7 @@ frontier/pub_unknown_points_topic: /octomap_unknown
 frontier/pub_global_frontier_points_topic: /global_frontier
 frontier/pub_local_frontier_points_topic: /local_frontier
 
-frontier/kExecuteFrequency: 3
+frontier/kExecuteFrequency: 4
 frontier/kFrontierResolution: 0.8
 frontier/kFrontierFilterSize: 1.5
 frontier/kSearchRadius: 12

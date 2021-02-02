@@ -48,20 +48,6 @@ lb/kMinZLocal: -5.0
 lb/kMaxXLocal: 14.0
 lb/kMaxYLocal: 14.0
 lb/kMaxZLocal: 5.0
-# This is for smith hall
-#gb/kMinXGlobal: -85.0
-#gb/kMinYGlobal: -125.0
-#gb/kMinZGlobal: -20.0
-#gb/kMaxXGlobal: 27.0
-#gb/kMaxYGlobal: 20.0
-#gb/kMaxZGlobal: 10.0
-#This is for game
-#gb/kMinXGlobal: 0.0
-#gb/kMinYGlobal: 0.0
-#gb/kMinZGlobal: -20.0
-#gb/kMaxXGlobal: 100.0
-#gb/kMaxYGlobal: 100.0
-#gb/kMaxZGlobal: 10.0
 
 gb/kMinXGlobal: -130.0
 gb/kMinYGlobal: -130.0
