@@ -7,7 +7,7 @@ drrt/gain/kRangeZMinus: 0.4
 drrt/gain/kRangeZPlus: 1.0
 drrt/gain/kZero: 0.0
 drrt/tree/kExtensionRange: 1.0
-drrt/tree/kMinExtensionRange: 0.8
+drrt/tree/kMinExtensionRange: 0.6
 drrt/tree/kMaxExtensionAlongZ: 0.5
 drrt/tree/kExactRoot: false
 drrt/tree/kGlobalExtraIterations_: 300
