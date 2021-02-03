@@ -175,7 +175,7 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx) {
     bool pathRewind = graph_utils_ns::PathCircleDetect(
         shortest_path, planned_graph_, next_vertex_id);
     if (pathRewind) {
-      std::cout << "pathrewind = " << pathRewind << std::endl;
+      // std::cout << "pathrewind = " << pathRewind << std::endl;
       wrong_id_ = true;
       wrong_id_shortest_path_size_ = next_shortest_path.size();
     }
