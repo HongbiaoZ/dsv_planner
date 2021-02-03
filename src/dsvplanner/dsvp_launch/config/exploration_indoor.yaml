@@ -62,7 +62,7 @@ rm/kSensorHorizontal: 360.0
 rm/kSensorVertical: 30.0
 rm/kBoundX: 0.5
 rm/kBoundY: 0.5
-rm/kBoundZ: 0.6
+rm/kBoundZ: 0.4
 rm/kVehicleHeight: 0.75
 
 #Collision Check Constants
@@ -112,7 +112,7 @@ frontier/kExecuteFrequency: 4
 frontier/kFrontierResolution: 0.8
 frontier/kFrontierFilterSize: 1.5
 frontier/kSearchRadius: 12
-frontier/kSearchBoundingX: 40
-frontier/kSearchBoundingY: 40
+frontier/kSearchBoundingX: 42
+frontier/kSearchBoundingY: 42
 frontier/kSearchBoundingZ: 0.5
 
