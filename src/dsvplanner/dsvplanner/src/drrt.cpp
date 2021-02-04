@@ -587,9 +587,6 @@ void dsvplanner_ns::Drrt::plannerInit() {
       dual_state_graph_->local_graph_ = dual_state_graph_->pruned_graph_;
       dual_state_graph_->execute();
     } else {
-      std::cout << "No remaining frontiers, keepTryingNum is = "
-                << keepTryingNum_ << " plan onece = " << localPlanOnceMore_
-                << std::endl;
       if (!localPlanOnceMore_) {
         dual_state_graph_->clearLocalGraph();
         dual_state_graph_->pruned_graph_.vertices.clear();
