@@ -128,7 +128,7 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(
   } else if (!drrt_->nextNodeFound_ && !drrt_->global_plan_pre_ &&
              dual_state_graph_->getGain(robot_position) <= 0) {
     drrt_->global_plan_ = true;
-    std::cout << "     Remaining local frontiers  "
+    std::cout << "     No Remaining local frontiers  "
               << "\n"
               << "     Switch to relocation stage "
               << "\n"
