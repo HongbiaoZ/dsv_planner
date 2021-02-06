@@ -13,6 +13,7 @@ drrt/tree/kExactRoot: false
 drrt/tree/kGlobalExtraIterations_: 300
 drrt/tree/kCuttoffIterations: 200
 drrt/vertexSize: 120
+drrt/keepTryingNum: 2
 drrt/tfFrame: /map
 
 #Planner Topics

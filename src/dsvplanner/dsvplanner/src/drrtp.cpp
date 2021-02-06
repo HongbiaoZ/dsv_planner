@@ -229,6 +229,7 @@ bool dsvplanner_ns::drrtPlanner::setParams() {
                        params_.kGlobalExtraIterations);
   nh_private_.getParam("/drrt/tfFrame", params_.explorationFrame);
   nh_private_.getParam("/drrt/vertexSize", params_.kVertexSize);
+  nh_private_.getParam("/drrt/keepTryingNum", params_.kKeepTryingNum);
   nh_private_.getParam("/lb/kMinXLocal", params_.kMinXLocalBound);
   nh_private_.getParam("/lb/kMinYLocal", params_.kMinYLocalBound);
   nh_private_.getParam("/lb/kMinZLocal", params_.kMinZLocalBound);

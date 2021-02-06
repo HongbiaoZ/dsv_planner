@@ -576,10 +576,10 @@ void dsvplanner_ns::Drrt::plannerInit() {
     iterationCount_++;
 
     if (remainingLocalFrontier()) {
-      // if (true)
-      //{
       localPlanOnceMore_ = true;
-      keepTryingNum_ = 2;
+      keepTryingNum_ = params_.kKeepTryingNum; // handle special cases that
+                                               // frontiers are not updated
+      std::cout << "num is =" << keepTryingNum_ << std::endl;
       remainingFrontier_ = true;
       getThreeLocalFrontierPoint();
       pruneTree(root_);
@@ -594,7 +594,6 @@ void dsvplanner_ns::Drrt::plannerInit() {
         localPlanOnceMore_ = true;
       } else {
         remainingFrontier_ = true;
-        // getThreeLocalFrontierPoint();
         localThreeFrontier_->clear();
         pruneTree(root_);
         dual_state_graph_->clearLocalGraph();
@@ -603,7 +602,10 @@ void dsvplanner_ns::Drrt::plannerInit() {
         keepTryingNum_--;
         if (keepTryingNum_ <= 0) {
           localPlanOnceMore_ = false;
-          keepTryingNum_ = 2;
+          keepTryingNum_ = params_.kKeepTryingNum +
+                           1; // After switching to relocation stage, give
+                              // another more chance in case that some frontiers
+                              // are not updated
         }
       }
     }

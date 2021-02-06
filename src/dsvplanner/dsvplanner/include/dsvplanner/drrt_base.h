@@ -9,17 +9,17 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #ifndef DRRT_BASE_H_
 #define DRRT_BASE_H_
 
-#include <sstream>
-#include <fstream>
 #include <chrono>
-#include <vector>
 #include <eigen3/Eigen/Dense>
+#include <fstream>
+#include <sstream>
+#include <vector>
 
-#include <ros/ros.h>
-#include <ros/package.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <nav_msgs/Odometry.h>
+#include <ros/package.h>
+#include <ros/ros.h>
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float32MultiArray.h>
@@ -29,10 +29,8 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #define PI 3.14159265
 
 using namespace Eigen;
-namespace dsvplanner_ns
-{
-struct Params
-{
+namespace dsvplanner_ns {
+struct Params {
   ros::Publisher newTreePathPub_;
   ros::Publisher remainingTreePathPub_;
   ros::Publisher boundaryPub_;
@@ -67,6 +65,7 @@ struct Params
   int kGlobalExtraIterations;
   int kCuttoffIterations;
   int kVertexSize;
+  int kKeepTryingNum;
 
   double kMinXLocalBound;
   double kMinYLocalBound;
@@ -92,17 +91,16 @@ struct Params
   std::string explorationFrame;
 };
 
-class Node
-{
+class Node {
 public:
   Node(){};
   ~Node(){};
   Vector3d state_;
-  Node* parent_;
-  std::vector<Node*> children_;
+  Node *parent_;
+  std::vector<Node *> children_;
   double gain_;
   double distance_;
 };
 }
 
-#endif  // DRRT_BASE_H_
+#endif // DRRT_BASE_H_
