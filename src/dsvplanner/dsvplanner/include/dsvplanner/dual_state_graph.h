@@ -8,18 +8,17 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #ifndef DUAL_STATE_GRAPH_H
 #define DUAL_STATE_GRAPH_H
 
-#include <ros/ros.h>
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
+#include <ros/ros.h>
 
-#include "octomap_world/octomap_manager.h"
-#include "graph_utils/TopologicalGraph.h"
 #include "graph_planner/GraphPlannerStatus.h"
+#include "graph_utils/TopologicalGraph.h"
+#include "octomap_world/octomap_manager.h"
 
-class DualStateGraph
-{
+class DualStateGraph {
 public:
   typedef std::shared_ptr<DualStateGraph> Ptr;
   ros::NodeHandle nh_;
@@ -80,13 +79,15 @@ public:
   pcl::PointCloud<pcl::PointXYZ>::Ptr graph_point_cloud_ =
       pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>());
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_point_ =
-      pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>());
+      pcl::PointCloud<pcl::PointXYZI>::Ptr(
+          new pcl::PointCloud<pcl::PointXYZI>());
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_point_crop_ =
-      pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>());
+      pcl::PointCloud<pcl::PointXYZI>::Ptr(
+          new pcl::PointCloud<pcl::PointXYZI>());
   std::vector<int> gainID_;
-  volumetric_mapping::OctomapManager* manager_;
+  volumetric_mapping::OctomapManager *manager_;
 
-  bool planner_status_;  // false means local plan and true means global plan
+  bool planner_status_; // false means local plan and true means global plan
   int track_localvertex_idx_;
   int track_globalvertex_idx_;
   int prev_track_vertex_idx_;
@@ -109,16 +110,23 @@ public:
   Eigen::Vector3d getExploreDirection();
 
   // General Functions
-  void addEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx, graph_utils::TopologicalGraph& graph);
-  void addEdge(int start_vertex_idx, int end_vertex_idx, graph_utils::TopologicalGraph& graph);
-  void addNewLocalVertex(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph);
-  void addNewLocalVertexWithoutEdge(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph);
-  void addNewLocalVertexWithoutDuplicates(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph);
-  void addNewPrunedVertex(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph);
+  void addEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx,
+                           graph_utils::TopologicalGraph &graph);
+  void addEdge(int start_vertex_idx, int end_vertex_idx,
+               graph_utils::TopologicalGraph &graph);
+  void addNewLocalVertex(geometry_msgs::Pose &vertex_msg,
+                         graph_utils::TopologicalGraph &graph);
+  void addNewLocalVertexWithoutEdge(geometry_msgs::Pose &vertex_msg,
+                                    graph_utils::TopologicalGraph &graph);
+  void addNewLocalVertexWithoutDuplicates(geometry_msgs::Pose &vertex_msg,
+                                          graph_utils::TopologicalGraph &graph);
+  void addNewPrunedVertex(geometry_msgs::Pose &vertex_msg,
+                          graph_utils::TopologicalGraph &graph);
   void addGlobalEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx);
   void addGlobalEdge(int start_vertex_idx, int end_vertex_idx);
-  void addNewGlobalVertex(geometry_msgs::Pose& vertex_msg);
-  void addNewGlobalVertexWithoutDuplicates(geometry_msgs::Pose& vertex_msg);
+  void addNewGlobalVertex(geometry_msgs::Pose &vertex_msg);
+  void addNewGlobalVertexWithoutDuplicates(geometry_msgs::Pose &vertex_msg);
+  void addNewGlobalVertexWithKeypose(geometry_msgs::Pose &vertex_msg);
   void clearLocalGraph();
   void DTW(std::vector<int> path, geometry_msgs::Point robot_position);
   void pruneGraph(geometry_msgs::Point root);
@@ -129,21 +137,24 @@ public:
   void updateGlobalGraph();
   void updateExploreDirection();
 
-  bool zCollisionCheck(int start_vertex_idx, int end_vertex_idx, graph_utils::TopologicalGraph graph);
-  bool collisionCheckByTerrain(geometry_msgs::Point origin_point, geometry_msgs::Point goal_point);
+  bool zCollisionCheck(int start_vertex_idx, int end_vertex_idx,
+                       graph_utils::TopologicalGraph graph);
+  bool collisionCheckByTerrain(geometry_msgs::Point origin_point,
+                               geometry_msgs::Point goal_point);
 
   // Callback Functions
-  void keyposeCallback(const nav_msgs::Odometry::ConstPtr& msg);
-  void terrainCallback(const sensor_msgs::PointCloud2::ConstPtr& msg);
-  void pathCallback(const nav_msgs::Path::ConstPtr& graph_path);
-  void graphPlannerStatusCallback(const graph_planner::GraphPlannerStatusConstPtr& status);
+  void keyposeCallback(const nav_msgs::Odometry::ConstPtr &msg);
+  void terrainCallback(const sensor_msgs::PointCloud2::ConstPtr &msg);
+  void pathCallback(const nav_msgs::Path::ConstPtr &graph_path);
+  void graphPlannerStatusCallback(
+      const graph_planner::GraphPlannerStatusConstPtr &status);
 
 public:
-  DualStateGraph(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private,
-                 volumetric_mapping::OctomapManager* manager);
+  DualStateGraph(const ros::NodeHandle &nh, const ros::NodeHandle &nh_private,
+                 volumetric_mapping::OctomapManager *manager);
   bool readParameters();
   bool initialize();
   bool execute();
   ~DualStateGraph();
 };
-#endif  // DUAL_STATE_GRAPH_H
+#endif // DUAL_STATE_GRAPH_H

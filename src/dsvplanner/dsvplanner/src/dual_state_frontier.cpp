@@ -140,14 +140,10 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   key_outside = manager_->octree_->coordToKey(surround_point_outside);
   node_outside = manager_->octree_->search(key_outside);
   if (node_inside != NULL &&
-      (!manager_->octree_->isNodeOccupied(node_inside)) &&
-      node_outside != NULL &&
-      (!manager_->octree_->isNodeOccupied(node_outside))) {
+      (!manager_->octree_->isNodeOccupied(node_inside))) {
     yNegative = true;
   } else if ((node_inside != NULL &&
-              manager_->octree_->isNodeOccupied(node_inside)) ||
-             (node_outside != NULL &&
-              manager_->octree_->isNodeOccupied(node_outside))) {
+              manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
   }
   surround_point_inside.x() = point.x();
@@ -161,14 +157,10 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   key_outside = manager_->octree_->coordToKey(surround_point_outside);
   node_outside = manager_->octree_->search(key_outside);
   if (node_inside != NULL &&
-      (!manager_->octree_->isNodeOccupied(node_inside)) &&
-      node_outside != NULL &&
-      (!manager_->octree_->isNodeOccupied(node_outside))) {
+      (!manager_->octree_->isNodeOccupied(node_inside))) {
     yPositive = true;
   } else if ((node_inside != NULL &&
-              manager_->octree_->isNodeOccupied(node_inside)) ||
-             (node_outside != NULL &&
-              manager_->octree_->isNodeOccupied(node_outside))) {
+              manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
   }
   surround_point_inside.x() = point.x() - resolution;
@@ -182,14 +174,10 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   key_outside = manager_->octree_->coordToKey(surround_point_outside);
   node_outside = manager_->octree_->search(key_outside);
   if (node_inside != NULL &&
-      (!manager_->octree_->isNodeOccupied(node_inside)) &&
-      node_outside != NULL &&
-      (!manager_->octree_->isNodeOccupied(node_outside))) {
+      (!manager_->octree_->isNodeOccupied(node_inside))) {
     xNegative = true;
   } else if ((node_inside != NULL &&
-              manager_->octree_->isNodeOccupied(node_inside)) ||
-             (node_outside != NULL &&
-              manager_->octree_->isNodeOccupied(node_outside))) {
+              manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
   }
   surround_point_inside.x() = point.x() + resolution;
@@ -203,14 +191,10 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   key_outside = manager_->octree_->coordToKey(surround_point_outside);
   node_outside = manager_->octree_->search(key_outside);
   if (node_inside != NULL &&
-      (!manager_->octree_->isNodeOccupied(node_inside)) &&
-      node_outside != NULL &&
-      (!manager_->octree_->isNodeOccupied(node_outside))) {
+      (!manager_->octree_->isNodeOccupied(node_inside))) {
     xPositive = true;
   } else if ((node_inside != NULL &&
-              manager_->octree_->isNodeOccupied(node_inside)) ||
-             (node_outside != NULL &&
-              manager_->octree_->isNodeOccupied(node_outside))) {
+              manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
   }
   return (xPositive || xNegative || yPositive || yNegative);
