@@ -1,11 +1,12 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>graph_planner</name>
-  <version>0.0.0</version>
-  <description>The graph_planner package</description>
-  <author email="hongbiaz@andrew.cmu.edu">Hongbiao Zhu</author>
+  <version>0.0.1</version>
+  <description>The graph planner package</description>
   <maintainer email="hongbiaz@andrew.cmu.edu">Hongbiao Zhu</maintainer>
-  <license>TODO</license>
+  <license>BSD</license>
+
+  <author>Hongbiao Zhu</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>

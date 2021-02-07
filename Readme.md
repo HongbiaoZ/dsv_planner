@@ -39,7 +39,7 @@ roslaunch vehicle_simulator system_environment.launch
 roslaunch dsvp_launch dsvp_environment.launch
 ```
 ### Credits ###
-[catkin_simple](https://github.com/catkin/catkin_simple), [kdtree](https://github.com/ethz-asl/nbvplanner/tree/master/kdtree), [minkindr](https://github.com/ethz-asl/minkindr), [minkindr_ros](https://github.com/ethz-asl/minkindr_ros) and [volumetric_mapping](https://github.com/ethz-asl/volumetric_mapping) packages are from open-source releases.
+[catkin_simple](https://github.com/catkin/catkin_simple), [kdtree](https://github.com/ethz-asl/nbvplanner/tree/master/kdtree), [minkindr](https://github.com/ethz-asl/minkindr), [minkindr_ros](https://github.com/ethz-asl/minkindr_ros), and [volumetric_mapping](https://github.com/ethz-asl/volumetric_mapping) packages are from open-source releases.
 
 ### Who do I talk to? ###
 Hongbiao Zhu (hongbiaz@andrew.cmu.edu)

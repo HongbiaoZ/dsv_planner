@@ -1,12 +1,10 @@
 <?xml version="1.0"?>
 <package>
   <name>dsvplanner</name>
-  <version>0.0.0</version>
-  <description>The dsvplanner package</description>
-
+  <version>0.0.1</version>
+  <description>The DSV Planner package</description>
   <maintainer email="hongbiaz@andrew.cmu.edu"> Hongbiao Zhu</maintainer>
-
-  <license>TODO</license>
+  <license>BSD</license>
 
   <author>Hongbiao Zhu</author>
 
@@ -35,4 +33,5 @@
   <run_depend>nav_msgs</run_depend>
   <run_depend>misc_utils</run_depend>
   <run_depend>graph_utils</run_depend>
+
 </package>

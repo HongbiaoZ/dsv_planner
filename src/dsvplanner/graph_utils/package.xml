@@ -1,12 +1,12 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>graph_utils</name>
-  <version>0.0.0</version>
-  <description>The graph_utils package</description>
-  <author email="hongbiaz@andrew.cmu.edu">Hongbiao Zhu</author>
+  <version>0.0.1</version>
+  <description>The graph utils package</description>
   <maintainer email="hongbiaz@andrew.cmu.edu">Hongbiao Zhu</maintainer>
-  <!--   BSD, MIT, Boost Software License, GPLv2, GPLv3, LGPLv2.1, LGPLv3 -->
-  <license>TODO</license>
+  <license>BSD</license>
+
+  <author>Hongbiao Zhu</author>
 
   <buildtool_depend>catkin</buildtool_depend>
   <build_depend>roscpp</build_depend>
