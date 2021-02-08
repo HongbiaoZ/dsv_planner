@@ -13,7 +13,7 @@ drrt/tree/kExactRoot: false
 drrt/tree/kGlobalExtraIterations_: 300
 drrt/tree/kCuttoffIterations: 200
 drrt/vertexSize: 120
-drrt/keepTryingNum: 1
+drrt/keepTryingNum: 2
 drrt/tfFrame: /map
 
 #Planner Topics
@@ -111,7 +111,7 @@ frontier/pub_local_frontier_points_topic: /local_frontier
 
 frontier/kExecuteFrequency: 5
 frontier/kFrontierResolution: 0.8
-frontier/kFrontierFilterSize: 2.5
+frontier/kFrontierFilterSize: 2.0
 frontier/kSearchRadius: 12
 frontier/kSearchBoundingX: 40
 frontier/kSearchBoundingY: 40
