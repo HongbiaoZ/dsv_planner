@@ -579,7 +579,6 @@ void dsvplanner_ns::Drrt::plannerInit() {
       localPlanOnceMore_ = true;
       keepTryingNum_ = params_.kKeepTryingNum; // handle special cases that
                                                // frontiers are not updated
-      std::cout << "num is =" << keepTryingNum_ << std::endl;
       remainingFrontier_ = true;
       getThreeLocalFrontierPoint();
       pruneTree(root_);
@@ -618,6 +617,7 @@ void dsvplanner_ns::Drrt::plannerInit() {
     minZ_ = rootNode_->state_.z() + params_.kMinZLocalBound;
   } else {
     std::cout << "Relocation Stage" << std::endl;
+    localPlanOnceMore_ = true;
     StateVec node1;
     double gain1;
     if (dual_state_graph_->global_graph_.vertices.size() > 0) {
