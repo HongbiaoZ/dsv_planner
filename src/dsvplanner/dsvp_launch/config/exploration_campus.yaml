@@ -109,7 +109,7 @@ frontier/pub_unknown_points_topic: /octomap_unknown
 frontier/pub_global_frontier_points_topic: /global_frontier
 frontier/pub_local_frontier_points_topic: /local_frontier
 
-frontier/kExecuteFrequency: 5
+frontier/kExecuteFrequency: 10
 frontier/kFrontierResolution: 0.8
 frontier/kFrontierFilterSize: 2.0
 frontier/kSearchRadius: 12
