@@ -193,21 +193,37 @@ int GetFirstVertexBeyondThreshold(const geometry_msgs::Point &start_location,
 
 bool PathCircleDetect(std::vector<int> &path,
                       const graph_utils::TopologicalGraph &graph,
-                      int next_vertex_index) {
+                      int next_vertex_index, geometry_msgs::Point rob_pos) {
   double accumulated_angle_difference = 0;
+  double angle1 = 0;
+  double angle2 = 0;
+  double angle_difference = 0;
   geometry_msgs::Point pointA, pointB, pointC;
   std::vector<int>::iterator it =
       std::find(path.begin(), path.end(), next_vertex_index);
   if (it != path.end()) {
     int index = it - path.begin();
     if (index >= 3) {
+      // compute path angle from the robot position
+      pointA = rob_pos;
+      pointB = graph.vertices[path[0]].location;
+      pointB = graph.vertices[path[1]].location;
+      angle1 = atan2(pointB.y - pointA.y, pointB.x - pointA.x);
+      angle2 = atan2(pointC.y - pointB.y, pointC.x - pointB.x);
+      angle_difference = angle2 - angle1;
+      if (angle_difference > PI) {
+        angle_difference = angle_difference - 2 * PI;
+      } else if (angle_difference < -PI) {
+        angle_difference = 2 * PI + angle_difference;
+      }
+      accumulated_angle_difference += angle_difference;
       for (int i = 2; i < index + 1; i++) {
         pointA = graph.vertices[path[i - 2]].location;
         pointB = graph.vertices[path[i - 1]].location;
         pointC = graph.vertices[path[i]].location;
-        double angle1 = atan2(pointB.y - pointA.y, pointB.x - pointA.x);
-        double angle2 = atan2(pointC.y - pointB.y, pointC.x - pointB.x);
-        double angle_difference = angle2 - angle1;
+        angle1 = atan2(pointB.y - pointA.y, pointB.x - pointA.x);
+        angle2 = atan2(pointC.y - pointB.y, pointC.x - pointB.x);
+        angle_difference = angle2 - angle1;
         if (angle_difference > PI) {
           angle_difference = angle_difference - 2 * PI;
         } else if (angle_difference < -PI) {
