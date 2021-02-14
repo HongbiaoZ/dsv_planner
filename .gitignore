@@ -1,8 +1,11 @@
-src/drrtPlanner/drrt_planner_interface/data/
+src/dsvplanner/dsvp_launch/data/
+src/CMakeLists.txt
 .catkin_tools
-drrt.workspace
-drrt.workspace.user 
+dsvplanner.workspace
+dsvplanner.workspace.user 
 note
 .catkin_workspace
+build
+devel
 
 

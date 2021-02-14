@@ -30,27 +30,20 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "octomap_world/octomap_manager.h"
 
 #include <glog/logging.h>
-#include <minkindr_conversions/kindr_tf.h>
 #include <minkindr_conversions/kindr_msg.h>
+#include <minkindr_conversions/kindr_tf.h>
 #include <minkindr_conversions/kindr_xml.h>
 #include <pcl/io/pcd_io.h>
 #include <pcl/io/ply_io.h>
 
-namespace volumetric_mapping
-{
-OctomapManager::OctomapManager(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private)
-  : nh_(nh)
-  , nh_private_(nh_private)
-  , world_frame_("map")
-  , velodyne_cloud_topic_("/velodyne_cloud_topic")
-  , robot_frame_("velodyne")
-  , use_tf_transforms_(true)
-  , latch_topics_(true)
-  , timestamp_tolerance_ns_(10000000)
-  , Q_initialized_(false)
-  , Q_(Eigen::Matrix4d::Identity())
-  , map_publish_frequency_(0.0)
-{
+namespace volumetric_mapping {
+OctomapManager::OctomapManager(const ros::NodeHandle &nh,
+                               const ros::NodeHandle &nh_private)
+    : nh_(nh), nh_private_(nh_private), world_frame_("map"),
+      velodyne_cloud_topic_("/velodyne_cloud_topic"), robot_frame_("velodyne"),
+      use_tf_transforms_(true), latch_topics_(true),
+      timestamp_tolerance_ns_(10000000), Q_initialized_(false),
+      Q_(Eigen::Matrix4d::Identity()), map_publish_frequency_(0.0) {
   setParametersFromROS();
   subscribe();
   advertiseServices();
@@ -59,45 +52,57 @@ OctomapManager::OctomapManager(const ros::NodeHandle& nh, const ros::NodeHandle&
   // After creating the manager, if the octomap_file parameter is set,
   // load the octomap at that path and publish it.
   std::string octomap_file;
-  if (nh_private_.getParam("octomap_file", octomap_file))
-  {
-    if (loadOctomapFromFile(octomap_file))
-    {
-      ROS_INFO_STREAM("Successfully loaded octomap from path: " << octomap_file);
+  if (nh_private_.getParam("octomap_file", octomap_file)) {
+    if (loadOctomapFromFile(octomap_file)) {
+      ROS_INFO_STREAM(
+          "Successfully loaded octomap from path: " << octomap_file);
       publishAll();
-    }
-    else
-    {
+    } else {
       ROS_ERROR_STREAM("Could not load octomap from path: " << octomap_file);
     }
   }
 }
 
-void OctomapManager::setParametersFromROS()
-{
+void OctomapManager::setParametersFromROS() {
   OctomapParameters params;
   nh_private_.param("/octo/tfFrame", world_frame_, world_frame_);
   nh_private_.param("/octo/robotFrame", robot_frame_, robot_frame_);
   nh_private_.param("/octo/resolution", params.resolution, params.resolution);
-  nh_private_.param("/octo/probabilityHit", params.probabilityHit, params.probabilityHit);
-  nh_private_.param("/octo/probabilityMiss", params.probabilityMiss, params.probabilityMiss);
-  nh_private_.param("/octo/thresholdMin", params.thresholdMin, params.thresholdMin);
-  nh_private_.param("/octo/thresholdMax", params.thresholdMax, params.thresholdMax);
-  nh_private_.param("/octo/thresholdOccupancy", params.thresholdOccupancy, params.thresholdOccupancy);
-  nh_private_.param("/octo/filterSpeckles", params.filterSpeckles, params.filterSpeckles);
-  nh_private_.param("/octo/maxFreeSpace", params.maxFreeSpace, params.maxFreeSpace);
-  nh_private_.param("/octo/minHeightFreeSpace", params.minHeightFreeSpace, params.minHeightFreeSpace);
-  nh_private_.param("/octo/sensorMaxRange", params.sensorMaxRange, params.sensorMaxRange);
-  nh_private_.param("/octo/visualizeMinZ", params.visualizeMinZ, params.visualizeMinZ);
-  nh_private_.param("/octo/visualizeMaxZ", params.visualizeMaxZ, params.visualizeMaxZ);
-  nh_private_.param("/octo/mapPublishFrequency", map_publish_frequency_, map_publish_frequency_);
-  nh_private_.param("/octo/treatUnknownAsOccupied", params.treatUnknownAsOccupied, params.treatUnknownAsOccupied);
-  nh_private_.param("/octo/changeDetectionEnabled", params.changeDetectionEnabled, params.changeDetectionEnabled);
-  nh_private_.param("/octo/velodyne_cloud_topic", velodyne_cloud_topic_, velodyne_cloud_topic_);
+  nh_private_.param("/octo/probabilityHit", params.probabilityHit,
+                    params.probabilityHit);
+  nh_private_.param("/octo/probabilityMiss", params.probabilityMiss,
+                    params.probabilityMiss);
+  nh_private_.param("/octo/thresholdMin", params.thresholdMin,
+                    params.thresholdMin);
+  nh_private_.param("/octo/thresholdMax", params.thresholdMax,
+                    params.thresholdMax);
+  nh_private_.param("/octo/thresholdOccupancy", params.thresholdOccupancy,
+                    params.thresholdOccupancy);
+  nh_private_.param("/octo/filterSpeckles", params.filterSpeckles,
+                    params.filterSpeckles);
+  nh_private_.param("/octo/maxFreeSpace", params.maxFreeSpace,
+                    params.maxFreeSpace);
+  nh_private_.param("/octo/minHeightFreeSpace", params.minHeightFreeSpace,
+                    params.minHeightFreeSpace);
+  nh_private_.param("/octo/sensorMaxRange", params.sensorMaxRange,
+                    params.sensorMaxRange);
+  nh_private_.param("/octo/visualizeMinZ", params.visualizeMinZ,
+                    params.visualizeMinZ);
+  nh_private_.param("/octo/visualizeMaxZ", params.visualizeMaxZ,
+                    params.visualizeMaxZ);
+  nh_private_.param("/octo/mapPublishFrequency", map_publish_frequency_,
+                    map_publish_frequency_);
+  nh_private_.param("/octo/treatUnknownAsOccupied",
+                    params.treatUnknownAsOccupied,
+                    params.treatUnknownAsOccupied);
+  nh_private_.param("/octo/changeDetectionEnabled",
+                    params.changeDetectionEnabled,
+                    params.changeDetectionEnabled);
+  nh_private_.param("/octo/velodyne_cloud_topic", velodyne_cloud_topic_,
+                    velodyne_cloud_topic_);
   // Try to initialize Q matrix from parameters, if available.
   std::vector<double> Q_vec;
-  if (nh_private_.getParam("Q", Q_vec))
-  {
+  if (nh_private_.getParam("Q", Q_vec)) {
     Q_initialized_ = setQFromParams(&Q_vec);
   }
 
@@ -105,41 +110,40 @@ void OctomapManager::setParametersFromROS()
   nh_private_.param("latch_topics", latch_topics_, latch_topics_);
 
   // Transform settings.
-  nh_private_.param("use_tf_transforms", use_tf_transforms_, use_tf_transforms_);
+  nh_private_.param("use_tf_transforms", use_tf_transforms_,
+                    use_tf_transforms_);
   // If we use topic transforms, we have 2 parts: a dynamic transform from a
   // topic and a static transform from parameters.
   // Static transform should be T_G_D (where D is whatever sensor the
   // dynamic coordinate frame is in) and the static should be T_D_C (where
   // C is the sensor frame that produces the depth data). It is possible to
   // specific T_C_D and set invert_static_tranform to true.
-  if (!use_tf_transforms_)
-  {
-    transform_sub_ = nh_.subscribe("transform", 40, &OctomapManager::transformCallback, this);
+  if (!use_tf_transforms_) {
+    transform_sub_ = nh_.subscribe("transform", 40,
+                                   &OctomapManager::transformCallback, this);
     // Retrieve T_D_C from params.
     XmlRpc::XmlRpcValue T_B_D_xml;
     // TODO(helenol): split out into a function to avoid duplication.
-    if (nh_private_.getParam("T_B_D", T_B_D_xml))
-    {
+    if (nh_private_.getParam("T_B_D", T_B_D_xml)) {
       kindr::minimal::xmlRpcToKindr(T_B_D_xml, &T_B_D_);
 
       // See if we need to invert it.
       bool invert_static_tranform = false;
-      nh_private_.param("invert_T_B_D", invert_static_tranform, invert_static_tranform);
-      if (invert_static_tranform)
-      {
+      nh_private_.param("invert_T_B_D", invert_static_tranform,
+                        invert_static_tranform);
+      if (invert_static_tranform) {
         T_B_D_ = T_B_D_.inverse();
       }
     }
     XmlRpc::XmlRpcValue T_B_C_xml;
-    if (nh_private_.getParam("T_B_C", T_B_C_xml))
-    {
+    if (nh_private_.getParam("T_B_C", T_B_C_xml)) {
       kindr::minimal::xmlRpcToKindr(T_B_C_xml, &T_B_C_);
 
       // See if we need to invert it.
       bool invert_static_tranform = false;
-      nh_private_.param("invert_T_B_C", invert_static_tranform, invert_static_tranform);
-      if (invert_static_tranform)
-      {
+      nh_private_.param("invert_T_B_C", invert_static_tranform,
+                        invert_static_tranform);
+      if (invert_static_tranform) {
         T_B_C_ = T_B_C_.inverse();
       }
     }
@@ -149,95 +153,100 @@ void OctomapManager::setParametersFromROS()
   setOctomapParameters(params);
 }
 
-bool OctomapManager::setQFromParams(std::vector<double>* Q_vec)
-{
-  if (Q_vec->size() != 16)
-  {
-    ROS_ERROR_STREAM("Invalid Q matrix size, expected size: 16, actual size: " << Q_vec->size());
+bool OctomapManager::setQFromParams(std::vector<double> *Q_vec) {
+  if (Q_vec->size() != 16) {
+    ROS_ERROR_STREAM("Invalid Q matrix size, expected size: 16, actual size: "
+                     << Q_vec->size());
     return false;
   }
 
   // Try to map the vector as coefficients.
-  Eigen::Map<Eigen::Matrix<double, 4, 4, Eigen::RowMajor> > Q_vec_map(Q_vec->data());
+  Eigen::Map<Eigen::Matrix<double, 4, 4, Eigen::RowMajor>> Q_vec_map(
+      Q_vec->data());
   // Copy over to the Q member.
   Q_ = Q_vec_map;
 
   return true;
 }
 
-void OctomapManager::subscribe()
-{
-  pointcloud_sub_ = nh_.subscribe(velodyne_cloud_topic_, 1, &OctomapManager::insertPointcloudWithTf, this);
-  octomap_sub_ = nh_.subscribe("input_octomap", 1, &OctomapManager::octomapCallback, this);
+void OctomapManager::subscribe() {
+  pointcloud_sub_ = nh_.subscribe(
+      velodyne_cloud_topic_, 1, &OctomapManager::insertPointcloudWithTf, this);
+  octomap_sub_ =
+      nh_.subscribe("input_octomap", 1, &OctomapManager::octomapCallback, this);
 }
 
-void OctomapManager::octomapCallback(const octomap_msgs::Octomap& msg)
-{
+void OctomapManager::octomapCallback(const octomap_msgs::Octomap &msg) {
   setOctomapFromMsg(msg);
   publishAll();
   ROS_INFO_ONCE("Got octomap from message.");
 }
 
-void OctomapManager::advertiseServices()
-{
-  reset_map_service_ = nh_private_.advertiseService("reset_map", &OctomapManager::resetMapCallback, this);
-  publish_all_service_ = nh_private_.advertiseService("publish_all", &OctomapManager::publishAllCallback, this);
-  get_map_service_ = nh_private_.advertiseService("get_map", &OctomapManager::getOctomapCallback, this);
-  save_octree_service_ = nh_private_.advertiseService("save_map", &OctomapManager::saveOctomapCallback, this);
-  load_octree_service_ = nh_private_.advertiseService("load_map", &OctomapManager::loadOctomapCallback, this);
-  save_point_cloud_service_ =
-      nh_private_.advertiseService("save_point_cloud", &OctomapManager::savePointCloudCallback, this);
-  set_box_occupancy_service_ =
-      nh_private_.advertiseService("set_box_occupancy", &OctomapManager::setBoxOccupancyCallback, this);
-  set_display_bounds_service_ =
-      nh_private_.advertiseService("set_display_bounds", &OctomapManager::setDisplayBoundsCallback, this);
+void OctomapManager::advertiseServices() {
+  reset_map_service_ = nh_private_.advertiseService(
+      "reset_map", &OctomapManager::resetMapCallback, this);
+  publish_all_service_ = nh_private_.advertiseService(
+      "publish_all", &OctomapManager::publishAllCallback, this);
+  get_map_service_ = nh_private_.advertiseService(
+      "get_map", &OctomapManager::getOctomapCallback, this);
+  save_octree_service_ = nh_private_.advertiseService(
+      "save_map", &OctomapManager::saveOctomapCallback, this);
+  load_octree_service_ = nh_private_.advertiseService(
+      "load_map", &OctomapManager::loadOctomapCallback, this);
+  save_point_cloud_service_ = nh_private_.advertiseService(
+      "save_point_cloud", &OctomapManager::savePointCloudCallback, this);
+  set_box_occupancy_service_ = nh_private_.advertiseService(
+      "set_box_occupancy", &OctomapManager::setBoxOccupancyCallback, this);
+  set_display_bounds_service_ = nh_private_.advertiseService(
+      "set_display_bounds", &OctomapManager::setDisplayBoundsCallback, this);
 }
 
-void OctomapManager::advertisePublishers()
-{
-  occupied_nodes_pub_ = nh_private_.advertise<visualization_msgs::MarkerArray>("octomap_occupied", 1, latch_topics_);
-  free_nodes_pub_ = nh_private_.advertise<visualization_msgs::MarkerArray>("octomap_free", 1, latch_topics_);
-  binary_map_pub_ = nh_private_.advertise<octomap_msgs::Octomap>("octomap_binary", 1, latch_topics_);
-  full_map_pub_ = nh_private_.advertise<octomap_msgs::Octomap>("octomap_full", 1, latch_topics_);
+void OctomapManager::advertisePublishers() {
+  occupied_nodes_pub_ = nh_private_.advertise<visualization_msgs::MarkerArray>(
+      "octomap_occupied", 1, latch_topics_);
+  free_nodes_pub_ = nh_private_.advertise<visualization_msgs::MarkerArray>(
+      "octomap_free", 1, latch_topics_);
+  binary_map_pub_ = nh_private_.advertise<octomap_msgs::Octomap>(
+      "octomap_binary", 1, latch_topics_);
+  full_map_pub_ = nh_private_.advertise<octomap_msgs::Octomap>(
+      "octomap_full", 1, latch_topics_);
 
-  pcl_pub_ = nh_private_.advertise<sensor_msgs::PointCloud2>("octomap_pcl", 1, latch_topics_);
-  nearest_obstacle_pub_ = nh_private_.advertise<sensor_msgs::PointCloud2>("nearest_obstacle", 1, false);
+  pcl_pub_ = nh_private_.advertise<sensor_msgs::PointCloud2>("octomap_pcl", 1,
+                                                             latch_topics_);
+  nearest_obstacle_pub_ = nh_private_.advertise<sensor_msgs::PointCloud2>(
+      "nearest_obstacle", 1, false);
 
-  if (map_publish_frequency_ > 0.0)
-  {
+  if (map_publish_frequency_ > 0.0) {
     map_publish_timer_ =
-        nh_private_.createTimer(ros::Duration(1.0 / map_publish_frequency_), &OctomapManager::publishAllEvent, this);
+        nh_private_.createTimer(ros::Duration(1.0 / map_publish_frequency_),
+                                &OctomapManager::publishAllEvent, this);
   }
 }
 
-void OctomapManager::publishAll()
-{
-  if (latch_topics_ || occupied_nodes_pub_.getNumSubscribers() > 0 || free_nodes_pub_.getNumSubscribers() > 0)
-  {
+void OctomapManager::publishAll() {
+  if (latch_topics_ || occupied_nodes_pub_.getNumSubscribers() > 0 ||
+      free_nodes_pub_.getNumSubscribers() > 0) {
     visualization_msgs::MarkerArray occupied_nodes, free_nodes;
     generateMarkerArray(world_frame_, &occupied_nodes, &free_nodes);
     occupied_nodes_pub_.publish(occupied_nodes);
     free_nodes_pub_.publish(free_nodes);
   }
 
-  if (latch_topics_ || binary_map_pub_.getNumSubscribers() > 0)
-  {
+  if (latch_topics_ || binary_map_pub_.getNumSubscribers() > 0) {
     octomap_msgs::Octomap binary_map;
     getOctomapBinaryMsg(&binary_map);
     binary_map.header.frame_id = world_frame_;
     binary_map_pub_.publish(binary_map);
   }
 
-  if (latch_topics_ || full_map_pub_.getNumSubscribers() > 0)
-  {
+  if (latch_topics_ || full_map_pub_.getNumSubscribers() > 0) {
     octomap_msgs::Octomap full_map;
     getOctomapBinaryMsg(&full_map);
     full_map.header.frame_id = world_frame_;
     full_map_pub_.publish(full_map);
   }
 
-  if (latch_topics_ || pcl_pub_.getNumSubscribers() > 0)
-  {
+  if (latch_topics_ || pcl_pub_.getNumSubscribers() > 0) {
     pcl::PointCloud<pcl::PointXYZ> point_cloud;
     getOccupiedPointCloud(&point_cloud);
     sensor_msgs::PointCloud2 cloud;
@@ -246,14 +255,14 @@ void OctomapManager::publishAll()
     pcl_pub_.publish(cloud);
   }
 
-  if (use_tf_transforms_ && nearest_obstacle_pub_.getNumSubscribers() > 0)
-  {
+  if (use_tf_transforms_ && nearest_obstacle_pub_.getNumSubscribers() > 0) {
     Transformation robot_to_world;
-    if (lookupTransformTf(robot_frame_, world_frame_, ros::Time::now(), &robot_to_world))
-    {
+    if (lookupTransformTf(robot_frame_, world_frame_, ros::Time::now(),
+                          &robot_to_world)) {
       Eigen::Vector3d robot_center = robot_to_world.getPosition();
       pcl::PointCloud<pcl::PointXYZ> point_cloud;
-      getOccupiedPointcloudInBoundingBox(robot_center, robot_size_, &point_cloud);
+      getOccupiedPointcloudInBoundingBox(robot_center, robot_size_,
+                                         &point_cloud);
       sensor_msgs::PointCloud2 cloud;
       pcl::toROSMsg(point_cloud, cloud);
       cloud.header.frame_id = world_frame_;
@@ -263,60 +272,51 @@ void OctomapManager::publishAll()
   }
 }
 
-void OctomapManager::publishAllEvent(const ros::TimerEvent& e)
-{
-  publishAll();
-}
+void OctomapManager::publishAllEvent(const ros::TimerEvent &e) { publishAll(); }
 
-bool OctomapManager::resetMapCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
-{
+bool OctomapManager::resetMapCallback(std_srvs::Empty::Request &request,
+                                      std_srvs::Empty::Response &response) {
   resetMap();
   return true;
 }
 
-bool OctomapManager::publishAllCallback(std_srvs::Empty::Request& request, std_srvs::Empty::Response& response)
-{
+bool OctomapManager::publishAllCallback(std_srvs::Empty::Request &request,
+                                        std_srvs::Empty::Response &response) {
   publishAll();
   return true;
 }
 
-bool OctomapManager::getOctomapCallback(octomap_msgs::GetOctomap::Request& request,
-                                        octomap_msgs::GetOctomap::Response& response)
-{
+bool OctomapManager::getOctomapCallback(
+    octomap_msgs::GetOctomap::Request &request,
+    octomap_msgs::GetOctomap::Response &response) {
   return getOctomapFullMsg(&response.map);
 }
 
-bool OctomapManager::loadOctomapCallback(volumetric_msgs::LoadMap::Request& request,
-                                         volumetric_msgs::LoadMap::Response& response)
-{
-  std::string extension = request.file_path.substr(request.file_path.find_last_of(".") + 1);
-  if (extension == "bt")
-  {
+bool OctomapManager::loadOctomapCallback(
+    volumetric_msgs::LoadMap::Request &request,
+    volumetric_msgs::LoadMap::Response &response) {
+  std::string extension =
+      request.file_path.substr(request.file_path.find_last_of(".") + 1);
+  if (extension == "bt") {
     return loadOctomapFromFile(request.file_path);
-  }
-  else
-  {
-    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>);
-    if (extension == "pcd")
-    {
+  } else {
+    pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(
+        new pcl::PointCloud<pcl::PointXYZ>);
+    if (extension == "pcd") {
       pcl::io::loadPCDFile<pcl::PointXYZ>(request.file_path, *cloud);
-    }
-    else if (extension == "ply")
-    {
+    } else if (extension == "ply") {
       pcl::io::loadPLYFile<pcl::PointXYZ>(request.file_path, *cloud);
-    }
-    else
-    {
-      ROS_ERROR_STREAM("No known file extension (.bt, .pcd, .ply): " << request.file_path);
+    } else {
+      ROS_ERROR_STREAM(
+          "No known file extension (.bt, .pcd, .ply): " << request.file_path);
       return false;
     }
     octomap::KeySet free_cells, occupied_cells;
-    for (size_t i = 0u; i < cloud->size(); ++i)
-    {
-      const octomap::point3d p_G_point((*cloud)[i].x, (*cloud)[i].y, (*cloud)[i].z);
+    for (size_t i = 0u; i < cloud->size(); ++i) {
+      const octomap::point3d p_G_point((*cloud)[i].x, (*cloud)[i].y,
+                                       (*cloud)[i].z);
       octomap::OcTreeKey key;
-      if (octree_->coordToKeyChecked(p_G_point, key))
-      {
+      if (octree_->coordToKeyChecked(p_G_point, key)) {
         occupied_cells.insert(key);
       }
     }
@@ -325,24 +325,24 @@ bool OctomapManager::loadOctomapCallback(volumetric_msgs::LoadMap::Request& requ
   }
 }
 
-bool OctomapManager::saveOctomapCallback(volumetric_msgs::SaveMap::Request& request,
-                                         volumetric_msgs::SaveMap::Response& response)
-{
+bool OctomapManager::saveOctomapCallback(
+    volumetric_msgs::SaveMap::Request &request,
+    volumetric_msgs::SaveMap::Response &response) {
   return writeOctomapToFile(request.file_path);
 }
 
-bool OctomapManager::savePointCloudCallback(volumetric_msgs::SaveMap::Request& request,
-                                            volumetric_msgs::SaveMap::Response& response)
-{
+bool OctomapManager::savePointCloudCallback(
+    volumetric_msgs::SaveMap::Request &request,
+    volumetric_msgs::SaveMap::Response &response) {
   pcl::PointCloud<pcl::PointXYZ> point_cloud;
   getOccupiedPointCloud(&point_cloud);
   pcl::io::savePLYFileASCII(request.file_path, point_cloud);
   return true;
 }
 
-bool OctomapManager::setBoxOccupancyCallback(volumetric_msgs::SetBoxOccupancy::Request& request,
-                                             volumetric_msgs::SetBoxOccupancy::Response& response)
-{
+bool OctomapManager::setBoxOccupancyCallback(
+    volumetric_msgs::SetBoxOccupancy::Request &request,
+    volumetric_msgs::SetBoxOccupancy::Response &response) {
   Eigen::Vector3d bounding_box_center;
   Eigen::Vector3d bounding_box_size;
 
@@ -350,56 +350,49 @@ bool OctomapManager::setBoxOccupancyCallback(volumetric_msgs::SetBoxOccupancy::R
   tf::vectorMsgToKindr(request.box_size, &bounding_box_size);
   bool set_occupied = request.set_occupied;
 
-  if (set_occupied)
-  {
+  if (set_occupied) {
     setOccupied(bounding_box_center, bounding_box_size);
-  }
-  else
-  {
+  } else {
     setFree(bounding_box_center, bounding_box_size);
   }
   publishAll();
   return true;
 }
 
-bool OctomapManager::setDisplayBoundsCallback(volumetric_msgs::SetDisplayBounds::Request& request,
-                                              volumetric_msgs::SetDisplayBounds::Response& response)
-{
+bool OctomapManager::setDisplayBoundsCallback(
+    volumetric_msgs::SetDisplayBounds::Request &request,
+    volumetric_msgs::SetDisplayBounds::Response &response) {
   params_.visualizeMinZ = request.min_z;
   params_.visualizeMaxZ = request.max_z;
   publishAll();
   return true;
 }
 
-void OctomapManager::insertPointcloudWithTf(const sensor_msgs::PointCloud2::ConstPtr& pointcloud)
-{
+void OctomapManager::insertPointcloudWithTf(
+    const sensor_msgs::PointCloud2::ConstPtr &pointcloud) {
   // Look up transform from sensor frame to world frame.
   Transformation sensor_to_world;
-  // std::cout<<"time1="<<pointcloud->header.stamp<<std::endl;
-  if (lookupTransform(pointcloud->header.frame_id, world_frame_, pointcloud->header.stamp, &sensor_to_world))
-  {
-    //      std::cout<<"id1="<<pointcloud->header.frame_id<<"id2="<<world_frame_<<"x"<<sensor_to_world.getPosition().x()<<"y="
-    //              <<sensor_to_world.getPosition().y()<<"z="<<sensor_to_world.getPosition().z()<<std::endl;
+  if (lookupTransform(pointcloud->header.frame_id, world_frame_,
+                      pointcloud->header.stamp, &sensor_to_world)) {
     insertPointcloud(sensor_to_world, pointcloud);
   }
 }
 
-bool OctomapManager::lookupTransform(const std::string& from_frame, const std::string& to_frame,
-                                     const ros::Time& timestamp, Transformation* transform)
-{
-  if (use_tf_transforms_)
-  {
+bool OctomapManager::lookupTransform(const std::string &from_frame,
+                                     const std::string &to_frame,
+                                     const ros::Time &timestamp,
+                                     Transformation *transform) {
+  if (use_tf_transforms_) {
     return lookupTransformTf(from_frame, to_frame, timestamp, transform);
-  }
-  else
-  {
+  } else {
     return lookupTransformQueue(from_frame, to_frame, timestamp, transform);
   }
 }
 
-bool OctomapManager::lookupTransformTf(const std::string& from_frame, const std::string& to_frame,
-                                       const ros::Time& timestamp, Transformation* transform)
-{
+bool OctomapManager::lookupTransformTf(const std::string &from_frame,
+                                       const std::string &to_frame,
+                                       const ros::Time &timestamp,
+                                       Transformation *transform) {
   tf::StampedTransform tf_transform;
 
   ros::Time time_to_lookup = timestamp;
@@ -407,29 +400,23 @@ bool OctomapManager::lookupTransformTf(const std::string& from_frame, const std:
   // If this transform isn't possible at the time, then try to just look up
   // the latest (this is to work with bag files and static transform publisher,
   // etc).
-  if (!tf_listener_.canTransform(to_frame, from_frame, time_to_lookup))
-  {
+  if (!tf_listener_.canTransform(to_frame, from_frame, time_to_lookup)) {
     ros::Duration timestamp_age = ros::Time::now() - time_to_lookup;
-    if (timestamp_age < tf_listener_.getCacheLength())
-    {
+    if (timestamp_age < tf_listener_.getCacheLength()) {
       time_to_lookup = ros::Time(0);
-      ROS_WARN("Using latest TF transform instead of timestamp match.");
-    }
-    else
-    {
-      ROS_ERROR("Requested transform time older than cache limit.");
+      // ROS_WARN("Using latest TF transform instead of timestamp match.");
+    } else {
+      // ROS_ERROR("Requested transform time older than cache limit.");
       return false;
     }
   }
 
-  try
-  {
-    tf_listener_.lookupTransform(to_frame, from_frame, time_to_lookup, tf_transform);
-    // std::cout<<"time2="<<ros::Time::now()<<std::endl;
-  }
-  catch (tf::TransformException& ex)
-  {
-    ROS_ERROR_STREAM("Error getting TF transform from sensor data: " << ex.what());
+  try {
+    tf_listener_.lookupTransform(to_frame, from_frame, time_to_lookup,
+                                 tf_transform);
+  } catch (tf::TransformException &ex) {
+    ROS_ERROR_STREAM(
+        "Error getting TF transform from sensor data: " << ex.what());
     return false;
   }
 
@@ -437,39 +424,36 @@ bool OctomapManager::lookupTransformTf(const std::string& from_frame, const std:
   return true;
 }
 
-void OctomapManager::transformCallback(const geometry_msgs::TransformStamped& transform_msg)
-{
+void OctomapManager::transformCallback(
+    const geometry_msgs::TransformStamped &transform_msg) {
   transform_queue_.push_back(transform_msg);
 }
 
-bool OctomapManager::lookupTransformQueue(const std::string& from_frame, const std::string& to_frame,
-                                          const ros::Time& timestamp, Transformation* transform)
-{
+bool OctomapManager::lookupTransformQueue(const std::string &from_frame,
+                                          const std::string &to_frame,
+                                          const ros::Time &timestamp,
+                                          Transformation *transform) {
   // Try to match the transforms in the queue.
   bool match_found = false;
-  std::deque<geometry_msgs::TransformStamped>::iterator it = transform_queue_.begin();
-  for (; it != transform_queue_.end(); ++it)
-  {
+  std::deque<geometry_msgs::TransformStamped>::iterator it =
+      transform_queue_.begin();
+  for (; it != transform_queue_.end(); ++it) {
     // If the current transform is newer than the requested timestamp, we need
     // to break.
-    if (it->header.stamp > timestamp)
-    {
-      if ((it->header.stamp - timestamp).toNSec() < timestamp_tolerance_ns_)
-      {
+    if (it->header.stamp > timestamp) {
+      if ((it->header.stamp - timestamp).toNSec() < timestamp_tolerance_ns_) {
         match_found = true;
       }
       break;
     }
 
-    if ((timestamp - it->header.stamp).toNSec() < timestamp_tolerance_ns_)
-    {
+    if ((timestamp - it->header.stamp).toNSec() < timestamp_tolerance_ns_) {
       match_found = true;
       break;
     }
   }
 
-  if (match_found)
-  {
+  if (match_found) {
     Transformation T_G_D;
     tf::transformMsgToKindr(it->transform, &T_G_D);
 
@@ -481,18 +465,17 @@ bool OctomapManager::lookupTransformQueue(const std::string& from_frame, const s
     // And also clear the queue up to this point. This leaves the current
     // message in place.
     transform_queue_.erase(transform_queue_.begin(), it);
-  }
-  else
-  {
-    ROS_WARN_STREAM_THROTTLE(30, "No match found for transform timestamp: " << timestamp);
-    if (!transform_queue_.empty())
-    {
-      ROS_WARN_STREAM_THROTTLE(30,
-                               "Queue front: " << transform_queue_.front().header.stamp
-                                               << " back: " << transform_queue_.back().header.stamp);
+  } else {
+    ROS_WARN_STREAM_THROTTLE(
+        30, "No match found for transform timestamp: " << timestamp);
+    if (!transform_queue_.empty()) {
+      ROS_WARN_STREAM_THROTTLE(
+          30,
+          "Queue front: " << transform_queue_.front().header.stamp
+                          << " back: " << transform_queue_.back().header.stamp);
     }
   }
   return match_found;
 }
 
-}  // namespace volumetric_mapping
+} // namespace volumetric_mapping

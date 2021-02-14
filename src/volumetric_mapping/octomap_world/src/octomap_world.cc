@@ -482,7 +482,6 @@ OctomapWorld::CellStatus OctomapWorld::getLineStatusBoundingBox(const StateVec& 
   CellStatus ret = CellStatus::kFree;
   const double& resolution = getResolution();
 
-  // std::cout<<"ex="<<end.x()<<" ey="<<end.y()<<" ez="<<end.z()<<std::endl;
   // Check corner connections and depending on resolution also interior:
   // Discretization step is smaller than the octomap resolution, as this way
   // no cell can possibly be missed
