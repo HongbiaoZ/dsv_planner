@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(dsvp_launch)
 
+add_definitions(-std=c++11)
 set(CMAKE_BUILD_TYPE Release)
 
 find_package(catkin REQUIRED COMPONENTS
