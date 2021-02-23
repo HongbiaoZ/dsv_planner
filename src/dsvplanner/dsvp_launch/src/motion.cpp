@@ -151,7 +151,7 @@ int main(int argc, char** argv)
       point_ds.setInputCloud(trajectory_cloud);
       point_ds.filter(*trajectory_cloud);
       pcl::toROSMsg(*trajectory_cloud, trajectory_pc);
-      trajectory_pc.header.frame_id = "/map";
+      trajectory_pc.header.frame_id = "map";
       traj_pub.publish(trajectory_pc);
     }
 

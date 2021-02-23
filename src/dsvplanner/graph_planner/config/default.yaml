@@ -1,5 +1,5 @@
 # Topics
-world_frame_id                      : /map
+world_frame_id                      : map
 graph_planner_command_topic         : /graph_planner_command
 graph_planner_status_topic          : /graph_planner_status
 pub_waypoint_topic                  : /way_point

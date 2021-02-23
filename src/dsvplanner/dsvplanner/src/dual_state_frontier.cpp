@@ -539,7 +539,7 @@ void DualStateFrontier::terrainCloudAndOdomCallback(
   sensor_msgs::PointCloud2 elevVoxel2;
   pcl::toROSMsg(*terrain_elev_cloud_, elevVoxel2);
   elevVoxel2.header.stamp = ros::Time::now();
-  elevVoxel2.header.frame_id = "/map";
+  elevVoxel2.header.frame_id = "map";
   terrain_elev_cloud_pub_.publish(elevVoxel2);
 }
 

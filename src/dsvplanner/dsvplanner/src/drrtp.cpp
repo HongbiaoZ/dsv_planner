@@ -163,7 +163,7 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(
   res.mode.data = 1; // mode 1 means exploration
 
   geometry_msgs::PointStamped next_goal_point;
-  next_goal_point.header.frame_id = "/map";
+  next_goal_point.header.frame_id = "map";
   next_goal_point.point = next_goal_position;
   params_.nextGoalPub_.publish(next_goal_point);
 

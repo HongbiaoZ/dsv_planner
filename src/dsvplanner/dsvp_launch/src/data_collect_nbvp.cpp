@@ -88,7 +88,7 @@ int pointvolume(PointCloud<PointXYZ>::Ptr cloud)
   point_ds.setInputCloud(mapcloud);
   point_ds.filter(*mapcloudDS);
   //  pcl::toROSMsg(*mapcloudDS, dscloud);
-  //  dscloud.header.frame_id = "/map";
+  //  dscloud.header.frame_id = "map";
   //  mapcloudDS_pub.publish(dscloud);
   return mapcloudDS->points.size();
 }
