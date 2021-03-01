@@ -110,8 +110,8 @@ frontier/pub_global_frontier_points_topic: /global_frontier
 frontier/pub_local_frontier_points_topic: /local_frontier
 
 frontier/kExecuteFrequency: 10
-frontier/kFrontierResolution: 0.8
-frontier/kFrontierFilterSize: 1.2
+frontier/kFrontierResolution: 0.4
+frontier/kFrontierFilterSize: 1.5
 frontier/kSearchRadius: 12
 frontier/kSearchBoundingX: 40
 frontier/kSearchBoundingY: 40

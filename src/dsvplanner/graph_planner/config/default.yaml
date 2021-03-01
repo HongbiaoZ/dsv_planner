@@ -6,8 +6,11 @@ pub_waypoint_topic                  : /way_point
 pub_path_topic                      : /graph_planner_path
 sub_graph_topic                     : /local_graph #/keypose_graph #
 sub_odometry_topic                  : /state_estimation
+sub_terrain_topic                   : /terrain_map_ext
 
 # Constants
 kLookAheadDist                      : 2.5 # the minimum distance between next goal vertex and current vertex
 kWaypointProjectionDistance         : 5.0 # distance between waypoint and robot must larger than this value when going to location or home
-
+kObstacleHeightThres                : 0.20 # the obstacle height that will be considered when filtering the terrain cloud
+kOverheadObstacleHeightThres        : 1.20 # the overhead obstacle height that will be considered when filtering the terrain cloud
+kCollisionCheckDistace              : 0.20 # the collision check radius
