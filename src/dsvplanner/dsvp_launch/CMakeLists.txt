@@ -29,39 +29,3 @@ target_link_libraries(exploration_with_graph_planner
   ${catkin_LIBRARIES}
 )
 add_dependencies(exploration_with_graph_planner ${catkin_EXPORTED_TARGETS})
-
-add_executable(pc_rename src/pc_rename.cpp)
-target_link_libraries(pc_rename
-  ${catkin_LIBRARIES}
-)
-add_dependencies(pc_rename ${catkin_EXPORTED_TARGETS})
-
-add_executable(data_collect_gbp src/data_collect_gbp.cpp)
-target_link_libraries(data_collect_gbp
-  ${catkin_LIBRARIES}
-)
-add_dependencies(data_collect_gbp ${catkin_EXPORTED_TARGETS})
-
-add_executable(data_collect_nbvp src/data_collect_nbvp.cpp)
-target_link_libraries(data_collect_nbvp
-  ${catkin_LIBRARIES}
-)
-add_dependencies(data_collect_nbvp ${catkin_EXPORTED_TARGETS})
-
-add_executable(data_collect_keypose src/data_collect_keypose.cpp)
-target_link_libraries(data_collect_keypose
-  ${catkin_LIBRARIES}
-)
-add_dependencies(data_collect_keypose ${catkin_EXPORTED_TARGETS})
-
-add_executable(data_process_mbp src/data_process_mbp.cpp)
-target_link_libraries(data_process_mbp
-  ${catkin_LIBRARIES}
-)
-add_dependencies(data_process_mbp ${catkin_EXPORTED_TARGETS})
-
-add_executable(motion src/motion.cpp)
-target_link_libraries(motion
-  ${catkin_LIBRARIES}
-)
-add_dependencies(motion ${catkin_EXPORTED_TARGETS})
