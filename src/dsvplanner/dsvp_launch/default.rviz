@@ -4,6 +4,7 @@ Panels:
     Name: Displays
     Property Tree Widget:
       Expanded:
+        - /Autonomy1
         - /Autonomy1/stateEstimation1/Shape1
         - /Exploration1/LocalGraph1/Namespaces1
         - /Exploration1/GlobalGraph1/Namespaces1
@@ -48,7 +49,7 @@ Visualization Manager:
           Color: 252; 233; 79
           Color Transformer: FlatColor
           Decay Time: 0
-          Enabled: false
+          Enabled: true
           Invert Rainbow: false
           Max Color: 255; 255; 255
           Max Intensity: 1
@@ -65,7 +66,7 @@ Visualization Manager:
           Unreliable: false
           Use Fixed Frame: true
           Use rainbow: true
-          Value: false
+          Value: true
         - Alpha: 1
           Autocompute Intensity Bounds: true
           Autocompute Value Bounds:
@@ -246,13 +247,13 @@ Visualization Manager:
         - Alpha: 1
           Class: rviz/PointStamped
           Color: 204; 41; 204
-          Enabled: false
+          Enabled: true
           History Length: 1
           Name: waypoint
           Radius: 0.6000000238418579
           Topic: /way_point
           Unreliable: false
-          Value: false
+          Value: true
         - Class: rviz/Image
           Enabled: false
           Image Topic: /camera/image
@@ -525,7 +526,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 116.908203125
+      Distance: 56.55390548706055
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
@@ -540,10 +541,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 1.5697963237762451
+      Pitch: 1.5297963619232178
       Target Frame: map
       Value: Orbit (rviz)
-      Yaw: 3.145399332046509
+      Yaw: 4.0154032707214355
     Saved: ~
 Window Geometry:
   Displays:
@@ -563,5 +564,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1437
-  X: 51
+  X: 67
   Y: 27
