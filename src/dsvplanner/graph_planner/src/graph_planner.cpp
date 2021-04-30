@@ -143,11 +143,8 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx) {
 
     return false;
   } else if (shortest_path.size() <= 2) {
-    // picked my current vertex -- therefore pick currently visible and
-    // unvisited opening
     geometry_msgs::Point next_waypoint =
-        planned_graph_.vertices[shortest_path.back()]
-            .location; // why vertices[0] but not vertices[goal_vertex_idx]???
+        planned_graph_.vertices[shortest_path.back()].location;
 
     waypoint_.header.stamp = ros::Time::now();
     waypoint_.point.x = next_waypoint.x;
@@ -175,7 +172,6 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx) {
     bool pathRewind = graph_utils_ns::PathCircleDetect(
         shortest_path, planned_graph_, next_vertex_id, robot_pos_);
     if (pathRewind) {
-      // std::cout << "pathrewind = " << pathRewind << std::endl;
       wrong_id_ = true;
       wrong_id_shortest_path_size_ = next_shortest_path.size();
     }
@@ -338,12 +334,10 @@ void GraphPlanner::executeCommand() {
   if (graph_planner_command_.command ==
       graph_planner::GraphPlannerCommand::COMMAND_GO_TO_ORIGIN) {
     // COMMAND_GO_TO_ORIGIN
-    // ROS_INFO("graph_planner: COMMAND_GO_TO_ORIGIN");
     executeGoToOrigin();
   } else if (graph_planner_command_.command ==
              graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION) {
     // COMMAND_GO_TO_LOCATION
-    // ROS_INFO("graph_planner: COMMAND_GO_TO_LOCATION");
     executeGoToLocation();
   } else {
     // ROS_WARN("unknown command received");

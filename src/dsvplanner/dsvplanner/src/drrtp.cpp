@@ -63,7 +63,6 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(
   }
 
   // set terrain points and terrain voxel elevation
-  drrt_->setTerrainCLoud();
   drrt_->setTerrainVoxelElev();
 
   // Clear old tree and the last global frontier.

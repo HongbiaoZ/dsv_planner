@@ -88,6 +88,8 @@ cc/kTerrainCheckPointNum: 1
 cc/kTerrainVoxelHalfWidth: 50
 cc/kTerrainVoxelWidth: 101
 cc/kTerrainVoxelSize: 0.4
+cc/kGridSize: 0.2
+cc/kMapWidth: 40
 
 # Graph Constants
 graph/world_frame_id                          : /map

@@ -57,16 +57,6 @@ void dsvplanner_ns::Drrt::setRootWithOdom(const nav_msgs::Odometry &pose) {
   root_[2] = pose.pose.pose.position.z;
 }
 
-void dsvplanner_ns::Drrt::setTerrainCLoud() {
-  terrain_point_crop_->clear();
-  *terrain_point_crop_ = dual_state_frontier_->getTerrainPoints();
-
-  sensor_msgs::PointCloud2 terrainWithoutGround;
-  pcl::toROSMsg(*terrain_point_crop_, terrainWithoutGround);
-  terrainWithoutGround.header.frame_id = params_.explorationFrame;
-  params_.terrainNoGroundPub_.publish(terrainWithoutGround);
-}
-
 void dsvplanner_ns::Drrt::setTerrainVoxelElev() {
   terrain_voxle_elev_.clear();
   terrain_voxle_elev_ = dual_state_frontier_->getTerrainVoxelElev();
@@ -378,39 +368,6 @@ bool dsvplanner_ns::Drrt::remainingLocalFrontier() {
   return false;
 }
 
-bool dsvplanner_ns::Drrt::collisionCheckByTerrain(
-    StateVec origin_point,
-    StateVec goal_point) { // Collision check here cannot use pcl::kdtree
-  int count = 0;
-  double distance = sqrt((goal_point.x() - origin_point.x()) *
-                             (goal_point.x() - origin_point.x()) +
-                         (goal_point.y() - origin_point.y()) *
-                             (goal_point.y() - origin_point.y()));
-  double check_point_num = distance / params_.kTerrainCheckDist;
-  for (int j = 0; j < check_point_num; j++) {
-    geometry_msgs::Point p1;
-    p1.x = origin_point.x() +
-           j * params_.kTerrainCheckDist / distance *
-               (goal_point.x() - origin_point.x());
-    p1.y = origin_point.y() +
-           j * params_.kTerrainCheckDist / distance *
-               (goal_point.y() - origin_point.y());
-    for (int i = 0; i < terrain_point_crop_->points.size(); i++) {
-      double dist = sqrt((p1.x - terrain_point_crop_->points[i].x) *
-                             (p1.x - terrain_point_crop_->points[i].x) +
-                         (p1.y - terrain_point_crop_->points[i].y) *
-                             (p1.y - terrain_point_crop_->points[i].y));
-      if (dist < params_.kTerrainCheckDist) {
-        count++;
-      }
-      if (count > params_.kTerrainCheckPointNum) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 void dsvplanner_ns::Drrt::plannerIterate() {
   // In this function a new configuration is sampled and added to the tree.
   StateVec newState;
@@ -525,7 +482,8 @@ void dsvplanner_ns::Drrt::plannerIterate() {
     if (volumetric_mapping::OctomapManager::CellStatus::kFree ==
             manager_->getLineStatusBoundingBox(origin, newState,
                                                params_.boundingBox) &&
-        (!collisionCheckByTerrain(origin, newState))) { // connection is free
+        (!dual_state_frontier_->collisionCheckByTerrain(
+            origin, newState))) { // connection is free
       // Create new node and insert into tree
       dsvplanner_ns::Node *newNode = new dsvplanner_ns::Node;
       newNode->state_ = newState;

@@ -19,11 +19,13 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
-
+namespace dsvplanner_ns {
+typedef Eigen::Vector3d StateVec;
+typedef Eigen::Vector2i GridIndex;
 class DualStateFrontier {
-public:
   typedef std::shared_ptr<DualStateFrontier> Ptr;
-  typedef Eigen::Vector3d StateVec;
+
+public:
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
 
@@ -77,11 +79,20 @@ public:
   double kTerrainCheckDist;
   double kTerrainCheckPointNum;
   double kTerrainVoxelSize;
+  double kMapWidth;
+  double kGridSize;
   int kTerrainVoxelHalfWidth;
   int kTerrainVoxelWidth;
 
   // Variables
 
+  // collision check
+  enum gridStatus { unknown = 0, free = 1, occupied = 2 };
+  std::vector<std::vector<int>> gridState_;
+  int map_width_grid_num_;
+  int map_half_width_grid_num_;
+
+  // general
   ros::Timer executeTimer_;
   std::vector<double> terrain_voxel_elev_;
   std::vector<int> terrain_voxel_points_num_;
@@ -95,7 +106,10 @@ public:
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_ds =
       pcl::PointCloud<pcl::PointXYZI>::Ptr(
           new pcl::PointCloud<pcl::PointXYZI>());
-  pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_crop_ =
+  pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_traversable_ =
+      pcl::PointCloud<pcl::PointXYZI>::Ptr(
+          new pcl::PointCloud<pcl::PointXYZI>());
+  pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_obstacle_ =
       pcl::PointCloud<pcl::PointXYZI>::Ptr(
           new pcl::PointCloud<pcl::PointXYZI>());
   pcl::PointCloud<pcl::PointXYZ>::Ptr unknown_points_ =
@@ -132,13 +146,31 @@ public:
   void cleanAllUselessFrontiers();
   void setPlannerStatus(bool status);
   bool frontierDetect(octomap::point3d point) const;
-  bool collisionCheckByTerrain(StateVec origin_point, StateVec goal_point);
   bool inSensorRangeofGraphPoints(StateVec point);
   bool FrontierInBoundry(octomap::point3d point) const;
   bool isCleanedFrontier(pcl::PointXYZ point);
   double getZvalue(double x_position, double y_position);
-  pcl::PointCloud<pcl::PointXYZI> getTerrainPoints();
+
+  // Functions for terrain elevation map
+  void updateTerrainMinElevation();
+  void updateTerrainElevationForUnknow();
+  void updateTerrainElevationForKnown();
   std::vector<double> getTerrainVoxelElev();
+
+  // Functions for collision check
+  std::vector<GridIndex> rayCast(GridIndex origin, GridIndex goal,
+                                 GridIndex max_grid, GridIndex min_grid);
+  GridIndex getIndex(StateVec point);
+  void clearGrid();
+  void updateGrid();
+  bool collisionCheckByTerrain(StateVec origin_point, StateVec goal_point);
+  bool InRange(const GridIndex sub, const GridIndex max_sub,
+               const GridIndex min_sub);
+  int signum(int x) { return x == 0 ? 0 : x < 0 ? -1 : 1; }
+  double intbound(double s, double ds);
+  double mod(double value, double modulus) {
+    return fmod(fmod(value, modulus) + modulus, modulus);
+  }
 
   // Callback Functions
   void terrainCloudAndOdomCallback(
@@ -155,4 +187,5 @@ public:
   void execute(const ros::TimerEvent &e);
   ~DualStateFrontier();
 };
+}
 #endif // DUAL_STATE_FRONTIER_H
