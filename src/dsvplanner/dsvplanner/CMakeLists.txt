@@ -63,7 +63,7 @@ include_directories(
 )
 
 ## Declare a C++ library
-add_library(dsvPlannerLib src/drrtp.cpp src/drrt.cpp src/dual_state_graph.cpp src/dual_state_frontier.cpp)
+add_library(dsvPlannerLib src/drrtp.cpp src/drrt.cpp src/dual_state_graph.cpp src/dual_state_frontier.cpp src/grid.cpp)
 add_dependencies(dsvPlannerLib ${${PROJECT_NAME}_EXPORTED_TARGETS} )
 target_link_libraries(dsvPlannerLib ${catkin_LIBRARIES} ${OCTOMAP_LIBRARIES})
 

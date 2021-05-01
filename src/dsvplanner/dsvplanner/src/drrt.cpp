@@ -15,8 +15,10 @@ Created by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include <dsvplanner/drrt.h>
 
 dsvplanner_ns::Drrt::Drrt(volumetric_mapping::OctomapManager *manager,
-                          DualStateGraph *graph, DualStateFrontier *frontier) {
+                          DualStateGraph *graph, DualStateFrontier *frontier,
+                          OccupancyGrid *grid) {
   manager_ = manager;
+  grid_ = grid;
   dual_state_graph_ = graph;
   dual_state_frontier_ = frontier;
   kdTree_ = kd_create(3);
@@ -75,7 +77,7 @@ double dsvplanner_ns::Drrt::angleDiff(StateVec direction1,
           (sqrt(direction1[0] * direction1[0] + direction1[1] * direction1[1]) *
            sqrt(direction2[0] * direction2[0] +
                 direction2[1] * direction2[1]))) *
-      180 / PI;
+      180 / M_PI;
   return degree;
 }
 
@@ -348,9 +350,6 @@ void dsvplanner_ns::Drrt::getThreeLocalFrontierPoint() // Three local frontiers
     }
   }
 
-  // std::cout << "Explore direction is " << atan2(exploreDirection[1],
-  // exploreDirection[0]) * 180 / PI << std::endl;
-
   localThreeFrontier_->clear();
   localThreeFrontier_->points.push_back(p1);
   localThreeFrontier_->points.push_back(p2);
@@ -482,8 +481,8 @@ void dsvplanner_ns::Drrt::plannerIterate() {
     if (volumetric_mapping::OctomapManager::CellStatus::kFree ==
             manager_->getLineStatusBoundingBox(origin, newState,
                                                params_.boundingBox) &&
-        (!dual_state_frontier_->collisionCheckByTerrain(
-            origin, newState))) { // connection is free
+        (!grid_->collisionCheckByTerrain(origin,
+                                         newState))) { // connection is free
       // Create new node and insert into tree
       dsvplanner_ns::Node *newNode = new dsvplanner_ns::Node;
       newNode->state_ = newState;

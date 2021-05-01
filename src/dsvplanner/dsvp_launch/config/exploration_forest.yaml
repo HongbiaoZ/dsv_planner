@@ -66,14 +66,21 @@ rm/kBoundY: 0.5
 rm/kBoundZ: 0.4
 rm/kVehicleHeight: 0.75
 
-#Collision Check Constants
-cc/kFlyingObstacleHeightThre: 1.0
-cc/kObstacleHeightThre: 0.2
-cc/kTerrainCheckDist: 0.35
-cc/kTerrainCheckPointNum: 1
-cc/kTerrainVoxelHalfWidth: 50
-cc/kTerrainVoxelWidth: 101
-cc/kTerrainVoxelSize: 0.4
+#Terrain Elevation Constants
+elevation/kTerrainVoxelHalfWidth: 50
+elevation/kTerrainVoxelWidth: 101
+elevation/kTerrainVoxelSize: 0.4
+
+#OccupancyGrid Constants
+grid/world_frame_id_: /map
+grid/sub_odom_topic_: /state_estimation
+grid/sub_terrain_point_cloud_topic_: /terrain_map_ext
+grid/pub_grid_points_topic_: /occpancy_grid_map
+grid/kMapWidth: 40
+grid/kGridSize: 0.2
+grid/kDownsampleSize: 0.3
+grid/kFlyingObstacleHeightThre: 1.0
+grid/kObstacleHeightThre: 0.2
 
 # Graph Constants
 graph/world_frame_id                          : /map
@@ -81,7 +88,6 @@ graph/pub_local_graph_topic                   : /local_graph
 graph/pub_global_graph_topic                  : /global_graph
 graph/pub_global_points_topic                 : /global_points
 graph/sub_keypose_topic                       : /state_estimation_at_scan
-graph/sub_terrain_topic                       : /terrain_map_ext
 graph/sub_path_topic                          : /graph_planner_path
 graph/sub_graph_planner_status_topic          : /graph_planner_status
 

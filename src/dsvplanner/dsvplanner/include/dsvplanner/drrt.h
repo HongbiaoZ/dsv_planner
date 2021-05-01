@@ -13,6 +13,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include "dsvplanner/drrt_base.h"
 #include "dsvplanner/dual_state_frontier.h"
 #include "dsvplanner/dual_state_graph.h"
+#include "dsvplanner/grid.h"
 #include "kdtree/kdtree.h"
 #include "octomap_world/octomap_manager.h"
 
@@ -21,7 +22,7 @@ namespace dsvplanner_ns {
 class Drrt {
 public:
   Drrt(volumetric_mapping::OctomapManager *manager, DualStateGraph *graph,
-       DualStateFrontier *frontier);
+       DualStateFrontier *frontier, OccupancyGrid *grid);
   ~Drrt();
 
   typedef Vector3d StateVec;
@@ -98,6 +99,7 @@ protected:
   volumetric_mapping::OctomapManager *manager_;
   DualStateGraph *dual_state_graph_;
   DualStateFrontier *dual_state_frontier_;
+  OccupancyGrid *grid_;
 };
 }
 

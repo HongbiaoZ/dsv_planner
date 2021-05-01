@@ -18,9 +18,11 @@ dsvplanner_ns::drrtPlanner::drrtPlanner(const ros::NodeHandle &nh,
                                         const ros::NodeHandle &nh_private)
     : nh_(nh), nh_private_(nh_private) {
   manager_ = new volumetric_mapping::OctomapManager(nh_, nh_private_);
-  dual_state_graph_ = new DualStateGraph(nh_, nh_private_, manager_);
-  dual_state_frontier_ = new DualStateFrontier(nh_, nh_private_, manager_);
-  drrt_ = new Drrt(manager_, dual_state_graph_, dual_state_frontier_);
+  grid_ = new OccupancyGrid(nh_, nh_private_);
+  dual_state_graph_ = new DualStateGraph(nh_, nh_private_, manager_, grid_);
+  dual_state_frontier_ =
+      new DualStateFrontier(nh_, nh_private_, manager_, grid_);
+  drrt_ = new Drrt(manager_, dual_state_graph_, dual_state_frontier_, grid_);
 
   init();
 }

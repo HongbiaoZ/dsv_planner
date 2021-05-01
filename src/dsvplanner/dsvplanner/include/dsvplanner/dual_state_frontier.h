@@ -9,6 +9,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #ifndef DUAL_STATE_FRONTIER_H
 #define DUAL_STATE_FRONTIER_H
 
+#include "dsvplanner/grid.h"
 #include "octomap_world/octomap_manager.h"
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
@@ -21,7 +22,6 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include <std_msgs/Float32MultiArray.h>
 namespace dsvplanner_ns {
 typedef Eigen::Vector3d StateVec;
-typedef Eigen::Vector2i GridIndex;
 class DualStateFrontier {
   typedef std::shared_ptr<DualStateFrontier> Ptr;
 
@@ -30,9 +30,7 @@ public:
   ros::NodeHandle nh_private_;
 
   // ROS subscribers
-  // ros::Subscriber odom_sub_;
   ros::Subscriber graph_points_sub_;
-  // ros::Subscriber terrain_point_cloud_sub_;
   message_filters::Subscriber<nav_msgs::Odometry> odom_sub_;
   message_filters::Subscriber<sensor_msgs::PointCloud2>
       terrain_point_cloud_sub_;
@@ -74,23 +72,11 @@ public:
   StateVec robot_bounding;
   StateVec search_bounding;
 
-  double kFlyingObstacleHeightThre;
-  double kObstacleHeightThre;
-  double kTerrainCheckDist;
-  double kTerrainCheckPointNum;
   double kTerrainVoxelSize;
-  double kMapWidth;
-  double kGridSize;
   int kTerrainVoxelHalfWidth;
   int kTerrainVoxelWidth;
 
   // Variables
-
-  // collision check
-  enum gridStatus { unknown = 0, free = 1, occupied = 2 };
-  std::vector<std::vector<int>> gridState_;
-  int map_width_grid_num_;
-  int map_half_width_grid_num_;
 
   // general
   ros::Timer executeTimer_;
@@ -104,12 +90,6 @@ public:
       pcl::PointCloud<pcl::PointXYZI>::Ptr(
           new pcl::PointCloud<pcl::PointXYZI>());
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_ds =
-      pcl::PointCloud<pcl::PointXYZI>::Ptr(
-          new pcl::PointCloud<pcl::PointXYZI>());
-  pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_traversable_ =
-      pcl::PointCloud<pcl::PointXYZI>::Ptr(
-          new pcl::PointCloud<pcl::PointXYZI>());
-  pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_obstacle_ =
       pcl::PointCloud<pcl::PointXYZI>::Ptr(
           new pcl::PointCloud<pcl::PointXYZI>());
   pcl::PointCloud<pcl::PointXYZ>::Ptr unknown_points_ =
@@ -134,6 +114,7 @@ public:
           new pcl::KdTreeFLANN<pcl::PointXYZ>());
 
   volumetric_mapping::OctomapManager *manager_;
+  OccupancyGrid *grid_;
 
   // General Functions
   void getUnknowPointcloudInBoundingBox(const StateVec &center,
@@ -157,21 +138,6 @@ public:
   void updateTerrainElevationForKnown();
   std::vector<double> getTerrainVoxelElev();
 
-  // Functions for collision check
-  std::vector<GridIndex> rayCast(GridIndex origin, GridIndex goal,
-                                 GridIndex max_grid, GridIndex min_grid);
-  GridIndex getIndex(StateVec point);
-  void clearGrid();
-  void updateGrid();
-  bool collisionCheckByTerrain(StateVec origin_point, StateVec goal_point);
-  bool InRange(const GridIndex sub, const GridIndex max_sub,
-               const GridIndex min_sub);
-  int signum(int x) { return x == 0 ? 0 : x < 0 ? -1 : 1; }
-  double intbound(double s, double ds);
-  double mod(double value, double modulus) {
-    return fmod(fmod(value, modulus) + modulus, modulus);
-  }
-
   // Callback Functions
   void terrainCloudAndOdomCallback(
       const nav_msgs::Odometry::ConstPtr &odom_msg,
@@ -181,7 +147,8 @@ public:
 public:
   DualStateFrontier(const ros::NodeHandle &nh,
                     const ros::NodeHandle &nh_private,
-                    volumetric_mapping::OctomapManager *manager);
+                    volumetric_mapping::OctomapManager *manager,
+                    OccupancyGrid *grid);
   bool readParameters();
   bool initialize();
   void execute(const ros::TimerEvent &e);

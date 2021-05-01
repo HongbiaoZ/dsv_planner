@@ -26,7 +26,6 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 
 #define SQ(x) ((x) * (x))
 #define SQRT2 0.70711
-#define PI 3.14159265
 
 using namespace Eigen;
 namespace dsvplanner_ns {
