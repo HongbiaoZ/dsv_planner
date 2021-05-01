@@ -404,17 +404,11 @@ void GraphPlanner::executeCommand() {
 
   if (graph_planner_command_.command ==
       graph_planner::GraphPlannerCommand::COMMAND_GO_TO_ORIGIN) {
-<<<<<<< HEAD
     // COMMAND_GO_TO_ORIGIN
     executeGoToOrigin();
   } else if (graph_planner_command_.command ==
              graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION) {
     // COMMAND_GO_TO_LOCATION
-=======
-    executeGoToOrigin();
-  } else if (graph_planner_command_.command ==
-             graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION) {
->>>>>>> melodic
     executeGoToLocation();
   } else {
     publishInProgress(false);
