@@ -60,6 +60,19 @@ bool GraphPlanner::readParameters() {
     ROS_ERROR("Cannot read parameter: kWaypointProjectionDistance");
     return false;
   }
+  if (!nh_.getParam("kObstacleHeightThres", kObstacleHeightThres)) {
+    ROS_ERROR("Cannot read parameter: kObstacleHeightThres");
+    return false;
+  }
+  if (!nh_.getParam("kOverheadObstacleHeightThres",
+                    kOverheadObstacleHeightThres)) {
+    ROS_ERROR("Cannot read parameter: kOverheadObstacleHeightThres");
+    return false;
+  }
+  if (!nh_.getParam("kCollisionCheckDistace", kCollisionCheckDistace)) {
+    ROS_ERROR("Cannot read parameter: kCollisionCheckDistace");
+    return false;
+  }
 
   return true;
 }
@@ -107,6 +120,31 @@ void GraphPlanner::commandCallback(
 void GraphPlanner::graphCallback(
     const graph_utils::TopologicalGraph::ConstPtr &graph_msg) {
   planned_graph_ = *graph_msg;
+}
+
+void GraphPlanner::terrainCallback(
+    const sensor_msgs::PointCloud2::ConstPtr &terrain_msg) {
+  terrain_point_->clear();
+  terrain_point_crop_->clear();
+  pcl::fromROSMsg(*terrain_msg, *terrain_point_);
+
+  pcl::PointXYZI point;
+  int terrainCloudSize = terrain_point_->points.size();
+  for (int i = 0; i < terrainCloudSize; i++) {
+    point = terrain_point_->points[i];
+
+    float pointX = point.x;
+    float pointY = point.y;
+    float pointZ = point.z;
+
+    if (point.intensity > kObstacleHeightThres &&
+        point.intensity < kOverheadObstacleHeightThres) {
+      point.x = pointX;
+      point.y = pointY;
+      point.z = pointZ;
+      terrain_point_crop_->push_back(point);
+    }
+  }
 }
 
 void GraphPlanner::publishInProgress(bool in_progress) {
@@ -171,7 +209,10 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx) {
     // vertex.
     bool pathRewind = graph_utils_ns::PathCircleDetect(
         shortest_path, planned_graph_, next_vertex_id, robot_pos_);
-    if (pathRewind) {
+    bool collisionCheckResult =
+        collisionCheckByTerrain(robot_pos_, next_vertex_id);
+    if (pathRewind && collisionCheckResult) {
+      // std::cout << "pathrewind = " << pathRewind << std::endl;
       wrong_id_ = true;
       wrong_id_shortest_path_size_ = next_shortest_path.size();
     }
@@ -251,6 +292,40 @@ bool GraphPlanner::goToPoint(geometry_msgs::Point point) {
   return goToVertex(current_vertex_idx, goal_vertex_idx);
 }
 
+bool GraphPlanner::collisionCheckByTerrain(geometry_msgs::Point robot_position,
+                                           int end_vertex_idx) {
+  geometry_msgs::Point start_point = robot_position;
+  geometry_msgs::Point end_point =
+      planned_graph_.vertices[end_vertex_idx].location;
+
+  int count = 0;
+  double distance =
+      sqrt((end_point.x - start_point.x) * (end_point.x - start_point.x) +
+           (end_point.y - start_point.y) * (end_point.y - start_point.y));
+  double check_point_num = distance / (kCollisionCheckDistace);
+  for (int j = 0; j < check_point_num; j++) {
+    geometry_msgs::Point p1;
+    p1.x =
+        start_point.x +
+        j * kCollisionCheckDistace / distance * (end_point.x - start_point.x);
+    p1.y =
+        start_point.y +
+        j * kCollisionCheckDistace / distance * (end_point.y - start_point.y);
+    for (int i = 0; i < terrain_point_crop_->points.size(); i++) {
+      double dist = sqrt((p1.x - terrain_point_crop_->points[i].x) *
+                             (p1.x - terrain_point_crop_->points[i].x) +
+                         (p1.y - terrain_point_crop_->points[i].y) *
+                             (p1.y - terrain_point_crop_->points[i].y));
+      if (dist < kCollisionCheckDistace) {
+        count++;
+      }
+      if (count > 0) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
 geometry_msgs::Point
 GraphPlanner::projectWayPoint(geometry_msgs::Point next_vertex_pos,
                               geometry_msgs::Point robot_pos) {
@@ -305,10 +380,8 @@ void GraphPlanner::executeGoToOrigin() {
   bool success = goToPoint(origin);
 
   if (!success) {
-    // ROS_INFO("COMMAND_GO_TO_ORIGIN success=false");
     publishInProgress(false);
   } else {
-    // ROS_INFO("COMMAND_GO_TO_ORIGIN success=true");
     alterAndPublishWaypoint();
     publishInProgress(true);
   }
@@ -319,10 +392,8 @@ void GraphPlanner::executeGoToLocation() {
   bool success = goToPoint(graph_planner_command_.location);
 
   if (!success) {
-    // ROS_INFO("COMMAND_GO_TO_LOCATION success=false");
     publishInProgress(false);
   } else {
-    // ROS_INFO("COMMAND_GO_TO_LOCATION success=true");
     alterAndPublishWaypoint();
     publishInProgress(true);
   }
@@ -333,14 +404,19 @@ void GraphPlanner::executeCommand() {
 
   if (graph_planner_command_.command ==
       graph_planner::GraphPlannerCommand::COMMAND_GO_TO_ORIGIN) {
+<<<<<<< HEAD
     // COMMAND_GO_TO_ORIGIN
     executeGoToOrigin();
   } else if (graph_planner_command_.command ==
              graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION) {
     // COMMAND_GO_TO_LOCATION
+=======
+    executeGoToOrigin();
+  } else if (graph_planner_command_.command ==
+             graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION) {
+>>>>>>> melodic
     executeGoToLocation();
   } else {
-    // ROS_WARN("unknown command received");
     publishInProgress(false);
   }
 }
