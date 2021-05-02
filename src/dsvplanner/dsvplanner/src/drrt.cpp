@@ -44,6 +44,8 @@ dsvplanner_ns::Drrt::Drrt(volumetric_mapping::OctomapManager *manager,
   }
 
   srand((unsigned)time(NULL));
+
+  ROS_INFO("Successfully launched Drrt node");
 }
 
 dsvplanner_ns::Drrt::~Drrt() {
@@ -60,8 +62,10 @@ void dsvplanner_ns::Drrt::setRootWithOdom(const nav_msgs::Odometry &pose) {
 }
 
 void dsvplanner_ns::Drrt::setTerrainVoxelElev() {
-  terrain_voxle_elev_.clear();
-  terrain_voxle_elev_ = dual_state_frontier_->getTerrainVoxelElev();
+  if (dual_state_frontier_->getTerrainVoxelElev().size() > 0) {
+    terrain_voxle_elev_.clear();
+    terrain_voxle_elev_ = dual_state_frontier_->getTerrainVoxelElev();
+  }
 }
 
 int dsvplanner_ns::Drrt::getNodeCounter() { return nodeCounter_; }
@@ -448,6 +452,7 @@ void dsvplanner_ns::Drrt::plannerIterate() {
   double x_position = newState[0] - root_[0];
   double y_position = newState[1] - root_[1];
   newState[2] = getZvalue(x_position, y_position);
+
   if (newState[2] >= 1000) // the sampled position is above the untraversed area
   {
     return;
@@ -473,7 +478,6 @@ void dsvplanner_ns::Drrt::plannerIterate() {
       direction[2] > params_.kMaxExtensionAlongZ) {
     return;
   }
-
   // check collision if the new node is in the planning boundary
   if (!inPlanningBoundary(newState)) {
     return;
@@ -481,9 +485,11 @@ void dsvplanner_ns::Drrt::plannerIterate() {
     if (volumetric_mapping::OctomapManager::CellStatus::kFree ==
             manager_->getLineStatusBoundingBox(origin, newState,
                                                params_.boundingBox) &&
-        (!grid_->collisionCheckByTerrain(origin,
-                                         newState))) { // connection is free
+        (!grid_->collisionCheckByTerrainWithVector(
+            origin,
+            newState))) { // connection is free
       // Create new node and insert into tree
+
       dsvplanner_ns::Node *newNode = new dsvplanner_ns::Node;
       newNode->state_ = newState;
       newNode->parent_ = newParent;

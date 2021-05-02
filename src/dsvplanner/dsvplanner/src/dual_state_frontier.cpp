@@ -264,7 +264,7 @@ bool DualStateFrontier::inSensorRangeofGraphPoints(StateVec point) {
       }
       if (manager_->CellStatus::kOccupied !=
               manager_->getVisibility(node_point, point, false) &&
-          !grid_->collisionCheckByTerrain(node_point, point)) {
+          !grid_->collisionCheckByTerrainWithVector(node_point, point)) {
         return true;
       }
     }
@@ -283,7 +283,7 @@ void DualStateFrontier::localFrontierUpdate(StateVec &center) {
     checkedPoint.z() = local_frontier_->points[i].z;
     if ((manager_->CellStatus::kOccupied !=
              manager_->getVisibility(center, checkedPoint, false) &&
-         !grid_->collisionCheckByTerrain(center, checkedPoint)) ||
+         !grid_->collisionCheckByTerrainWithVector(center, checkedPoint)) ||
         (!planner_status_ && inSensorRangeofGraphPoints(checkedPoint))) {
       local_frontier_pcl_->points.push_back(local_frontier_->points[i]);
       global_frontier_->points.push_back(local_frontier_->points[i]);

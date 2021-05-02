@@ -56,6 +56,8 @@ bool OccupancyGrid::initialize() {
   map_half_width_grid_num_ = int(kMapWidth / 2 / kGridSize);
   map_width_grid_num_ = map_half_width_grid_num_ * 2 + 1;
 
+  clearGrid();
+
   ROS_INFO("Successfully launched OccupancyGrid node");
 
   return true;
@@ -108,7 +110,7 @@ geometry_msgs::Point OccupancyGrid::getPoint(GridIndex p) {
   geometry_msgs::Point point;
   point.x = x;
   point.y = y;
-  point.z = robot_position_[3];
+  point.z = robot_position_[2];
   return point;
 }
 
@@ -121,6 +123,14 @@ GridIndex OccupancyGrid::getIndex(StateVec point) {
     indX--;
   if (point.y() - robot_position_[1] + kGridSize / 2 < 0)
     indY--;
+  if (indX < 0)
+    indX = 0;
+  if (indY < 0)
+    indY = 0;
+  if (indX > map_width_grid_num_ - 1)
+    indX = map_width_grid_num_ - 1;
+  if (indY > map_width_grid_num_ - 1)
+    indY = map_width_grid_num_ - 1;
   GridIndex grid_index(indX, indY);
   return grid_index;
 }
@@ -150,7 +160,14 @@ void OccupancyGrid::updateGrid() {
       indX--;
     if (point.y - robot_position_[1] + kGridSize / 2 < 0)
       indY--;
-
+    if (indX < 0)
+      indX = 0;
+    if (indY < 0)
+      indY = 0;
+    if (indX > map_width_grid_num_ - 1)
+      indX = map_width_grid_num_ - 1;
+    if (indY > map_width_grid_num_ - 1)
+      indY = map_width_grid_num_ - 1;
     if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 &&
         indY < map_width_grid_num_) {
       gridStatus grid_state = free;
@@ -167,6 +184,14 @@ void OccupancyGrid::updateGrid() {
       indX--;
     if (point.y - robot_position_[1] + kGridSize / 2 < 0)
       indY--;
+    if (indX < 0)
+      indX = 0;
+    if (indY < 0)
+      indY = 0;
+    if (indX > map_width_grid_num_ - 1)
+      indX = map_width_grid_num_ - 1;
+    if (indY > map_width_grid_num_ - 1)
+      indY = map_width_grid_num_ - 1;
 
     if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 &&
         indY < map_width_grid_num_) {
@@ -200,11 +225,12 @@ void OccupancyGrid::publishGridMap() {
   grid_cloud_pub_.publish(gridCloud2);
 }
 
-bool OccupancyGrid::collisionCheckByTerrain(StateVec origin_point,
-                                            StateVec goal_point) {
+bool OccupancyGrid::collisionCheckByTerrainWithVector(StateVec origin_point,
+                                                      StateVec goal_point) {
+  //  ROS_INFO("Start Check Collision");
   GridIndex origin_grid_index = getIndex(origin_point);
   GridIndex goal_grid_index = getIndex(goal_point);
-  GridIndex max_grid_index(map_width_grid_num_, map_width_grid_num_);
+  GridIndex max_grid_index(map_width_grid_num_ - 1, map_width_grid_num_ - 1);
   GridIndex min_grid_index(0, 0);
   GridIndex grid_index;
   std::vector<GridIndex> ray_tracing_grids = rayCast(
@@ -212,9 +238,12 @@ bool OccupancyGrid::collisionCheckByTerrain(StateVec origin_point,
   int length = ray_tracing_grids.size();
   for (int i = 0; i < length; i++) {
     grid_index = ray_tracing_grids[i];
-    if (gridState_[grid_index[0]][grid_index[1]] == 2)
+    if (gridState_[grid_index[0]][grid_index[1]] == 2) {
+      //      ROS_INFO("Successfully Check Collision");
       return true;
+    }
   }
+  //  ROS_INFO("Successfully Check Collision");
   return false;
 }
 
@@ -222,20 +251,8 @@ bool OccupancyGrid::collisionCheckByTerrain(geometry_msgs::Point origin,
                                             geometry_msgs::Point goal) {
   StateVec origin_point(origin.x, origin.y, origin.z);
   StateVec goal_point(goal.x, goal.y, goal.z);
-  GridIndex origin_grid_index = getIndex(origin_point);
-  GridIndex goal_grid_index = getIndex(goal_point);
-  GridIndex max_grid_index(map_width_grid_num_, map_width_grid_num_);
-  GridIndex min_grid_index(0, 0);
-  GridIndex grid_index;
-  std::vector<GridIndex> ray_tracing_grids = rayCast(
-      origin_grid_index, goal_grid_index, max_grid_index, min_grid_index);
-  int length = ray_tracing_grids.size();
-  for (int i = 0; i < length; i++) {
-    grid_index = ray_tracing_grids[i];
-    if (gridState_[grid_index[0]][grid_index[1]] == 2)
-      return true;
-  }
-  return false;
+
+  return collisionCheckByTerrainWithVector(origin_point, goal_point);
 }
 
 bool OccupancyGrid::InRange(const GridIndex sub, const GridIndex max_sub,
@@ -269,7 +286,7 @@ std::vector<GridIndex> OccupancyGrid::rayCast(GridIndex origin, GridIndex goal,
     grid_pairs.push_back(origin);
     return grid_pairs;
   }
-  Eigen::Vector2i diff = goal - origin;
+  GridIndex diff = goal - origin;
   double max_dist = diff.squaredNorm();
   int step_x = signum(diff.x());
   int step_y = signum(diff.y());
@@ -278,7 +295,7 @@ std::vector<GridIndex> OccupancyGrid::rayCast(GridIndex origin, GridIndex goal,
   double t_delta_x = step_x == 0 ? DBL_MAX : (double)step_x / (double)diff.x();
   double t_delta_y = step_y == 0 ? DBL_MAX : (double)step_y / (double)diff.y();
   double dist = 0;
-  Eigen::Vector2i cur_sub = origin;
+  GridIndex cur_sub = origin;
 
   while (true) {
     if (InRange(cur_sub, max_grid, min_grid)) {
@@ -294,6 +311,8 @@ std::vector<GridIndex> OccupancyGrid::rayCast(GridIndex origin, GridIndex goal,
         cur_sub.y() += step_y;
         t_max_y += t_delta_y;
       }
+    } else {
+      return grid_pairs;
     }
   }
 }

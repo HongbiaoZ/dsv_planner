@@ -34,6 +34,12 @@ dsvplanner_ns::drrtPlanner::~drrtPlanner() {
   if (dual_state_graph_) {
     delete dual_state_graph_;
   }
+  if (dual_state_frontier_) {
+    delete dual_state_frontier_;
+  }
+  if (grid_) {
+    delete grid_;
+  }
   if (drrt_) {
     delete drrt_;
   }
@@ -70,7 +76,6 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(
   // Clear old tree and the last global frontier.
   cleanLastSelectedGlobalFrontier();
   drrt_->clear();
-
   // Reinitialize.
   drrt_->plannerInit();
 
@@ -243,15 +248,11 @@ bool dsvplanner_ns::drrtPlanner::setParams() {
   nh_private_.getParam("/gb/kMaxXGlobal", params_.kMaxXGlobalBound);
   nh_private_.getParam("/gb/kMaxYGlobal", params_.kMaxYGlobalBound);
   nh_private_.getParam("/gb/kMaxZGlobal", params_.kMaxZGlobalBound);
-  nh_private_.getParam("/cc/kObstacleHeightThre", params_.kObstacleHeightThre);
-  nh_private_.getParam("/cc/kFlyingObstacleHeightThre",
-                       params_.kFlyingObstacleHeightThre);
-  nh_private_.getParam("/cc/kTerrainCheckDist", params_.kTerrainCheckDist);
-  nh_private_.getParam("/cc/kTerrainCheckPointNum",
-                       params_.kTerrainCheckPointNum);
-  nh_private_.getParam("/cc/kTerrainVoxelSize", params_.kTerrainVoxelSize);
-  nh_private_.getParam("/cc/kTerrainVoxelWidth", params_.kTerrainVoxelWidth);
-  nh_private_.getParam("/cc/kTerrainVoxelHalfWidth",
+  nh_private_.getParam("/elevation/kTerrainVoxelSize",
+                       params_.kTerrainVoxelSize);
+  nh_private_.getParam("/elevation/kTerrainVoxelWidth",
+                       params_.kTerrainVoxelWidth);
+  nh_private_.getParam("/elevation/kTerrainVoxelHalfWidth",
                        params_.kTerrainVoxelHalfWidth);
   nh_private_.getParam("/planner/odomSubTopic", odomSubTopic);
   nh_private_.getParam("/planner/newTreePathPubTopic", newTreePathPubTopic);
@@ -266,8 +267,6 @@ bool dsvplanner_ns::drrtPlanner::setParams() {
   nh_private_.getParam("/planner/nextGoalPubTopic", nextGoalPubTopic);
   nh_private_.getParam("/planner/pointInSensorRangePubTopic",
                        pointInSensorRangePubTopic);
-  nh_private_.getParam("/planner/terrainNoGroundPubTopic",
-                       terrainNoGroundPubTopic);
   nh_private_.getParam("/planner/shutDownTopic", shutDownTopic);
   nh_private_.getParam("/planner/plannerServiceName", plannerServiceName);
   nh_private_.getParam("/planner/cleanFrontierServiceName",
@@ -296,8 +295,6 @@ bool dsvplanner_ns::drrtPlanner::init() {
       localSelectedFrontierPubTopic, 1000);
   params_.pointInSensorRangePub_ =
       nh_.advertise<sensor_msgs::PointCloud2>(pointInSensorRangePubTopic, 1000);
-  params_.terrainNoGroundPub_ =
-      nh_.advertise<sensor_msgs::PointCloud2>(terrainNoGroundPubTopic, 1000);
   params_.plantimePub_ =
       nh_.advertise<std_msgs::Float32>(plantimePubTopic, 1000);
   params_.nextGoalPub_ =
@@ -313,5 +310,7 @@ bool dsvplanner_ns::drrtPlanner::init() {
       &dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback, this);
 
   drrt_->setParams(params_);
+
+  ROS_INFO("Successfully launched DSVP node");
   return true;
 }

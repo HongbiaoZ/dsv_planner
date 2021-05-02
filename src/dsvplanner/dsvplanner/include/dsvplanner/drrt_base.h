@@ -38,7 +38,6 @@ struct Params {
   ros::Publisher nextGoalPub_;
   ros::Publisher plantimePub_;
   ros::Publisher pointInSensorRangePub_;
-  ros::Publisher terrainNoGroundPub_;
   ros::Publisher shutdownSignalPub;
 
   double sensorPitch;
@@ -79,11 +78,7 @@ struct Params {
   double kMaxYGlobalBound;
   double kMaxZGlobalBound;
 
-  double kObstacleHeightThre;
-  double kFlyingObstacleHeightThre;
-  double kTerrainCheckDist;
   double kTerrainVoxelSize;
-  int kTerrainCheckPointNum;
   int kTerrainVoxelWidth;
   int kTerrainVoxelHalfWidth;
 

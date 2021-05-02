@@ -27,7 +27,6 @@ planner/localSelectedFrontierPubTopic: /threefrontier
 planner/plantimePubTopic: /plan_time
 planner/nextGoalPubTopic: /next_goal
 planner/pointInSensorRangePubTopic: /pointInrange
-planner/terrainNoGroundPubTopic: /terrainWithoutGround
 planner/shutDownTopic: /stop_exploring
 planner/plannerServiceName: /drrtPlannerSrv
 planner/cleanFrontierServiceName: /cleanFrontierSrv
@@ -72,12 +71,12 @@ elevation/kTerrainVoxelWidth: 101
 elevation/kTerrainVoxelSize: 0.4
 
 #OccupancyGrid Constants
-grid/world_frame_id_: /map
-grid/sub_odom_topic_: /state_estimation
-grid/sub_terrain_point_cloud_topic_: /terrain_map_ext
-grid/pub_grid_points_topic_: /occpancy_grid_map
+grid/world_frame_id: /map
+grid/odomSubTopic: /state_estimation
+grid/terrainCloudSubTopic: /terrain_map_ext
+grid/pubGridPointsTopic: /occpancy_grid_map
 grid/kMapWidth: 40
-grid/kGridSize: 0.2
+grid/kGridSize: 0.4
 grid/kDownsampleSize: 0.3
 grid/kFlyingObstacleHeightThre: 1.0
 grid/kObstacleHeightThre: 0.2

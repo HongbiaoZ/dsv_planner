@@ -97,7 +97,8 @@ public:
   void clearGrid();
   void updateGrid();
   void publishGridMap();
-  bool collisionCheckByTerrain(StateVec origin_point, StateVec goal_point);
+  bool collisionCheckByTerrainWithVector(StateVec origin_point,
+                                         StateVec goal_point);
   bool collisionCheckByTerrain(geometry_msgs::Point origin,
                                geometry_msgs::Point goal);
   bool InRange(const GridIndex sub, const GridIndex max_sub,

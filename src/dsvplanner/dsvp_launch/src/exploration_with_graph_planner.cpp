@@ -164,6 +164,8 @@ int main(int argc, char **argv) {
       wp_ongoing = false;
   }
 
+  ros::Duration(1.0).sleep();
+
   std::cout << std::endl
             << "\033[1;32mExploration Started\033[0m\n"
             << std::endl;
