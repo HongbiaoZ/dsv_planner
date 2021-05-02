@@ -46,7 +46,7 @@ bool OccupancyGrid::initialize() {
   // Initialize subscriber
   odom_sub_.subscribe(nh_, sub_odom_topic_, 1);
   terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_, 1);
-  sync_.reset(new Sync(syncPolicy(10), odom_sub_, terrain_point_cloud_sub_));
+  sync_.reset(new Sync(syncPolicy(100), odom_sub_, terrain_point_cloud_sub_));
   sync_->registerCallback(
       boost::bind(&OccupancyGrid::terrainCloudAndOdomCallback, this, _1, _2));
 
@@ -239,11 +239,9 @@ bool OccupancyGrid::collisionCheckByTerrainWithVector(StateVec origin_point,
   for (int i = 0; i < length; i++) {
     grid_index = ray_tracing_grids[i];
     if (gridState_[grid_index[0]][grid_index[1]] == 2) {
-      //      ROS_INFO("Successfully Check Collision");
       return true;
     }
   }
-  //  ROS_INFO("Successfully Check Collision");
   return false;
 }
 
