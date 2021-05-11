@@ -35,6 +35,8 @@ bool OccupancyGrid::readParameters() {
   nh_private_.getParam("/grid/kObstacleHeightThre", kObstacleHeightThre);
   nh_private_.getParam("/grid/kFlyingObstacleHeightThre",
                        kFlyingObstacleHeightThre);
+  nh_private_.getParam("/rm/kBoundX", kRobotXBound);
+  nh_private_.getParam("/rm/kBoundY", kRobotYBound);
 
   return true;
 }
@@ -150,30 +152,6 @@ void OccupancyGrid::clearGrid() {
 
 void OccupancyGrid::updateGrid() {
   pcl::PointXYZI point;
-  for (int i = 0; i < terrain_cloud_traversable_->points.size(); i++) {
-    point = terrain_cloud_traversable_->points[i];
-    int indX = int((point.x - robot_position_[0] + kGridSize / 2) / kGridSize) +
-               map_half_width_grid_num_;
-    int indY = int((point.y - robot_position_[1] + kGridSize / 2) / kGridSize) +
-               map_half_width_grid_num_;
-    if (point.x - robot_position_[0] + kGridSize / 2 < 0)
-      indX--;
-    if (point.y - robot_position_[1] + kGridSize / 2 < 0)
-      indY--;
-    if (indX < 0)
-      indX = 0;
-    if (indY < 0)
-      indY = 0;
-    if (indX > map_width_grid_num_ - 1)
-      indX = map_width_grid_num_ - 1;
-    if (indY > map_width_grid_num_ - 1)
-      indY = map_width_grid_num_ - 1;
-    if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 &&
-        indY < map_width_grid_num_) {
-      gridStatus grid_state = free;
-      gridState_[indX][indY] = grid_state;
-    }
-  }
   for (int i = 0; i < terrain_cloud_obstacle_->points.size(); i++) {
     point = terrain_cloud_obstacle_->points[i];
     int indX = int((point.x - robot_position_[0] + kGridSize / 2) / kGridSize) +
@@ -197,6 +175,38 @@ void OccupancyGrid::updateGrid() {
         indY < map_width_grid_num_) {
       gridStatus grid_state = occupied;
       gridState_[indX][indY] = grid_state;
+    }
+  }
+  for (int i = 0; i < terrain_cloud_traversable_->points.size(); i++) {
+    point = terrain_cloud_traversable_->points[i];
+    int indX = int((point.x - robot_position_[0] + kGridSize / 2) / kGridSize) +
+               map_half_width_grid_num_;
+    int indY = int((point.y - robot_position_[1] + kGridSize / 2) / kGridSize) +
+               map_half_width_grid_num_;
+    if (point.x - robot_position_[0] + kGridSize / 2 < 0)
+      indX--;
+    if (point.y - robot_position_[1] + kGridSize / 2 < 0)
+      indY--;
+    if (indX < 0)
+      indX = 0;
+    if (indY < 0)
+      indY = 0;
+    if (indX > map_width_grid_num_ - 1)
+      indX = map_width_grid_num_ - 1;
+    if (indY > map_width_grid_num_ - 1)
+      indY = map_width_grid_num_ - 1;
+    if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 &&
+        indY < map_width_grid_num_) {
+      if (gridState_[indX][indY] == 2) {
+        continue;
+      }
+      if (updateFreeGridWithSurroundingGrids(indX, indY) == false) {
+        gridStatus grid_state = free;
+        gridState_[indX][indY] = grid_state;
+      } else {
+        gridStatus grid_state = near_occupied;
+        gridState_[indX][indY] = grid_state;
+      }
     }
   }
 }
@@ -225,6 +235,26 @@ void OccupancyGrid::publishGridMap() {
   grid_cloud_pub_.publish(gridCloud2);
 }
 
+bool OccupancyGrid::updateFreeGridWithSurroundingGrids(int indx, int indy) {
+  int count_x = floor(0.5 * kRobotXBound / kGridSize);
+  int count_y = floor(0.5 * kRobotYBound / kGridSize);
+  int indX;
+  int indY;
+  for (int i = -count_x; i <= count_x; i++) {
+    for (int j = -count_y; j <= count_y; j++) {
+      indX = indx + i;
+      indY = indy + j;
+      if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 &&
+          indY < map_width_grid_num_) {
+        if (gridState_[indX][indY] == 2) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+}
+
 bool OccupancyGrid::collisionCheckByTerrainWithVector(StateVec origin_point,
                                                       StateVec goal_point) {
   //  ROS_INFO("Start Check Collision");
@@ -238,7 +268,8 @@ bool OccupancyGrid::collisionCheckByTerrainWithVector(StateVec origin_point,
   int length = ray_tracing_grids.size();
   for (int i = 0; i < length; i++) {
     grid_index = ray_tracing_grids[i];
-    if (gridState_[grid_index[0]][grid_index[1]] == 2) {
+    if (gridState_[grid_index[0]][grid_index[1]] == 2 ||
+        gridState_[grid_index[0]][grid_index[1]] == 3) {
       return true;
     }
   }

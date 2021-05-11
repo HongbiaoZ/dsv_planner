@@ -65,9 +65,11 @@ public:
   double kDownsampleSize;
   double kObstacleHeightThre;
   double kFlyingObstacleHeightThre;
+  double kRobotXBound;
+  double kRobotYBound;
 
   // Variables
-  enum gridStatus { unknown = 0, free = 1, occupied = 2 };
+  enum gridStatus { unknown = 0, free = 1, occupied = 2, near_occupied = 3 };
   std::vector<std::vector<int>> gridState_;
   int map_width_grid_num_;
   int map_half_width_grid_num_;
@@ -103,6 +105,7 @@ public:
                                geometry_msgs::Point goal);
   bool InRange(const GridIndex sub, const GridIndex max_sub,
                const GridIndex min_sub);
+  bool updateFreeGridWithSurroundingGrids(int indx, int indy);
   int signum(int x);
   double intbound(double s, double ds);
   double mod(double value, double modulus);

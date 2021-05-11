@@ -46,6 +46,10 @@ bool GraphPlanner::readParameters() {
     ROS_ERROR("Cannot read parameter: sub_odometry_topic_");
     return false;
   }
+  if (!nh_.getParam("sub_terrain_topic", sub_terrain_topic_)) {
+    ROS_ERROR("Cannot read parameter: sub_terrain_topic_");
+    return false;
+  }
   if (!nh_.getParam("sub_graph_topic", sub_graph_topic_)) {
     ROS_ERROR("Cannot read parameter: sub_graph_topic_");
     return false;
@@ -58,6 +62,10 @@ bool GraphPlanner::readParameters() {
   if (!nh_.getParam("kWaypointProjectionDistance",
                     kWaypointProjectionDistance)) {
     ROS_ERROR("Cannot read parameter: kWaypointProjectionDistance");
+    return false;
+  }
+  if (!nh_.getParam("kDownsampleSize", kDownsampleSize)) {
+    ROS_ERROR("Cannot read parameter: kDownsampleSize");
     return false;
   }
   if (!nh_.getParam("kObstacleHeightThres", kObstacleHeightThres)) {
@@ -145,6 +153,10 @@ void GraphPlanner::terrainCallback(
       terrain_point_crop_->push_back(point);
     }
   }
+  pcl::VoxelGrid<pcl::PointXYZI> point_ds;
+  point_ds.setLeafSize(kDownsampleSize, kDownsampleSize, kDownsampleSize);
+  point_ds.setInputCloud(terrain_point_crop_);
+  point_ds.filter(*terrain_point_crop_);
 }
 
 void GraphPlanner::publishInProgress(bool in_progress) {
@@ -198,59 +210,58 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx) {
     return false;
   } else {
     int next_vertex_id;
-    next_vertex_id = shortest_path[0];
     next_vertex_id = graph_utils_ns::GetFirstVertexBeyondThreshold(
         robot_pos_, shortest_path, planned_graph_, kLookAheadDist);
+    for (int i = 1; i < shortest_path.size(); i++) {
+      //      std::cout << "i = " << i << " id is " << shortest_path[i] <<
+      //      std::endl;
+      if (shortest_path[i] != next_vertex_id &&
+          collisionCheckByTerrain(robot_pos_, shortest_path[i])) {
+        next_vertex_id = shortest_path[i - 1];
+        break;
+      } else if (shortest_path[i] == next_vertex_id) {
+        next_vertex_id = shortest_path[i];
+        break;
+      }
+    }
+
     std::vector<int> next_shortest_path;
     graph_utils_ns::ShortestPathBtwVertex(next_shortest_path, planned_graph_,
                                           next_vertex_id, goal_vertex_idx);
+    //    std::vector<int> next_shortest_path;
+    //    graph_utils_ns::ShortestPathBtwVertex(next_shortest_path,
+    //    planned_graph_,
+    //                                          next_vertex_id,
+    //                                          goal_vertex_idx);
 
-    // when the path is bypassed a thin wall, follow the path one vertex by one
-    // vertex.
-    bool pathRewind = graph_utils_ns::PathCircleDetect(
-        shortest_path, planned_graph_, next_vertex_id, robot_pos_);
-    bool collisionCheckResult =
-        collisionCheckByTerrain(robot_pos_, next_vertex_id);
-    if (pathRewind && collisionCheckResult) {
-      // std::cout << "pathrewind = " << pathRewind << std::endl;
-      wrong_id_ = true;
-      wrong_id_shortest_path_size_ = next_shortest_path.size();
-    }
-
-    if (!wrong_id_) {
-      // prevent back and forth between two vertices
-      if (next_shortest_path.size() > previous_shortest_path_size_) {
-        next_vertex_id = previous_vertex_id_;
-        backTraceCount_++;
-        if (backTraceCount_ > 15) {
-          backTraceCount_ = 0;
-          previous_shortest_path_size_ = 100000;
-        }
-      } else {
-        previous_vertex_id_ = next_vertex_id;
-        previous_shortest_path_size_ = next_shortest_path.size();
+    //    // when the path is bypassed a thin wall, follow the path one vertex
+    //    by one
+    //    // vertex.
+    //    bool pathRewind = graph_utils_ns::PathCircleDetect(
+    //        shortest_path, planned_graph_, next_vertex_id, robot_pos_);
+    //    bool collisionCheckResult =
+    //        collisionCheckByTerrain(robot_pos_, next_vertex_id);
+    //    if (pathRewind && collisionCheckResult) {
+    //      // std::cout << "pathrewind = " << pathRewind << std::endl;
+    //      wrong_id_ = true;
+    //      wrong_id_shortest_path_size_ = next_shortest_path.size();
+    //    }
+    // prevent back and forth between two vertices
+    if (next_shortest_path.size() > previous_shortest_path_size_) {
+      next_vertex_id = previous_vertex_id_;
+      backTraceCount_++;
+      if (backTraceCount_ > 15) {
+        backTraceCount_ = 0;
+        previous_shortest_path_size_ = 100000;
       }
     } else {
-      next_vertex_id = shortest_path[1];
-      if (shortest_path.size() >= previous_shortest_path_size_when_pathrewind) {
-        next_vertex_id = previous_vertex_id_;
-        backTraceCount_++;
-        if (backTraceCount_ > 15) {
-          backTraceCount_ = 0;
-          previous_shortest_path_size_when_pathrewind = 100000;
-        }
-      } else {
-        previous_vertex_id_ = next_vertex_id;
-        previous_shortest_path_size_when_pathrewind = shortest_path.size();
-      }
-      if (shortest_path.size() <= wrong_id_shortest_path_size_) {
-        wrong_id_ = false;
-      }
+      previous_vertex_id_ = next_vertex_id;
+      previous_shortest_path_size_ = next_shortest_path.size();
     }
 
     geometry_msgs::Point next_waypoint =
         planned_graph_.vertices[next_vertex_id].location;
-    if (next_vertex_id != shortest_path.back() && (!wrong_id_)) {
+    if (next_vertex_id != shortest_path.back()) {
       next_waypoint = projectWayPoint(next_waypoint, robot_pos_);
     }
     waypoint_.header.stamp = ros::Time::now();
@@ -358,6 +369,8 @@ bool GraphPlanner::initialize() {
       graph_planner_command_topic_, 1, &GraphPlanner::commandCallback, this);
   odometry_sub_ = nh_.subscribe(sub_odometry_topic_, 1,
                                 &GraphPlanner::odometryCallback, this);
+  terrain_sub_ = nh_.subscribe(sub_terrain_topic_, 1,
+                               &GraphPlanner::terrainCallback, this);
 
   // Initialize publishers
   waypoint_pub_ =

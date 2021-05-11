@@ -76,8 +76,8 @@ grid/odomSubTopic: /state_estimation
 grid/terrainCloudSubTopic: /terrain_map_ext
 grid/pubGridPointsTopic: /occpancy_grid_map
 grid/kMapWidth: 40
-grid/kGridSize: 0.4
-grid/kDownsampleSize: 0.3
+grid/kGridSize: 0.1
+grid/kDownsampleSize: 0.1
 grid/kFlyingObstacleHeightThre: 1.0
 grid/kObstacleHeightThre: 0.2
 

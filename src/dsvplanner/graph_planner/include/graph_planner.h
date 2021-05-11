@@ -24,6 +24,7 @@ Modified and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include <std_msgs/Int32.h>
 #include <visualization_msgs/Marker.h>
 
+#include <pcl/filters/voxel_grid.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -53,6 +54,7 @@ private:
 
   // ROS subscribers
   ros::Subscriber odometry_sub_;
+  ros::Subscriber terrain_sub_;
   ros::Subscriber graph_sub_;
   ros::Subscriber graph_planner_command_sub_;
 
@@ -64,6 +66,7 @@ private:
   // String constants
   std::string world_frame_id_;
   std::string sub_odometry_topic_;
+  std::string sub_terrain_topic_;
   std::string sub_graph_topic_;
   std::string graph_planner_command_topic_;
   std::string graph_planner_status_topic_;
@@ -73,6 +76,7 @@ private:
   // Constants
   float kLookAheadDist;
   double kWaypointProjectionDistance;
+  double kDownsampleSize;
   double kObstacleHeightThres;
   double kOverheadObstacleHeightThres;
   double kCollisionCheckDistace;
