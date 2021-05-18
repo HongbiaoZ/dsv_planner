@@ -44,6 +44,7 @@ bool DualStateGraph::readParameters() {
   nh_private_.getParam("/graph/kMaxPrunedNodeDist", kMaxPrunedNodeDist);
   nh_private_.getParam("/graph/kMinVertexDist", kMinVertexDist);
   nh_private_.getParam("/graph/kSurroundRange", kSurroundRange);
+  nh_private_.getParam("/graph/kMinGainRange", kMinGainRange);
   nh_private_.getParam("/rm/kBoundX", robot_bounding[0]);
   nh_private_.getParam("/rm/kBoundY", robot_bounding[1]);
   nh_private_.getParam("/rm/kBoundZ", robot_bounding[2]);
@@ -664,6 +665,9 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position) {
           NodeCountArround++;
         }
       }
+      if (misc_utils_ns::PointXYZDist(graph_vertex.location, robot_position) <
+          kMinGainRange)
+        graph_vertex.information_gain = 0;
       graph_vertex.information_gain = graph_vertex.information_gain *
                                       kDegressiveCoeff / dist_path *
                                       exp(0.1 * NodeCountArround);

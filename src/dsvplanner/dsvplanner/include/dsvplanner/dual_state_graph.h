@@ -61,6 +61,7 @@ public:
   double kMaxDistToPrunedRoot;
   double kMaxPrunedNodeDist;
   double kSurroundRange;
+  double kMinGainRange;
   Eigen::Vector3d robot_bounding;
 
   // Variables

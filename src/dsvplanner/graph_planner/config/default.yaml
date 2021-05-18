@@ -15,3 +15,5 @@ kDownsampleSize                     : 0.2 # terrain cloud downsample size
 kObstacleHeightThres                : 0.20 # the obstacle height that will be considered when filtering the terrain cloud
 kOverheadObstacleHeightThres        : 1.20 # the overhead obstacle height that will be considered when filtering the terrain cloud
 kCollisionCheckDistace              : 0.35 # the collision check radius
+kNextVertexMaintainTime             : 5   # when next vertex goal makes the path longer, keep the previous goal for this long time
+kExecuteFrequency                   : 5   # the frequency of the execute function

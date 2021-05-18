@@ -80,6 +80,8 @@ private:
   double kObstacleHeightThres;
   double kOverheadObstacleHeightThres;
   double kCollisionCheckDistace;
+  double kNextVertexMaintainTime;
+  int kExecuteFrequency;
 
   // "State" variables
   enum GraphPlannerState { ALL_OTHER_STATES = 0, NEARBY_OPENING = 1 };
@@ -109,8 +111,6 @@ private:
   int previous_shortest_path_size_ = 100000; // the size of the previous planned
                                              // path. used to avoid moving back
                                              // and forth in some cases
-  int wrong_id_shortest_path_size_ = 0;
-  int previous_shortest_path_size_when_pathrewind = 100000;
   int previous_vertex_id_; // the id of the previous planned goal vertex
 
   // Callbacks

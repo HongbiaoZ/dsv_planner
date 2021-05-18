@@ -21,6 +21,17 @@ dsvplanner_ns::Drrt::Drrt(volumetric_mapping::OctomapManager *manager,
   grid_ = grid;
   dual_state_graph_ = graph;
   dual_state_frontier_ = frontier;
+
+  ROS_INFO("Successfully launched Drrt node");
+}
+
+dsvplanner_ns::Drrt::~Drrt() {
+  delete rootNode_;
+  kd_free(kdTree_);
+}
+
+void dsvplanner_ns::Drrt::init() {
+
   kdTree_ = kd_create(3);
   iterationCount_ = 0;
   bestGain_ = params_.kZeroGain;
@@ -37,20 +48,13 @@ dsvplanner_ns::Drrt::Drrt(volumetric_mapping::OctomapManager *manager,
   return_home_ = false;
   global_vertex_size_ = 0;
   NextBestNodeIdx_ = 0;
-
+  //  ROS_INFO("Successfully launched Drrt node begining");
   for (int i = 0; i < params_.kTerrainVoxelWidth * params_.kTerrainVoxelWidth;
        i++) {
     terrain_voxle_elev_.push_back(params_.kVehicleHeight);
   }
 
   srand((unsigned)time(NULL));
-
-  ROS_INFO("Successfully launched Drrt node");
-}
-
-dsvplanner_ns::Drrt::~Drrt() {
-  delete rootNode_;
-  kd_free(kdTree_);
 }
 
 void dsvplanner_ns::Drrt::setParams(Params params) { params_ = params; }

@@ -65,8 +65,8 @@ public:
   double kDownsampleSize;
   double kObstacleHeightThre;
   double kFlyingObstacleHeightThre;
-  double kRobotXBound;
-  double kRobotYBound;
+  double kCollisionCheckX;
+  double kCollisionCheckY;
 
   // Variables
   enum gridStatus { unknown = 0, free = 1, occupied = 2, near_occupied = 3 };

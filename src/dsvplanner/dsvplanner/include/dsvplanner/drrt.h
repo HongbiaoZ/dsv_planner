@@ -41,6 +41,7 @@ public:
   pcl::PointXYZ selectedGlobalFrontier_;
   StateVec root_;
 
+  void init();
   void clear();
   void setParams(Params params);
   void setRootWithOdom(const nav_msgs::Odometry &pose);

@@ -37,6 +37,7 @@ interface/initX: 4
 interface/initY: 0
 interface/initZ: 0
 interface/returnHomeThres: 1.5
+interface/robotMovingThres: 10.0
 interface/tfFrame: /map
 interface/autoExp: true
 
@@ -60,8 +61,8 @@ gb/kMaxZGlobal: 25.0
 rm/kSensorPitch: 0.0
 rm/kSensorHorizontal: 360.0
 rm/kSensorVertical: 30.0
-rm/kBoundX: 0.5
-rm/kBoundY: 0.5
+rm/kBoundX: 0.7
+rm/kBoundY: 0.7
 rm/kBoundZ: 0.4
 rm/kVehicleHeight: 0.75
 
@@ -105,6 +106,7 @@ graph/kMaxDistToPrunedRoot                    : 10 # max distance when pruning t
 graph/kMaxPrunedNodeDist                      : 15 # max distance when pruning the local graph between root and new node
 graph/kMinVertexDist                          : 0.6 # new vertex only created if keypose is at least this distance away from existing vertices
 graph/kSurroundRange                          : 4 #range to count node arround the vertex
+graph/kMinGainRange                           : 3 #min range to count the gain. vertext that in this range has no gain
 
 #Frontier Constants
 frontier/world_frame_id: /map

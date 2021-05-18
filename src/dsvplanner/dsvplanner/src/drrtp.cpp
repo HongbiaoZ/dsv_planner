@@ -25,6 +25,10 @@ dsvplanner_ns::drrtPlanner::drrtPlanner(const ros::NodeHandle &nh,
   drrt_ = new Drrt(manager_, dual_state_graph_, dual_state_frontier_, grid_);
 
   init();
+  drrt_->setParams(params_);
+  drrt_->init();
+
+  ROS_INFO("Successfully launched DSVP node");
 }
 
 dsvplanner_ns::drrtPlanner::~drrtPlanner() {
@@ -83,8 +87,7 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(
   int loopCount = 0;
   while (ros::ok() && drrt_->remainingFrontier_ &&
          drrt_->getNodeCounter() < params_.kCuttoffIterations &&
-         (!(drrt_->getNodeCounter() >= params_.kVertexSize &&
-            drrt_->gainFound()))) {
+         !(drrt_->getNodeCounter() >= params_.kVertexSize)) {
     if (loopCount > 1000 * (drrt_->getNodeCounter() + 1)) {
       // ROS_INFO_THROTTLE(1, "Exceeding maximum failed iterations, give up the
       // current planning!");
@@ -309,8 +312,5 @@ bool dsvplanner_ns::drrtPlanner::init() {
       cleanFrontierServiceName,
       &dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback, this);
 
-  drrt_->setParams(params_);
-
-  ROS_INFO("Successfully launched DSVP node");
   return true;
 }

@@ -81,6 +81,14 @@ bool GraphPlanner::readParameters() {
     ROS_ERROR("Cannot read parameter: kCollisionCheckDistace");
     return false;
   }
+  if (!nh_.getParam("kNextVertexMaintainTime", kNextVertexMaintainTime)) {
+    ROS_ERROR("Cannot read parameter: kNextVertexMaintainTime");
+    return false;
+  }
+  if (!nh_.getParam("kExecuteFrequency", kExecuteFrequency)) {
+    ROS_ERROR("Cannot read parameter: kExecuteFrequency");
+    return false;
+  }
 
   return true;
 }
@@ -120,8 +128,6 @@ void GraphPlanner::commandCallback(
   if (graph_planner_command_.command ==
       graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION) {
     previous_shortest_path_size_ = 100000;
-    wrong_id_shortest_path_size_ = 100000;
-    previous_shortest_path_size_when_pathrewind = 100000;
   }
 }
 
@@ -228,29 +234,12 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx) {
     std::vector<int> next_shortest_path;
     graph_utils_ns::ShortestPathBtwVertex(next_shortest_path, planned_graph_,
                                           next_vertex_id, goal_vertex_idx);
-    //    std::vector<int> next_shortest_path;
-    //    graph_utils_ns::ShortestPathBtwVertex(next_shortest_path,
-    //    planned_graph_,
-    //                                          next_vertex_id,
-    //                                          goal_vertex_idx);
 
-    //    // when the path is bypassed a thin wall, follow the path one vertex
-    //    by one
-    //    // vertex.
-    //    bool pathRewind = graph_utils_ns::PathCircleDetect(
-    //        shortest_path, planned_graph_, next_vertex_id, robot_pos_);
-    //    bool collisionCheckResult =
-    //        collisionCheckByTerrain(robot_pos_, next_vertex_id);
-    //    if (pathRewind && collisionCheckResult) {
-    //      // std::cout << "pathrewind = " << pathRewind << std::endl;
-    //      wrong_id_ = true;
-    //      wrong_id_shortest_path_size_ = next_shortest_path.size();
-    //    }
     // prevent back and forth between two vertices
     if (next_shortest_path.size() > previous_shortest_path_size_) {
       next_vertex_id = previous_vertex_id_;
       backTraceCount_++;
-      if (backTraceCount_ > 15) {
+      if (backTraceCount_ > kNextVertexMaintainTime * kExecuteFrequency) {
         backTraceCount_ = 0;
         previous_shortest_path_size_ = 100000;
       }
@@ -429,7 +418,7 @@ void GraphPlanner::executeCommand() {
 }
 
 bool GraphPlanner::execute() {
-  ros::Rate rate(5);
+  ros::Rate rate(kExecuteFrequency);
   bool status = ros::ok();
   while (status) {
     ros::spinOnce();

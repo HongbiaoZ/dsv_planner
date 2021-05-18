@@ -35,8 +35,8 @@ bool OccupancyGrid::readParameters() {
   nh_private_.getParam("/grid/kObstacleHeightThre", kObstacleHeightThre);
   nh_private_.getParam("/grid/kFlyingObstacleHeightThre",
                        kFlyingObstacleHeightThre);
-  nh_private_.getParam("/rm/kBoundX", kRobotXBound);
-  nh_private_.getParam("/rm/kBoundY", kRobotYBound);
+  nh_private_.getParam("/rm/kBoundX", kCollisionCheckX);
+  nh_private_.getParam("/rm/kBoundY", kCollisionCheckY);
 
   return true;
 }
@@ -236,8 +236,8 @@ void OccupancyGrid::publishGridMap() {
 }
 
 bool OccupancyGrid::updateFreeGridWithSurroundingGrids(int indx, int indy) {
-  int count_x = floor(0.5 * kRobotXBound / kGridSize);
-  int count_y = floor(0.5 * kRobotYBound / kGridSize);
+  int count_x = ceil(0.5 * kCollisionCheckX / kGridSize);
+  int count_y = ceil(0.5 * kCollisionCheckY / kGridSize);
   int indX;
   int indY;
   for (int i = -count_x; i <= count_x; i++) {
