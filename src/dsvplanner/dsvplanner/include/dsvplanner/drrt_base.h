@@ -37,7 +37,7 @@ struct Params {
   ros::Publisher localSelectedFrontierPub_;
   ros::Publisher nextGoalPub_;
   ros::Publisher plantimePub_;
-  ros::Publisher pointInSensorRangePub_;
+  ros::Publisher randomSampledPointsPub_;
   ros::Publisher shutdownSignalPub;
 
   double sensorPitch;
@@ -60,10 +60,12 @@ struct Params {
   double kMinextensionRange;
   double kMaxExtensionAlongZ;
   bool kExactRoot;
+  int kMinEffectiveGain;
   int kGlobalExtraIterations;
   int kCuttoffIterations;
   int kVertexSize;
   int kKeepTryingNum;
+  int kLoopCountThres;
 
   double kMinXLocalBound;
   double kMinYLocalBound;

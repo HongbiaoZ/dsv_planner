@@ -45,6 +45,8 @@ bool DualStateFrontier::readParameters() {
   nh_private_.getParam("/frontier/kSearchBoundingX", search_bounding[0]);
   nh_private_.getParam("/frontier/kSearchBoundingY", search_bounding[1]);
   nh_private_.getParam("/frontier/kSearchBoundingZ", search_bounding[2]);
+  nh_private_.getParam("/frontier/kEffectiveUnknownNumAroundFrontier",
+                       kEffectiveUnknownNumAroundFrontier);
   nh_private_.getParam("/gb/kMaxXGlobal", kGlobalMaxX);
   nh_private_.getParam("/gb/kMaxYGlobal", kGlobalMaxY);
   nh_private_.getParam("/gb/kMaxZGlobal", kGlobalMaxZ);
@@ -120,6 +122,9 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   const double resolution = manager_->octree_->getResolution();
   bool xPositive = false, xNegative = false, yPositive = false,
        yNegative = false;
+  bool effectiveFree = false;
+  bool effectiveUnknown = false;
+  int unknowCount = 0;
   octomap::OcTreeNode *node_inside;
   octomap::OcTreeNode *node_outside;
   octomap::OcTreeKey key_inside, key_outside;
@@ -140,6 +145,8 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   } else if ((node_inside != NULL &&
               manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
+  } else if (node_inside == NULL) {
+    unknowCount++;
   }
   surround_point_inside.x() = point.x();
   surround_point_inside.y() = point.y() + resolution;
@@ -157,6 +164,8 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   } else if ((node_inside != NULL &&
               manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
+  } else if (node_inside == NULL) {
+    unknowCount++;
   }
   surround_point_inside.x() = point.x() - resolution;
   surround_point_inside.y() = point.y();
@@ -174,6 +183,8 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   } else if ((node_inside != NULL &&
               manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
+  } else if (node_inside == NULL) {
+    unknowCount++;
   }
   surround_point_inside.x() = point.x() + resolution;
   surround_point_inside.y() = point.y();
@@ -191,8 +202,12 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   } else if ((node_inside != NULL &&
               manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
+  } else if (node_inside == NULL) {
+    unknowCount++;
   }
-  return (xPositive || xNegative || yPositive || yNegative);
+  effectiveFree = xPositive || xNegative || yPositive || yNegative;
+  effectiveUnknown = unknowCount >= kEffectiveUnknownNumAroundFrontier;
+  return (effectiveFree && effectiveUnknown);
 }
 
 bool DualStateFrontier::FrontierInBoundry(octomap::point3d point) const {
@@ -299,10 +314,6 @@ void DualStateFrontier::localFrontierUpdate(StateVec &center) {
 
 void DualStateFrontier::gloabalFrontierUpdate() {
   global_frontier_pcl_->clear();
-
-  /*point_ds_.setLeafSize(0.4, 0.4, 0.4);
-  point_ds_.setInputCloud(global_frontier_);
-  point_ds_.filter(*global_frontier_ds_);*/
 
   int size = global_frontier_->points.size();
   octomap::OcTreeNode *node;

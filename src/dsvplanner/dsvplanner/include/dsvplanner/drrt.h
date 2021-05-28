@@ -33,11 +33,15 @@ public:
   bool nextNodeFound_;
   bool remainingFrontier_;
   bool return_home_;
+  bool normal_local_iteration_;
   int global_vertex_size_;
   int NextBestNodeIdx_; // this is for global planner that still can find global
                         // frontier
   int bestNodeId_; // this is for global plan that cannot find global frontier
-
+  int loopCount_;  // this value is the same with params_.loopCount_ =
+                   // params_.kLoopCountThres when there is still local frontier
+                   // while 2
+                   // or 3 times when there is no local frontier
   pcl::PointXYZ selectedGlobalFrontier_;
   StateVec root_;
 
@@ -60,6 +64,7 @@ public:
   bool inPlanningBoundary(StateVec node);
   bool inGlobalBoundary(StateVec node);
   int getNodeCounter();
+  int getRemainingNodeCounter();
   double angleDiff(StateVec direction1, StateVec direction2);
   double getZvalue(double x_position, double z_position);
   double gain(StateVec state);
@@ -72,6 +77,7 @@ protected:
   int iterationCount_;
   int nodeCounter_;
   int remainingNodeCount_;
+
   std::vector<int> executedBestNodeList_;
   double bestGain_;
   double minX_;
@@ -86,10 +92,7 @@ protected:
       pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>());
   pcl::PointCloud<pcl::PointXYZ>::Ptr globalThreeFrontier_ =
       pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>());
-  pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_point_ =
-      pcl::PointCloud<pcl::PointXYZI>::Ptr(
-          new pcl::PointCloud<pcl::PointXYZI>());
-  pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_point_crop_ =
+  pcl::PointCloud<pcl::PointXYZI>::Ptr sampledPoint_ =
       pcl::PointCloud<pcl::PointXYZI>::Ptr(
           new pcl::PointCloud<pcl::PointXYZI>());
 

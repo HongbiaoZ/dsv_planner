@@ -87,10 +87,11 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(
   int loopCount = 0;
   while (ros::ok() && drrt_->remainingFrontier_ &&
          drrt_->getNodeCounter() < params_.kCuttoffIterations &&
-         !(drrt_->getNodeCounter() >= params_.kVertexSize)) {
-    if (loopCount > 1000 * (drrt_->getNodeCounter() + 1)) {
-      // ROS_INFO_THROTTLE(1, "Exceeding maximum failed iterations, give up the
-      // current planning!");
+         !(drrt_->normal_local_iteration_ &&
+           (drrt_->getNodeCounter() >= params_.kVertexSize &&
+            drrt_->gainFound()))) {
+    if (loopCount > drrt_->loopCount_ * (drrt_->getNodeCounter() + 1)) {
+      std::cout << "break now!!" << std::endl;
       break;
     }
     drrt_->plannerIterate();
@@ -222,6 +223,8 @@ bool dsvplanner_ns::drrtPlanner::setParams() {
   nh_private_.getParam("/drrt/gain/kFree", params_.kGainFree);
   nh_private_.getParam("/drrt/gain/kOccupied", params_.kGainOccupied);
   nh_private_.getParam("/drrt/gain/kUnknown", params_.kGainUnknown);
+  nh_private_.getParam("/drrt/gain/kMinEffectiveGain",
+                       params_.kMinEffectiveGain);
   nh_private_.getParam("/drrt/gain/kRange", params_.kGainRange);
   nh_private_.getParam("/drrt/gain/kRangeZMinus", params_.kGainRangeZMinus);
   nh_private_.getParam("/drrt/gain/kRangeZPlus", params_.kGainRangeZPlus);
@@ -239,6 +242,7 @@ bool dsvplanner_ns::drrtPlanner::setParams() {
   nh_private_.getParam("/drrt/tfFrame", params_.explorationFrame);
   nh_private_.getParam("/drrt/vertexSize", params_.kVertexSize);
   nh_private_.getParam("/drrt/keepTryingNum", params_.kKeepTryingNum);
+  nh_private_.getParam("/drrt/kLoopCountThres", params_.kLoopCountThres);
   nh_private_.getParam("/lb/kMinXLocal", params_.kMinXLocalBound);
   nh_private_.getParam("/lb/kMinYLocal", params_.kMinYLocalBound);
   nh_private_.getParam("/lb/kMinZLocal", params_.kMinZLocalBound);
@@ -268,8 +272,8 @@ bool dsvplanner_ns::drrtPlanner::setParams() {
                        localSelectedFrontierPubTopic);
   nh_private_.getParam("/planner/plantimePubTopic", plantimePubTopic);
   nh_private_.getParam("/planner/nextGoalPubTopic", nextGoalPubTopic);
-  nh_private_.getParam("/planner/pointInSensorRangePubTopic",
-                       pointInSensorRangePubTopic);
+  nh_private_.getParam("/planner/randomSampledPointsPubTopic",
+                       randomSampledPointsPubTopic);
   nh_private_.getParam("/planner/shutDownTopic", shutDownTopic);
   nh_private_.getParam("/planner/plannerServiceName", plannerServiceName);
   nh_private_.getParam("/planner/cleanFrontierServiceName",
@@ -296,8 +300,8 @@ bool dsvplanner_ns::drrtPlanner::init() {
       globalSelectedFrontierPubTopic, 1000);
   params_.localSelectedFrontierPub_ = nh_.advertise<sensor_msgs::PointCloud2>(
       localSelectedFrontierPubTopic, 1000);
-  params_.pointInSensorRangePub_ =
-      nh_.advertise<sensor_msgs::PointCloud2>(pointInSensorRangePubTopic, 1000);
+  params_.randomSampledPointsPub_ = nh_.advertise<sensor_msgs::PointCloud2>(
+      randomSampledPointsPubTopic, 1000);
   params_.plantimePub_ =
       nh_.advertise<std_msgs::Float32>(plantimePubTopic, 1000);
   params_.nextGoalPub_ =

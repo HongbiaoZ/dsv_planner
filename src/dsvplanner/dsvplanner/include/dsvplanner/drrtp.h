@@ -62,7 +62,7 @@ private:
   std::string localSelectedFrontierPubTopic;
   std::string plantimePubTopic;
   std::string nextGoalPubTopic;
-  std::string pointInSensorRangePubTopic;
+  std::string randomSampledPointsPubTopic;
   std::string shutDownTopic;
   std::string plannerServiceName;
   std::string cleanFrontierServiceName;

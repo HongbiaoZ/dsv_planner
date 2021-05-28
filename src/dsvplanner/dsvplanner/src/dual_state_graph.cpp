@@ -45,6 +45,8 @@ bool DualStateGraph::readParameters() {
   nh_private_.getParam("/graph/kMinVertexDist", kMinVertexDist);
   nh_private_.getParam("/graph/kSurroundRange", kSurroundRange);
   nh_private_.getParam("/graph/kMinGainRange", kMinGainRange);
+  nh_private_.getParam("/graph/kMinDistanceToRobotToCheck",
+                       kMinDistanceToRobotToCheck);
   nh_private_.getParam("/rm/kBoundX", robot_bounding[0]);
   nh_private_.getParam("/rm/kBoundY", robot_bounding[1]);
   nh_private_.getParam("/rm/kBoundZ", robot_bounding[2]);
@@ -668,6 +670,17 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position) {
       if (misc_utils_ns::PointXYZDist(graph_vertex.location, robot_position) <
           kMinGainRange)
         graph_vertex.information_gain = 0;
+
+      if (graph_vertex.information_gain > 0) {
+        if (std::isnan(explore_direction_.x()) ||
+            std::isnan(explore_direction_.y()))
+          DTWValue_ = exp(1);
+        else {
+          DTW(path, robot_position);
+          graph_vertex.information_gain =
+              graph_vertex.information_gain / log(DTWValue_ * kDirectionCoeff);
+        }
+      }
       graph_vertex.information_gain = graph_vertex.information_gain *
                                       kDegressiveCoeff / dist_path *
                                       exp(0.1 * NodeCountArround);
@@ -689,14 +702,15 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position) {
       }
       if (path_information_gain > 0) {
         gainID_.push_back(graph_vertex.vertex_id);
-        if (std::isnan(explore_direction_.x()) ||
-            std::isnan(explore_direction_.y()))
-          DTWValue_ = exp(1);
-        else {
-          DTW(path, robot_position);
-          path_information_gain =
-              path_information_gain / log(DTWValue_ * kDirectionCoeff);
-        }
+        //        if (std::isnan(explore_direction_.x()) ||
+        //            std::isnan(explore_direction_.y()))
+        //          DTWValue_ = exp(1);
+        //        else {
+        //          DTW(path, robot_position);
+        //          path_information_gain =
+        //              path_information_gain / log(DTWValue_ *
+        //              kDirectionCoeff);
+        //        }
       }
 
       if (path_information_gain > best_gain_) {
@@ -847,9 +861,11 @@ void DualStateGraph::pathCallback(const nav_msgs::Path::ConstPtr &graph_path) {
       Eigen::Vector3d origin(origin_position.x, origin_position.y,
                              origin_position.z);
       Eigen::Vector3d end(end_position.x, end_position.y, end_position.z);
+      double distance =
+          misc_utils_ns::PointXYZDist(origin_position, robot_pos_);
       if (volumetric_mapping::OctomapManager::CellStatus::kFree !=
               manager_->getLineStatus(origin, end) ||
-          (kCropPathWithTerrain &&
+          (kCropPathWithTerrain && distance < kMinDistanceToRobotToCheck &&
            grid_->collisionCheckByTerrain(origin_position, end_position))) {
         for (int j = 0;
              j < local_graph_.vertices[origin_vertex_id].edges.size(); j++) {
