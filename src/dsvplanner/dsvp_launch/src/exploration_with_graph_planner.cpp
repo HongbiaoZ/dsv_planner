@@ -175,9 +175,9 @@ int main(int argc, char **argv) {
 
   ros::Duration(1.0).sleep();
 
-  //  std::cout << std::endl
-  //            << "\033[1;32mExploration Started\033[0m\n"
-  //            << std::endl;
+  std::cout << std::endl
+            << "\033[1;32mExploration Started\033[0m\n"
+            << std::endl;
   total_time.data = 0;
   plan_start = steady_clock::now();
   // Start planning: The planner is called and the computed goal point sent to
@@ -186,11 +186,10 @@ int main(int argc, char **argv) {
   while (ros::ok()) {
     if (!return_home) {
       if (iteration != 0) {
-        //        for (int i = 0; i < 8; i++) {
-        //          printf(cursup);
-        //          printf(cursclean);
-        //        }
-        // gotoxy(0, 52);
+        for (int i = 0; i < 8; i++) {
+          printf(cursup);
+          printf(cursclean);
+        }
       }
       std::cout << "Planning iteration " << iteration << std::endl;
       dsvplanner::dsvplanner_srv planSrv;

@@ -91,7 +91,6 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(
            (drrt_->getNodeCounter() >= params_.kVertexSize &&
             drrt_->gainFound()))) {
     if (loopCount > drrt_->loopCount_ * (drrt_->getNodeCounter() + 1)) {
-      std::cout << "break now!!" << std::endl;
       break;
     }
     drrt_->plannerIterate();

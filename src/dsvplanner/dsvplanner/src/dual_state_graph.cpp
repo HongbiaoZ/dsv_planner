@@ -702,15 +702,6 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position) {
       }
       if (path_information_gain > 0) {
         gainID_.push_back(graph_vertex.vertex_id);
-        //        if (std::isnan(explore_direction_.x()) ||
-        //            std::isnan(explore_direction_.y()))
-        //          DTWValue_ = exp(1);
-        //        else {
-        //          DTW(path, robot_position);
-        //          path_information_gain =
-        //              path_information_gain / log(DTWValue_ *
-        //              kDirectionCoeff);
-        //        }
       }
 
       if (path_information_gain > best_gain_) {
@@ -820,11 +811,6 @@ Eigen::Vector3d DualStateGraph::getExploreDirection() {
 }
 
 geometry_msgs::Point DualStateGraph::getBestLocalVertexPosition() {
-  /*std::vector<int> path;
-  graph_utils_ns::ShortestPathBtwVertex(path, local_graph_, 0, best_vertex_id_);
-  int goal_id = path[int(path.size() -1)];
-  geometry_msgs::Point best_vertex_location =
-  local_graph_.vertices[goal_id].location;*/
   geometry_msgs::Point best_vertex_location =
       local_graph_.vertices[best_vertex_id_].location;
   return best_vertex_location;
@@ -973,4 +959,4 @@ bool DualStateGraph::execute() {
   return true;
 }
 }
-// namespace keypose_graph_ns
+// namespace dsvplanner_ns

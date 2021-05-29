@@ -63,8 +63,8 @@ gb/kMaxZGlobal: 25.0
 rm/kSensorPitch: 0.0
 rm/kSensorHorizontal: 360.0
 rm/kSensorVertical: 30.0
-rm/kBoundX: 0.6
-rm/kBoundY: 0.6
+rm/kBoundX: 0.5
+rm/kBoundY: 0.5
 rm/kBoundZ: 0.4
 rm/kVehicleHeight: 0.75
 
@@ -127,4 +127,3 @@ frontier/kSearchBoundingX: 42
 frontier/kSearchBoundingY: 42
 frontier/kSearchBoundingZ: 0.5
 frontier/kEffectiveUnknownNumAroundFrontier: 1
-

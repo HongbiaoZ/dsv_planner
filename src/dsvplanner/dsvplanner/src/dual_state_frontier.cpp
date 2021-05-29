@@ -106,8 +106,6 @@ void DualStateFrontier::getUnknowPointcloudInBoundingBox(
         if (FrontierInBoundry(point) && frontierDetect(point)) {
           local_frontier_temp->push_back(
               pcl::PointXYZ(point.x(), point.y(), point.z()));
-          // global_frontier_->points.push_back(pcl::PointXYZ(point.x(),
-          // point.y(), point.z()));
         }
       }
     }

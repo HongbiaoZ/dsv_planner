@@ -2,9 +2,10 @@
 drrt/gain/kFree: 0.0
 drrt/gain/kOccupied: 0.0
 drrt/gain/kUnknown: 1.0
+drrt/gain/kMinEffectiveGain: 5
 drrt/gain/kRange: 5
 drrt/gain/kRangeZMinus: 0.4
-drrt/gain/kRangeZPlus: 1.0
+drrt/gain/kRangeZPlus: 0.4
 drrt/gain/kZero: 0.0
 drrt/tree/kExtensionRange: 1.0
 drrt/tree/kMinExtensionRange: 0.8
@@ -14,6 +15,7 @@ drrt/tree/kGlobalExtraIterations_: 300
 drrt/tree/kCuttoffIterations: 200
 drrt/vertexSize: 120
 drrt/keepTryingNum: 1
+drrt/kLoopCountThres: 1000
 drrt/tfFrame: /map
 
 #Planner Topics
@@ -26,8 +28,7 @@ planner/globalSelectedFrontierPubTopic: /globalSelectedfrontier
 planner/localSelectedFrontierPubTopic: /threefrontier
 planner/plantimePubTopic: /plan_time
 planner/nextGoalPubTopic: /next_goal
-planner/pointInSensorRangePubTopic: /pointInrange
-planner/terrainNoGroundPubTopic: /terrainWithoutGround
+planner/randomSampledPointsPubTopic: /sampledPoints
 planner/shutDownTopic: /stop_exploring
 planner/plannerServiceName: /drrtPlannerSrv
 planner/cleanFrontierServiceName: /cleanFrontierSrv
@@ -44,11 +45,11 @@ interface/autoExp: true
 
 
 # Exploration Boundary (local boundary and global boundary)
-lb/kMinXLocal: -14.0
-lb/kMinYLocal: -14.0
+lb/kMinXLocal: -15.0
+lb/kMinYLocal: -15.0
 lb/kMinZLocal: -5.0
-lb/kMaxXLocal: 14.0
-lb/kMaxYLocal: 14.0
+lb/kMaxXLocal: 15.0
+lb/kMaxYLocal: 15.0
 lb/kMaxZLocal: 5.0
 
 gb/kMinXGlobal: -300.0
@@ -62,8 +63,8 @@ gb/kMaxZGlobal: 25.0
 rm/kSensorPitch: 0.0
 rm/kSensorHorizontal: 360.0
 rm/kSensorVertical: 30.0
-rm/kBoundX: 0.7
-rm/kBoundY: 0.7
+rm/kBoundX: 0.6
+rm/kBoundY: 0.6
 rm/kBoundZ: 0.4
 rm/kVehicleHeight: 0.75
 
@@ -79,7 +80,7 @@ grid/terrainCloudSubTopic: /terrain_map_ext
 grid/pubGridPointsTopic: /occpancy_grid_map
 grid/kMapWidth: 40
 grid/kGridSize: 0.1
-grid/kDownsampleSize: 0.1
+grid/kDownsampleSize: 0.05
 grid/kFlyingObstacleHeightThre: 1.0
 grid/kObstacleHeightThre: 0.2
 
@@ -97,7 +98,7 @@ graph/kConnectVertexDistMax                   : 3.0 #7.0
 graph/kDegressiveCoeff                        : 0.3
 graph/kDirectionCoeff                         : 0.2
 graph/kDistBadEdge                            : 5.0 # edges beyond this distance are penalised
-graph/kExistingPathRatioThreshold             : 1.4 # if ratio of existing path to edge is beyond this, edge is added
+graph/kExistingPathRatioThreshold             : 1.0 # if ratio of existing path to edge is beyond this, edge is added
 graph/kExistingPathRatioThresholdGlobal       : 1.4 # if ratio of existing path to edge is beyond this, edge is added to global graph
 graph/kLongEdgePenaltyMultiplier              : 5.0 # edge costs are multiplied by this amount if they are long
 graph/kMaxLongEdgeDist                        : 6.0 # absolute maximum, no edges longer than this (even if marked as bad)
@@ -108,6 +109,7 @@ graph/kMaxPrunedNodeDist                      : 15 # max distance when pruning t
 graph/kMinVertexDist                          : 0.8 # new vertex only created if keypose is at least this distance away from existing vertices
 graph/kSurroundRange                          : 4 #range to count node arround the vertex
 graph/kMinGainRange                           : 4 #min range to count the gain. vertext that in this range has no gain
+graph/kMinDistanceToRobotToCheck              : 4 #min distace of the vertex to the robot to check the collision state of its edge
 
 #Frontier Constants
 frontier/world_frame_id: /map
@@ -124,4 +126,5 @@ frontier/kSearchRadius: 12
 frontier/kSearchBoundingX: 40
 frontier/kSearchBoundingY: 40
 frontier/kSearchBoundingZ: 0.5
+frontier/kEffectiveUnknownNumAroundFrontier: 1
 

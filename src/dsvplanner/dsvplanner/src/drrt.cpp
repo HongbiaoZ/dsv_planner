@@ -48,7 +48,6 @@ void dsvplanner_ns::Drrt::init() {
   return_home_ = false;
   global_vertex_size_ = 0;
   NextBestNodeIdx_ = 0;
-  //  ROS_INFO("Successfully launched Drrt node begining");
   for (int i = 0; i < params_.kTerrainVoxelWidth * params_.kTerrainVoxelWidth;
        i++) {
     terrain_voxle_elev_.push_back(params_.kVehicleHeight);
@@ -309,10 +308,6 @@ void dsvplanner_ns::Drrt::getNextNodeToClosestGlobalFrontier() {
       p3.z = p1.z();
     }
     globalSelectedFrontier->points.push_back(p3);
-    // std::cout << "Global goal is found. The next best id is " <<
-    // NextBestNodeIdx_ << std::endl;
-  } else {
-    // std::cout << "Global goal is not found." << std::endl;
   }
   sensor_msgs::PointCloud2 globalFrontier;
   pcl::toROSMsg(*globalSelectedFrontier, globalFrontier);
