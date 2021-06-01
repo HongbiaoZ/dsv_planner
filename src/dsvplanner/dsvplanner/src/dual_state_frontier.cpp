@@ -47,6 +47,8 @@ bool DualStateFrontier::readParameters() {
   nh_private_.getParam("/frontier/kSearchBoundingZ", search_bounding[2]);
   nh_private_.getParam("/frontier/kEffectiveUnknownNumAroundFrontier",
                        kEffectiveUnknownNumAroundFrontier);
+  nh_private_.getParam("/frontier/kFrontierNeighboutSearchRadius",
+                       kFrontierNeighboutSearchRadius);
   nh_private_.getParam("/gb/kMaxXGlobal", kGlobalMaxX);
   nh_private_.getParam("/gb/kMaxYGlobal", kGlobalMaxY);
   nh_private_.getParam("/gb/kMaxZGlobal", kGlobalMaxZ);
@@ -342,6 +344,29 @@ void DualStateFrontier::gloabalFrontierUpdate() {
   point_ds_.filter(*global_frontier_);
 }
 
+void DualStateFrontier::globalFrontiersNeighbourCheck() {
+  global_frontier_pcl_->clear();
+
+  int size = global_frontier_->points.size();
+  pcl::PointXYZ p1;
+  std::vector<int> pointSearchInd;
+  std::vector<float> pointSearchDist;
+  if (size > 0) {
+    global_frontiers_kdtree_->setInputCloud(global_frontier_);
+    for (int i = 0; i < size; i++) {
+      p1 = global_frontier_->points[i];
+      pointSearchInd.clear();
+      pointSearchDist.clear();
+      global_frontiers_kdtree_->radiusSearch(p1, kFrontierNeighboutSearchRadius,
+                                             pointSearchInd, pointSearchDist);
+      if (pointSearchInd.size() > 1)
+        global_frontier_pcl_->points.push_back(p1);
+    }
+  }
+  global_frontier_->clear();
+  *global_frontier_ = *global_frontier_pcl_;
+}
+
 void DualStateFrontier::cleanAllUselessFrontiers() {
   global_frontier_->clear();
   local_frontier_->clear();
@@ -352,6 +377,7 @@ void DualStateFrontier::getFrontiers() {
   getUnknowPointcloudInBoundingBox(robot_position_, search_bounding);
   localFrontierUpdate(robot_position_);
   gloabalFrontierUpdate();
+  globalFrontiersNeighbourCheck();
   publishFrontiers();
 }
 

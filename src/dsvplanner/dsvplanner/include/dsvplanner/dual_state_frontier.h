@@ -68,6 +68,7 @@ public:
   double kGlobalMinX;
   double kGlobalMinY;
   double kGlobalMinZ;
+  double kFrontierNeighboutSearchRadius;
   int kEffectiveUnknownNumAroundFrontier;
 
   StateVec robot_bounding;
@@ -113,6 +114,9 @@ public:
   pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr kdtree_ =
       pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr(
           new pcl::KdTreeFLANN<pcl::PointXYZ>());
+  pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr global_frontiers_kdtree_ =
+      pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr(
+          new pcl::KdTreeFLANN<pcl::PointXYZ>());
 
   volumetric_mapping::OctomapManager *manager_;
   OccupancyGrid *grid_;
@@ -124,6 +128,7 @@ public:
   void publishFrontiers();
   void updateToCleanFrontier(pcl::PointXYZ point);
   void gloabalFrontierUpdate();
+  void globalFrontiersNeighbourCheck();
   void localFrontierUpdate(StateVec &center);
   void cleanAllUselessFrontiers();
   void setPlannerStatus(bool status);

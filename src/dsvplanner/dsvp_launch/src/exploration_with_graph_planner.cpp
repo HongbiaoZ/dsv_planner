@@ -128,6 +128,8 @@ int main(int argc, char **argv) {
       nh.subscribe<nav_msgs::Odometry>("/state_estimation", 1, odom_callback);
   ros::Subscriber begin_signal_sub = nh.subscribe<std_msgs::Bool>(
       "/start_exploring", 1, begin_signal_callback);
+  ros::Publisher stop_signal_pub =
+      nh.advertise<std_msgs::Bool>("/stop_exploring", 1);
 
   nhPrivate.getParam("simulation", simulation);
   nhPrivate.getParam("/interface/dtime", dtime);
@@ -289,6 +291,10 @@ int main(int argc, char **argv) {
         printf(cursclean);
         std::cout << "\033[1;32mReturn home completed\033[0m" << std::endl;
         printf(cursup);
+
+        std_msgs::Bool stop_exploring;
+        stop_exploring.data = true;
+        stop_signal_pub.publish(stop_exploring);
       }
       ros::Duration(0.1).sleep();
     }

@@ -35,8 +35,8 @@ planner/cleanFrontierServiceName: /cleanFrontierSrv
 
 #Interface Constants
 interface/dtime: 1
-interface/initX: 4
-interface/initY: 0
+interface/initX: 0
+interface/initY: 4
 interface/initZ: 0
 interface/returnHomeThres: 1.5
 interface/robotMovingThres: 6.0
