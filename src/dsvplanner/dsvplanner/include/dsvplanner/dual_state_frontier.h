@@ -9,6 +9,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #ifndef DUAL_STATE_FRONTIER_H
 #define DUAL_STATE_FRONTIER_H
 
+#include "dsvplanner/grid.h"
 #include "octomap_world/octomap_manager.h"
 #include <geometry_msgs/Point.h>
 #include <geometry_msgs/PointStamped.h>
@@ -19,18 +20,17 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
 #include <std_msgs/Float32MultiArray.h>
-
+namespace dsvplanner_ns {
+typedef Eigen::Vector3d StateVec;
 class DualStateFrontier {
-public:
   typedef std::shared_ptr<DualStateFrontier> Ptr;
-  typedef Eigen::Vector3d StateVec;
+
+public:
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
 
   // ROS subscribers
-  // ros::Subscriber odom_sub_;
   ros::Subscriber graph_points_sub_;
-  // ros::Subscriber terrain_point_cloud_sub_;
   message_filters::Subscriber<nav_msgs::Odometry> odom_sub_;
   message_filters::Subscriber<sensor_msgs::PointCloud2>
       terrain_point_cloud_sub_;
@@ -68,20 +68,19 @@ public:
   double kGlobalMinX;
   double kGlobalMinY;
   double kGlobalMinZ;
+  double kFrontierNeighboutSearchRadius;
+  int kEffectiveUnknownNumAroundFrontier;
 
   StateVec robot_bounding;
   StateVec search_bounding;
 
-  double kFlyingObstacleHeightThre;
-  double kObstacleHeightThre;
-  double kTerrainCheckDist;
-  double kTerrainCheckPointNum;
   double kTerrainVoxelSize;
   int kTerrainVoxelHalfWidth;
   int kTerrainVoxelWidth;
 
   // Variables
 
+  // general
   ros::Timer executeTimer_;
   std::vector<double> terrain_voxel_elev_;
   std::vector<int> terrain_voxel_points_num_;
@@ -93,9 +92,6 @@ public:
       pcl::PointCloud<pcl::PointXYZI>::Ptr(
           new pcl::PointCloud<pcl::PointXYZI>());
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_ds =
-      pcl::PointCloud<pcl::PointXYZI>::Ptr(
-          new pcl::PointCloud<pcl::PointXYZI>());
-  pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_crop_ =
       pcl::PointCloud<pcl::PointXYZI>::Ptr(
           new pcl::PointCloud<pcl::PointXYZI>());
   pcl::PointCloud<pcl::PointXYZ>::Ptr unknown_points_ =
@@ -118,8 +114,12 @@ public:
   pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr kdtree_ =
       pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr(
           new pcl::KdTreeFLANN<pcl::PointXYZ>());
+  pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr global_frontiers_kdtree_ =
+      pcl::KdTreeFLANN<pcl::PointXYZ>::Ptr(
+          new pcl::KdTreeFLANN<pcl::PointXYZ>());
 
   volumetric_mapping::OctomapManager *manager_;
+  OccupancyGrid *grid_;
 
   // General Functions
   void getUnknowPointcloudInBoundingBox(const StateVec &center,
@@ -128,16 +128,20 @@ public:
   void publishFrontiers();
   void updateToCleanFrontier(pcl::PointXYZ point);
   void gloabalFrontierUpdate();
+  void globalFrontiersNeighbourCheck();
   void localFrontierUpdate(StateVec &center);
   void cleanAllUselessFrontiers();
   void setPlannerStatus(bool status);
   bool frontierDetect(octomap::point3d point) const;
-  bool collisionCheckByTerrain(StateVec origin_point, StateVec goal_point);
   bool inSensorRangeofGraphPoints(StateVec point);
   bool FrontierInBoundry(octomap::point3d point) const;
   bool isCleanedFrontier(pcl::PointXYZ point);
   double getZvalue(double x_position, double y_position);
-  pcl::PointCloud<pcl::PointXYZI> getTerrainPoints();
+
+  // Functions for terrain elevation map
+  void updateTerrainMinElevation();
+  void updateTerrainElevationForUnknow();
+  void updateTerrainElevationForKnown();
   std::vector<double> getTerrainVoxelElev();
 
   // Callback Functions
@@ -149,10 +153,12 @@ public:
 public:
   DualStateFrontier(const ros::NodeHandle &nh,
                     const ros::NodeHandle &nh_private,
-                    volumetric_mapping::OctomapManager *manager);
+                    volumetric_mapping::OctomapManager *manager,
+                    OccupancyGrid *grid);
   bool readParameters();
   bool initialize();
   void execute(const ros::TimerEvent &e);
   ~DualStateFrontier();
 };
+}
 #endif // DUAL_STATE_FRONTIER_H

@@ -26,7 +26,6 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 
 #define SQ(x) ((x) * (x))
 #define SQRT2 0.70711
-#define PI 3.14159265
 
 using namespace Eigen;
 namespace dsvplanner_ns {
@@ -38,8 +37,7 @@ struct Params {
   ros::Publisher localSelectedFrontierPub_;
   ros::Publisher nextGoalPub_;
   ros::Publisher plantimePub_;
-  ros::Publisher pointInSensorRangePub_;
-  ros::Publisher terrainNoGroundPub_;
+  ros::Publisher randomSampledPointsPub_;
   ros::Publisher shutdownSignalPub;
 
   double sensorPitch;
@@ -62,10 +60,12 @@ struct Params {
   double kMinextensionRange;
   double kMaxExtensionAlongZ;
   bool kExactRoot;
+  int kMinEffectiveGain;
   int kGlobalExtraIterations;
   int kCuttoffIterations;
   int kVertexSize;
   int kKeepTryingNum;
+  int kLoopCountThres;
 
   double kMinXLocalBound;
   double kMinYLocalBound;
@@ -80,11 +80,7 @@ struct Params {
   double kMaxYGlobalBound;
   double kMaxZGlobalBound;
 
-  double kObstacleHeightThre;
-  double kFlyingObstacleHeightThre;
-  double kTerrainCheckDist;
   double kTerrainVoxelSize;
-  int kTerrainCheckPointNum;
   int kTerrainVoxelWidth;
   int kTerrainVoxelHalfWidth;
 

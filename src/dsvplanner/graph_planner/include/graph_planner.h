@@ -24,6 +24,7 @@ Modified and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include <std_msgs/Int32.h>
 #include <visualization_msgs/Marker.h>
 
+#include <pcl/filters/voxel_grid.h>
 #include <pcl/kdtree/kdtree_flann.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
@@ -53,6 +54,7 @@ private:
 
   // ROS subscribers
   ros::Subscriber odometry_sub_;
+  ros::Subscriber terrain_sub_;
   ros::Subscriber graph_sub_;
   ros::Subscriber graph_planner_command_sub_;
 
@@ -64,6 +66,7 @@ private:
   // String constants
   std::string world_frame_id_;
   std::string sub_odometry_topic_;
+  std::string sub_terrain_topic_;
   std::string sub_graph_topic_;
   std::string graph_planner_command_topic_;
   std::string graph_planner_status_topic_;
@@ -73,9 +76,12 @@ private:
   // Constants
   float kLookAheadDist;
   double kWaypointProjectionDistance;
+  double kDownsampleSize;
   double kObstacleHeightThres;
   double kOverheadObstacleHeightThres;
   double kCollisionCheckDistace;
+  double kNextVertexMaintainTime;
+  int kExecuteFrequency;
 
   // "State" variables
   enum GraphPlannerState { ALL_OTHER_STATES = 0, NEARBY_OPENING = 1 };
@@ -105,8 +111,6 @@ private:
   int previous_shortest_path_size_ = 100000; // the size of the previous planned
                                              // path. used to avoid moving back
                                              // and forth in some cases
-  int wrong_id_shortest_path_size_ = 0;
-  int previous_shortest_path_size_when_pathrewind = 100000;
   int previous_vertex_id_; // the id of the previous planned goal vertex
 
   // Callbacks

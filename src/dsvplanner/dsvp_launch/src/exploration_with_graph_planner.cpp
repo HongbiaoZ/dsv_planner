@@ -49,11 +49,15 @@ bool return_home = false;
 double current_odom_x = 0;
 double current_odom_y = 0;
 double current_odom_z = 0;
+double previous_odom_x = 0;
+double previous_odom_y = 0;
+double previous_odom_z = 0;
 double dtime = 0.0;
 double init_x = 2;
 double init_y = 0;
 double init_z = 2;
 double return_home_threshold = 1.5;
+double robot_moving_threshold = 6;
 std::string map_frame = "map";
 
 steady_clock::time_point plan_start;
@@ -84,12 +88,16 @@ void begin_signal_callback(const std_msgs::Bool::ConstPtr &msg) {
   begin_signal = msg->data;
 }
 
-bool wayPointChange(geometry_msgs::Point wp1, geometry_msgs::Point wp2) {
-  double dist = sqrt((wp1.x - wp2.x) * (wp1.x - wp2.x) +
-                     (wp1.y - wp2.y) * (wp1.y - wp2.y) +
-                     (wp1.z - wp2.z) * (wp1.z - wp2.z));
-  if (dist < 0.5)
+bool robotPositionChange() {
+  double dist = sqrt(
+      (current_odom_x - previous_odom_x) * (current_odom_x - previous_odom_x) +
+      (current_odom_y - previous_odom_y) * (current_odom_y - previous_odom_y) +
+      (current_odom_z - previous_odom_z) * (current_odom_z - previous_odom_z));
+  if (dist < robot_moving_threshold)
     return false;
+  previous_odom_x = current_odom_x;
+  previous_odom_y = current_odom_y;
+  previous_odom_z = current_odom_z;
   return true;
 }
 
@@ -120,6 +128,8 @@ int main(int argc, char **argv) {
       nh.subscribe<nav_msgs::Odometry>("/state_estimation", 1, odom_callback);
   ros::Subscriber begin_signal_sub = nh.subscribe<std_msgs::Bool>(
       "/start_exploring", 1, begin_signal_callback);
+  ros::Publisher stop_signal_pub =
+      nh.advertise<std_msgs::Bool>("/stop_exploring", 1);
 
   nhPrivate.getParam("simulation", simulation);
   nhPrivate.getParam("/interface/dtime", dtime);
@@ -127,6 +137,7 @@ int main(int argc, char **argv) {
   nhPrivate.getParam("/interface/initY", init_y);
   nhPrivate.getParam("/interface/initZ", init_z);
   nhPrivate.getParam("/interface/returnHomeThres", return_home_threshold);
+  nhPrivate.getParam("/interface/robotMovingThres", robot_moving_threshold);
   nhPrivate.getParam("/interface/tfFrame", map_frame);
   nhPrivate.getParam("/interface/autoExp", begin_signal);
 
@@ -164,6 +175,8 @@ int main(int argc, char **argv) {
       wp_ongoing = false;
   }
 
+  ros::Duration(1.0).sleep();
+
   std::cout << std::endl
             << "\033[1;32mExploration Started\033[0m\n"
             << std::endl;
@@ -179,7 +192,6 @@ int main(int argc, char **argv) {
           printf(cursup);
           printf(cursclean);
         }
-        // gotoxy(0, 52);
       }
       std::cout << "Planning iteration " << iteration << std::endl;
       dsvplanner::dsvplanner_srv planSrv;
@@ -225,13 +237,16 @@ int main(int argc, char **argv) {
                                           // searching path to goal point
             ros::spinOnce();              // update gp_in_progree
             int count = 200;
+            previous_odom_x = current_odom_x;
+            previous_odom_y = current_odom_y;
+            previous_odom_z = current_odom_z;
             while (gp_in_progress) { // if the waypoint keep the same for 20
                                      // (200*0.1)
               ros::Duration(0.1).sleep(); // seconds, then give up the goal
               wayPoint_pre = wayPoint;
               ros::spinOnce();
-              bool wpChange = wayPointChange(wayPoint, wayPoint_pre);
-              if (wpChange) {
+              bool robotMoving = robotPositionChange();
+              if (robotMoving) {
                 count = 200;
               } else {
                 count--;
@@ -276,6 +291,10 @@ int main(int argc, char **argv) {
         printf(cursclean);
         std::cout << "\033[1;32mReturn home completed\033[0m" << std::endl;
         printf(cursup);
+
+        std_msgs::Bool stop_exploring;
+        stop_exploring.data = true;
+        stop_signal_pub.publish(stop_exploring);
       }
       ros::Duration(0.1).sleep();
     }

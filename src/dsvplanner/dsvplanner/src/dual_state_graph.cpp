@@ -14,10 +14,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
-// #include <ctime>
-// #include <cstdlib>
-#define PI 3.14159265
-
+namespace dsvplanner_ns {
 bool DualStateGraph::readParameters() {
   nh_private_.getParam("/graph/world_frame_id", world_frame_id_);
   nh_private_.getParam("/graph/pub_local_graph_topic", pub_local_graph_topic_);
@@ -26,7 +23,6 @@ bool DualStateGraph::readParameters() {
   nh_private_.getParam("/graph/pub_global_points_topic",
                        pub_global_points_topic_);
   nh_private_.getParam("/graph/sub_keypose_topic", sub_keypose_topic_);
-  nh_private_.getParam("/graph/sub_terrain_topic", sub_terrain_map_topic_);
   nh_private_.getParam("/graph/sub_path_topic", sub_path_topic_);
   nh_private_.getParam("/graph/sub_graph_planner_status_topic",
                        sub_graph_planner_status_topic_);
@@ -48,11 +44,9 @@ bool DualStateGraph::readParameters() {
   nh_private_.getParam("/graph/kMaxPrunedNodeDist", kMaxPrunedNodeDist);
   nh_private_.getParam("/graph/kMinVertexDist", kMinVertexDist);
   nh_private_.getParam("/graph/kSurroundRange", kSurroundRange);
-  nh_private_.getParam("/cc/kFlyingObstacleHeightThre",
-                       kFlyingObstacleHeightThre);
-  nh_private_.getParam("/cc/kObstacleHeightThre", kObstacleHeightThre);
-  nh_private_.getParam("/cc/kTerrainCheckDist", kTerrainCheckDist);
-  nh_private_.getParam("/cc/kTerrainCheckPointNum", kTerrainCheckPointNum);
+  nh_private_.getParam("/graph/kMinGainRange", kMinGainRange);
+  nh_private_.getParam("/graph/kMinDistanceToRobotToCheck",
+                       kMinDistanceToRobotToCheck);
   nh_private_.getParam("/rm/kBoundX", robot_bounding[0]);
   nh_private_.getParam("/rm/kBoundY", robot_bounding[1]);
   nh_private_.getParam("/rm/kBoundZ", robot_bounding[2]);
@@ -422,8 +416,9 @@ void DualStateGraph::addEdge(int start_vertex_idx, int end_vertex_idx,
     if ((!path_exists || (path_exists && ((dist_path / dist_edge) >=
                                           kExistingPathRatioThreshold))) &&
         (!zCollisionCheck(start_vertex_idx, end_vertex_idx, graph)) &&
-        (!collisionCheckByTerrain(graph.vertices[start_vertex_idx].location,
-                                  graph.vertices[end_vertex_idx].location))) {
+        (!grid_->collisionCheckByTerrain(
+            graph.vertices[start_vertex_idx].location,
+            graph.vertices[end_vertex_idx].location))) {
       Eigen::Vector3d origin;
       Eigen::Vector3d end;
       origin.x() = graph.vertices[start_vertex_idx].location.x;
@@ -543,7 +538,7 @@ bool DualStateGraph::zCollisionCheck(int start_vertex_idx, int end_vertex_idx,
   float y_diff = start_vertex_location.y - end_vertex_location.y;
   float z_diff = start_vertex_location.z - end_vertex_location.z;
   float ang_diff =
-      atan(fabs(z_diff) / sqrt(x_diff * x_diff + y_diff * y_diff)) * 180 / PI;
+      atan(fabs(z_diff) / sqrt(x_diff * x_diff + y_diff * y_diff)) * 180 / M_PI;
   if (fabs(ang_diff) > kMaxVertexAngleAlongZ ||
       fabs(z_diff) > kMaxVertexDiffAlongZ) {
     return true;
@@ -625,9 +620,6 @@ void DualStateGraph::pruneGlobalGraph() {
             }
           }
         }
-        //        global_graph_.vertices.erase(global_graph_.vertices.begin() +
-        //        i);
-        //        i--;
       }
     }
   }
@@ -675,6 +667,20 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position) {
           NodeCountArround++;
         }
       }
+      if (misc_utils_ns::PointXYZDist(graph_vertex.location, robot_position) <
+          kMinGainRange)
+        graph_vertex.information_gain = 0;
+
+      if (graph_vertex.information_gain > 0) {
+        if (std::isnan(explore_direction_.x()) ||
+            std::isnan(explore_direction_.y()))
+          DTWValue_ = exp(1);
+        else {
+          DTW(path, robot_position);
+          graph_vertex.information_gain =
+              graph_vertex.information_gain / log(DTWValue_ * kDirectionCoeff);
+        }
+      }
       graph_vertex.information_gain = graph_vertex.information_gain *
                                       kDegressiveCoeff / dist_path *
                                       exp(0.1 * NodeCountArround);
@@ -696,14 +702,6 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position) {
       }
       if (path_information_gain > 0) {
         gainID_.push_back(graph_vertex.vertex_id);
-        if (std::isnan(explore_direction_.x()) ||
-            std::isnan(explore_direction_.y()))
-          DTWValue_ = exp(1);
-        else {
-          DTW(path, robot_position);
-          path_information_gain =
-              path_information_gain / log(DTWValue_ * kDirectionCoeff);
-        }
       }
 
       if (path_information_gain > best_gain_) {
@@ -813,11 +811,6 @@ Eigen::Vector3d DualStateGraph::getExploreDirection() {
 }
 
 geometry_msgs::Point DualStateGraph::getBestLocalVertexPosition() {
-  /*std::vector<int> path;
-  graph_utils_ns::ShortestPathBtwVertex(path, local_graph_, 0, best_vertex_id_);
-  int goal_id = path[int(path.size() -1)];
-  geometry_msgs::Point best_vertex_location =
-  local_graph_.vertices[goal_id].location;*/
   geometry_msgs::Point best_vertex_location =
       local_graph_.vertices[best_vertex_id_].location;
   return best_vertex_location;
@@ -838,31 +831,6 @@ void DualStateGraph::keyposeCallback(const nav_msgs::Odometry::ConstPtr &msg) {
   addNewGlobalVertexWithKeypose(keypose);
 }
 
-void DualStateGraph::terrainCallback(
-    const sensor_msgs::PointCloud2::ConstPtr &msg) {
-  terrain_point_->clear();
-  terrain_point_crop_->clear();
-  pcl::fromROSMsg(*msg, *terrain_point_);
-
-  pcl::PointXYZI point;
-  int terrainCloudSize = terrain_point_->points.size();
-  for (int i = 0; i < terrainCloudSize; i++) {
-    point = terrain_point_->points[i];
-
-    float pointX = point.x;
-    float pointY = point.y;
-    float pointZ = point.z;
-
-    if (point.intensity > kObstacleHeightThre &&
-        point.intensity < kFlyingObstacleHeightThre) {
-      point.x = pointX;
-      point.y = pointY;
-      point.z = pointZ;
-      terrain_point_crop_->push_back(point);
-    }
-  }
-}
-
 void DualStateGraph::pathCallback(const nav_msgs::Path::ConstPtr &graph_path) {
   if (graph_path->poses.size() > 2) {
     for (int i = 1; i < graph_path->poses.size() - 1; i++) {
@@ -879,10 +847,12 @@ void DualStateGraph::pathCallback(const nav_msgs::Path::ConstPtr &graph_path) {
       Eigen::Vector3d origin(origin_position.x, origin_position.y,
                              origin_position.z);
       Eigen::Vector3d end(end_position.x, end_position.y, end_position.z);
+      double distance =
+          misc_utils_ns::PointXYZDist(origin_position, robot_pos_);
       if (volumetric_mapping::OctomapManager::CellStatus::kFree !=
               manager_->getLineStatus(origin, end) ||
-          (kCropPathWithTerrain &&
-           collisionCheckByTerrain(origin_position, end_position))) {
+          (kCropPathWithTerrain && distance < kMinDistanceToRobotToCheck &&
+           grid_->collisionCheckByTerrain(origin_position, end_position))) {
         for (int j = 0;
              j < local_graph_.vertices[origin_vertex_id].edges.size(); j++) {
           if (local_graph_.vertices[origin_vertex_id].edges[j].vertex_id_end ==
@@ -931,42 +901,13 @@ void DualStateGraph::graphPlannerStatusCallback(
   }
 }
 
-bool DualStateGraph::collisionCheckByTerrain(geometry_msgs::Point origin_point,
-                                             geometry_msgs::Point goal_point) {
-  int count = 0;
-  double distance =
-      sqrt((goal_point.x - origin_point.x) * (goal_point.x - origin_point.x) +
-           (goal_point.y - origin_point.y) * (goal_point.y - origin_point.y));
-  double check_point_num = distance / (kTerrainCheckDist * 1.5);
-  for (int j = 0; j < check_point_num; j++) {
-    geometry_msgs::Point p1;
-    p1.x = origin_point.x +
-           j * kTerrainCheckDist * 1.5 / distance *
-               (goal_point.x - origin_point.x);
-    p1.y = origin_point.y +
-           j * kTerrainCheckDist * 1.5 / distance *
-               (goal_point.y - origin_point.y);
-    for (int i = 0; i < terrain_point_crop_->points.size(); i++) {
-      double dist = sqrt((p1.x - terrain_point_crop_->points[i].x) *
-                             (p1.x - terrain_point_crop_->points[i].x) +
-                         (p1.y - terrain_point_crop_->points[i].y) *
-                             (p1.y - terrain_point_crop_->points[i].y));
-      if (dist < kTerrainCheckDist) {
-        count++;
-      }
-      if (count > kTerrainCheckPointNum) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 DualStateGraph::DualStateGraph(const ros::NodeHandle &nh,
                                const ros::NodeHandle &nh_private,
-                               volumetric_mapping::OctomapManager *manager)
+                               volumetric_mapping::OctomapManager *manager,
+                               OccupancyGrid *grid)
     : nh_(nh), nh_private_(nh_private) {
   manager_ = manager;
+  grid_ = grid;
   initialize();
 }
 
@@ -992,8 +933,6 @@ bool DualStateGraph::initialize() {
   // Initialize subscriber
   key_pose_sub_ = nh_.subscribe<nav_msgs::Odometry>(
       sub_keypose_topic_, 5, &DualStateGraph::keyposeCallback, this);
-  terrain_point_cloud_sub_ = nh_.subscribe<sensor_msgs::PointCloud2>(
-      sub_terrain_map_topic_, 5, &DualStateGraph::terrainCallback, this);
   graph_planner_path_sub_ = nh_.subscribe<nav_msgs::Path>(
       sub_path_topic_, 1, &DualStateGraph::pathCallback, this);
   graph_planner_status_sub_ = nh_.subscribe<graph_planner::GraphPlannerStatus>(
@@ -1019,4 +958,5 @@ bool DualStateGraph::execute() {
 
   return true;
 }
-// namespace keypose_graph_ns
+}
+// namespace dsvplanner_ns

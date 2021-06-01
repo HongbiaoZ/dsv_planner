@@ -15,10 +15,23 @@ Created by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include <dsvplanner/drrt.h>
 
 dsvplanner_ns::Drrt::Drrt(volumetric_mapping::OctomapManager *manager,
-                          DualStateGraph *graph, DualStateFrontier *frontier) {
+                          DualStateGraph *graph, DualStateFrontier *frontier,
+                          OccupancyGrid *grid) {
   manager_ = manager;
+  grid_ = grid;
   dual_state_graph_ = graph;
   dual_state_frontier_ = frontier;
+
+  ROS_INFO("Successfully launched Drrt node");
+}
+
+dsvplanner_ns::Drrt::~Drrt() {
+  delete rootNode_;
+  kd_free(kdTree_);
+}
+
+void dsvplanner_ns::Drrt::init() {
+
   kdTree_ = kd_create(3);
   iterationCount_ = 0;
   bestGain_ = params_.kZeroGain;
@@ -35,18 +48,12 @@ dsvplanner_ns::Drrt::Drrt(volumetric_mapping::OctomapManager *manager,
   return_home_ = false;
   global_vertex_size_ = 0;
   NextBestNodeIdx_ = 0;
-
   for (int i = 0; i < params_.kTerrainVoxelWidth * params_.kTerrainVoxelWidth;
        i++) {
     terrain_voxle_elev_.push_back(params_.kVehicleHeight);
   }
 
   srand((unsigned)time(NULL));
-}
-
-dsvplanner_ns::Drrt::~Drrt() {
-  delete rootNode_;
-  kd_free(kdTree_);
 }
 
 void dsvplanner_ns::Drrt::setParams(Params params) { params_ = params; }
@@ -57,22 +64,18 @@ void dsvplanner_ns::Drrt::setRootWithOdom(const nav_msgs::Odometry &pose) {
   root_[2] = pose.pose.pose.position.z;
 }
 
-void dsvplanner_ns::Drrt::setTerrainCLoud() {
-  terrain_point_crop_->clear();
-  *terrain_point_crop_ = dual_state_frontier_->getTerrainPoints();
-
-  sensor_msgs::PointCloud2 terrainWithoutGround;
-  pcl::toROSMsg(*terrain_point_crop_, terrainWithoutGround);
-  terrainWithoutGround.header.frame_id = params_.explorationFrame;
-  params_.terrainNoGroundPub_.publish(terrainWithoutGround);
-}
-
 void dsvplanner_ns::Drrt::setTerrainVoxelElev() {
-  terrain_voxle_elev_.clear();
-  terrain_voxle_elev_ = dual_state_frontier_->getTerrainVoxelElev();
+  if (dual_state_frontier_->getTerrainVoxelElev().size() > 0) {
+    terrain_voxle_elev_.clear();
+    terrain_voxle_elev_ = dual_state_frontier_->getTerrainVoxelElev();
+  }
 }
 
 int dsvplanner_ns::Drrt::getNodeCounter() { return nodeCounter_; }
+
+int dsvplanner_ns::Drrt::getRemainingNodeCounter() {
+  return remainingNodeCount_;
+}
 
 bool dsvplanner_ns::Drrt::gainFound() { return bestGain_ > params_.kZeroGain; }
 
@@ -85,7 +88,7 @@ double dsvplanner_ns::Drrt::angleDiff(StateVec direction1,
           (sqrt(direction1[0] * direction1[0] + direction1[1] * direction1[1]) *
            sqrt(direction2[0] * direction2[0] +
                 direction2[1] * direction2[1]))) *
-      180 / PI;
+      180 / M_PI;
   return degree;
 }
 
@@ -305,10 +308,6 @@ void dsvplanner_ns::Drrt::getNextNodeToClosestGlobalFrontier() {
       p3.z = p1.z();
     }
     globalSelectedFrontier->points.push_back(p3);
-    // std::cout << "Global goal is found. The next best id is " <<
-    // NextBestNodeIdx_ << std::endl;
-  } else {
-    // std::cout << "Global goal is not found." << std::endl;
   }
   sensor_msgs::PointCloud2 globalFrontier;
   pcl::toROSMsg(*globalSelectedFrontier, globalFrontier);
@@ -358,9 +357,6 @@ void dsvplanner_ns::Drrt::getThreeLocalFrontierPoint() // Three local frontiers
     }
   }
 
-  // std::cout << "Explore direction is " << atan2(exploreDirection[1],
-  // exploreDirection[0]) * 180 / PI << std::endl;
-
   localThreeFrontier_->clear();
   localThreeFrontier_->points.push_back(p1);
   localThreeFrontier_->points.push_back(p2);
@@ -378,45 +374,12 @@ bool dsvplanner_ns::Drrt::remainingLocalFrontier() {
   return false;
 }
 
-bool dsvplanner_ns::Drrt::collisionCheckByTerrain(
-    StateVec origin_point,
-    StateVec goal_point) { // Collision check here cannot use pcl::kdtree
-  int count = 0;
-  double distance = sqrt((goal_point.x() - origin_point.x()) *
-                             (goal_point.x() - origin_point.x()) +
-                         (goal_point.y() - origin_point.y()) *
-                             (goal_point.y() - origin_point.y()));
-  double check_point_num = distance / params_.kTerrainCheckDist;
-  for (int j = 0; j < check_point_num; j++) {
-    geometry_msgs::Point p1;
-    p1.x = origin_point.x() +
-           j * params_.kTerrainCheckDist / distance *
-               (goal_point.x() - origin_point.x());
-    p1.y = origin_point.y() +
-           j * params_.kTerrainCheckDist / distance *
-               (goal_point.y() - origin_point.y());
-    for (int i = 0; i < terrain_point_crop_->points.size(); i++) {
-      double dist = sqrt((p1.x - terrain_point_crop_->points[i].x) *
-                             (p1.x - terrain_point_crop_->points[i].x) +
-                         (p1.y - terrain_point_crop_->points[i].y) *
-                             (p1.y - terrain_point_crop_->points[i].y));
-      if (dist < params_.kTerrainCheckDist) {
-        count++;
-      }
-      if (count > params_.kTerrainCheckPointNum) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 void dsvplanner_ns::Drrt::plannerIterate() {
   // In this function a new configuration is sampled and added to the tree.
   StateVec newState;
   bool generateNodeArroundFrontierSuccess = false;
 
-  double radius = sqrt(SQ(minX_ - maxX_) + SQ(minY_ - maxY_));
+  double radius = 0.5 * sqrt(SQ(minX_ - maxX_) + SQ(minY_ - maxY_));
   bool solutionFound = false;
   int count = 0;
   while (!solutionFound) {
@@ -465,6 +428,12 @@ void dsvplanner_ns::Drrt::plannerIterate() {
     solutionFound = true;
   }
 
+  pcl::PointXYZI sampledPoint;
+  sampledPoint.x = newState[0];
+  sampledPoint.y = newState[1];
+  sampledPoint.z = newState[2];
+  sampledPoint_->points.push_back(sampledPoint);
+
   // Find nearest neighbour
   kdres *nearest =
       kd_nearest3(kdTree_, newState.x(), newState.y(), newState.z());
@@ -492,6 +461,7 @@ void dsvplanner_ns::Drrt::plannerIterate() {
   double x_position = newState[0] - root_[0];
   double y_position = newState[1] - root_[1];
   newState[2] = getZvalue(x_position, y_position);
+
   if (newState[2] >= 1000) // the sampled position is above the untraversed area
   {
     return;
@@ -517,7 +487,6 @@ void dsvplanner_ns::Drrt::plannerIterate() {
       direction[2] > params_.kMaxExtensionAlongZ) {
     return;
   }
-
   // check collision if the new node is in the planning boundary
   if (!inPlanningBoundary(newState)) {
     return;
@@ -525,8 +494,11 @@ void dsvplanner_ns::Drrt::plannerIterate() {
     if (volumetric_mapping::OctomapManager::CellStatus::kFree ==
             manager_->getLineStatusBoundingBox(origin, newState,
                                                params_.boundingBox) &&
-        (!collisionCheckByTerrain(origin, newState))) { // connection is free
+        (!grid_->collisionCheckByTerrainWithVector(
+            origin,
+            newState))) { // connection is free
       // Create new node and insert into tree
+
       dsvplanner_ns::Node *newNode = new dsvplanner_ns::Node;
       newNode->state_ = newState;
       newNode->parent_ = newParent;
@@ -577,8 +549,11 @@ void dsvplanner_ns::Drrt::plannerInit() {
 
     if (remainingLocalFrontier()) {
       localPlanOnceMore_ = true;
-      keepTryingNum_ = params_.kKeepTryingNum; // handle special cases that
-                                               // frontiers are not updated
+      loopCount_ = params_.kLoopCountThres;
+      normal_local_iteration_ = true;
+      keepTryingNum_ =
+          params_.kKeepTryingNum; // Try 1 or 2 more times even if there
+                                  // is no local frontier
       remainingFrontier_ = true;
       getThreeLocalFrontierPoint();
       pruneTree(root_);
@@ -591,12 +566,17 @@ void dsvplanner_ns::Drrt::plannerInit() {
         dual_state_graph_->pruned_graph_.vertices.clear();
         remainingFrontier_ = false;
         localPlanOnceMore_ = true;
+        normal_local_iteration_ = true;
       } else {
         remainingFrontier_ = true;
+        loopCount_ = params_.kLoopCountThres * 3;
+        normal_local_iteration_ = false;
         localThreeFrontier_->clear();
-        pruneTree(root_);
+        //        pruneTree(root_);
         dual_state_graph_->clearLocalGraph();
-        dual_state_graph_->local_graph_ = dual_state_graph_->pruned_graph_;
+        dual_state_graph_->pruned_graph_.vertices.clear();
+        //        dual_state_graph_->local_graph_ =
+        //        dual_state_graph_->pruned_graph_;
         dual_state_graph_->execute();
         keepTryingNum_--;
         if (keepTryingNum_ <= 0) {
@@ -682,9 +662,7 @@ void dsvplanner_ns::Drrt::plannerInit() {
           newNode->parent_ = newParent;
           newNode->distance_ = newParent->distance_ + direction.norm();
           newParent->children_.push_back(newNode);
-          newNode->gain_ =
-              gain(newNode->state_); // * exp(-params_.degressiveCoeff_ *
-                                     // newNode->distance_);
+          newNode->gain_ = gain(newNode->state_);
 
           kd_insert3(kdTree_, node1.x(), node1.y(), node1.z(), newNode);
 
@@ -740,10 +718,10 @@ void dsvplanner_ns::Drrt::plannerInit() {
   p.scale.x = maxX_ - minX_;
   p.scale.y = maxY_ - minY_;
   p.scale.z = maxZ_ - minZ_;
-  p.color.r = 255.0 / 255.0;
-  p.color.g = 0.0;
-  p.color.b = 255.0 / 255.0;
-  p.color.a = 0.1;
+  p.color.r = 252.0 / 255.0;
+  p.color.g = 145.0 / 255.0;
+  p.color.b = 37.0 / 255.0;
+  p.color.a = 0.3;
   p.lifetime = ros::Duration(0.0);
   p.frame_locked = false;
   params_.boundaryPub_.publish(p);
@@ -792,8 +770,7 @@ void dsvplanner_ns::Drrt::pruneTree(StateVec root) {
     newNode->distance_ = newParent->distance_ + direction.norm();
     newParent->children_.push_back(newNode);
     if (dual_state_graph_->pruned_graph_.vertices[i].information_gain > 0)
-      newNode->gain_ = gain(newNode->state_); // * exp(-params_.degressiveCoeff_
-                                              // * newNode->distance_);
+      newNode->gain_ = gain(newNode->state_);
     else {
       newNode->gain_ = 0;
     }
@@ -816,9 +793,7 @@ double dsvplanner_ns::Drrt::gain(StateVec state) {
   StateVec origin(state[0], state[1], state[2]);
   StateVec vec;
   double rangeSq = pow(params_.kGainRange, 2.0);
-  pcl::PointCloud<pcl::PointXYZ>::Ptr point_in_range =
-      pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>());
-  pcl::PointXYZ p1;
+
   // Iterate over all nodes within the allowed distance
   for (vec[0] = std::max(state[0] - params_.kGainRange, minX_);
        vec[0] < std::min(state[0] + params_.kGainRange, maxX_);
@@ -853,10 +828,6 @@ double dsvplanner_ns::Drrt::gain(StateVec state) {
           if (volumetric_mapping::OctomapManager::CellStatus::kOccupied !=
               this->manager_->getVisibility(origin, vec, false)) {
             gain += params_.kGainUnknown;
-            p1.x = vec[0];
-            p1.y = vec[1];
-            p1.z = vec[2];
-            point_in_range->points.push_back(p1);
           }
         } else if (node ==
                    volumetric_mapping::OctomapManager::CellStatus::kOccupied) {
@@ -873,13 +844,10 @@ double dsvplanner_ns::Drrt::gain(StateVec state) {
       }
     }
   }
-  if (point_in_range->points.size() > 0) {
-    sensor_msgs::PointCloud2 point_in_range_pc;
-    pcl::toROSMsg(*point_in_range, point_in_range_pc);
-    point_in_range_pc.header.frame_id = params_.explorationFrame;
-    params_.pointInSensorRangePub_.publish(point_in_range_pc);
-  } // publish all points in the field of view
+
   // Scale with volume
+  if (gain < params_.kMinEffectiveGain)
+    gain = 0;
   gain *= pow(disc, 3.0);
 
   return gain;
@@ -899,10 +867,18 @@ void dsvplanner_ns::Drrt::clear() {
   remainingFrontier_ = false;
   remainingNodeCount_ = 0;
 
+  sampledPoint_->points.clear();
+
   kd_free(kdTree_);
 }
 
 void dsvplanner_ns::Drrt::publishNode() {
+
+  sensor_msgs::PointCloud2 random_sampled_points_pc;
+  pcl::toROSMsg(*sampledPoint_, random_sampled_points_pc);
+  random_sampled_points_pc.header.frame_id = params_.explorationFrame;
+  params_.randomSampledPointsPub_.publish(random_sampled_points_pc);
+
   visualization_msgs::Marker node;
   visualization_msgs::Marker branch;
   node.header.stamp = ros::Time::now();
@@ -994,6 +970,12 @@ void dsvplanner_ns::Drrt::publishNode() {
     }
     params_.newTreePathPub_.publish(node);
     params_.newTreePathPub_.publish(branch);
+
+    // When there is no remaining node, publish an empty one
+    node.points.clear();
+    branch.points.clear();
+    params_.remainingTreePathPub_.publish(node);
+    params_.remainingTreePathPub_.publish(branch);
   }
 }
 

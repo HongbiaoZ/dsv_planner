@@ -12,15 +12,14 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
-// #include <ctime>
-// #include <cstdlib>
-#define PI 3.14159265
 
+namespace dsvplanner_ns {
 DualStateFrontier::DualStateFrontier(
     const ros::NodeHandle &nh, const ros::NodeHandle &nh_private,
-    volumetric_mapping::OctomapManager *manager)
+    volumetric_mapping::OctomapManager *manager, OccupancyGrid *grid)
     : nh_(nh), nh_private_(nh_private) {
   manager_ = manager;
+  grid_ = grid;
   initialize();
 }
 
@@ -46,6 +45,10 @@ bool DualStateFrontier::readParameters() {
   nh_private_.getParam("/frontier/kSearchBoundingX", search_bounding[0]);
   nh_private_.getParam("/frontier/kSearchBoundingY", search_bounding[1]);
   nh_private_.getParam("/frontier/kSearchBoundingZ", search_bounding[2]);
+  nh_private_.getParam("/frontier/kEffectiveUnknownNumAroundFrontier",
+                       kEffectiveUnknownNumAroundFrontier);
+  nh_private_.getParam("/frontier/kFrontierNeighboutSearchRadius",
+                       kFrontierNeighboutSearchRadius);
   nh_private_.getParam("/gb/kMaxXGlobal", kGlobalMaxX);
   nh_private_.getParam("/gb/kMaxYGlobal", kGlobalMaxY);
   nh_private_.getParam("/gb/kMaxZGlobal", kGlobalMaxZ);
@@ -58,14 +61,10 @@ bool DualStateFrontier::readParameters() {
   nh_private_.getParam("/rm/kSensorVertical", kSensorVerticalView);
   nh_private_.getParam("/rm/kSensorHorizontal", kSensorHorizontalView);
   nh_private_.getParam("/rm/kVehicleHeight", kVehicleHeight);
-  nh_private_.getParam("/cc/kFlyingObstacleHeightThre",
-                       kFlyingObstacleHeightThre);
-  nh_private_.getParam("/cc/kObstacleHeightThre", kObstacleHeightThre);
-  nh_private_.getParam("/cc/kTerrainCheckDist", kTerrainCheckDist);
-  nh_private_.getParam("/cc/kTerrainCheckPointNum", kTerrainCheckPointNum);
-  nh_private_.getParam("/cc/kTerrainVoxelSize", kTerrainVoxelSize);
-  nh_private_.getParam("/cc/kTerrainVoxelHalfWidth", kTerrainVoxelHalfWidth);
-  nh_private_.getParam("/cc/kTerrainVoxelWidth", kTerrainVoxelWidth);
+  nh_private_.getParam("/elevation/kTerrainVoxelSize", kTerrainVoxelSize);
+  nh_private_.getParam("/elevation/kTerrainVoxelHalfWidth",
+                       kTerrainVoxelHalfWidth);
+  nh_private_.getParam("/elevation/kTerrainVoxelWidth", kTerrainVoxelWidth);
 
   return true;
 }
@@ -109,8 +108,6 @@ void DualStateFrontier::getUnknowPointcloudInBoundingBox(
         if (FrontierInBoundry(point) && frontierDetect(point)) {
           local_frontier_temp->push_back(
               pcl::PointXYZ(point.x(), point.y(), point.z()));
-          // global_frontier_->points.push_back(pcl::PointXYZ(point.x(),
-          // point.y(), point.z()));
         }
       }
     }
@@ -125,6 +122,9 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   const double resolution = manager_->octree_->getResolution();
   bool xPositive = false, xNegative = false, yPositive = false,
        yNegative = false;
+  bool effectiveFree = false;
+  bool effectiveUnknown = false;
+  int unknowCount = 0;
   octomap::OcTreeNode *node_inside;
   octomap::OcTreeNode *node_outside;
   octomap::OcTreeKey key_inside, key_outside;
@@ -145,6 +145,8 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   } else if ((node_inside != NULL &&
               manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
+  } else if (node_inside == NULL) {
+    unknowCount++;
   }
   surround_point_inside.x() = point.x();
   surround_point_inside.y() = point.y() + resolution;
@@ -162,6 +164,8 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   } else if ((node_inside != NULL &&
               manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
+  } else if (node_inside == NULL) {
+    unknowCount++;
   }
   surround_point_inside.x() = point.x() - resolution;
   surround_point_inside.y() = point.y();
@@ -179,6 +183,8 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   } else if ((node_inside != NULL &&
               manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
+  } else if (node_inside == NULL) {
+    unknowCount++;
   }
   surround_point_inside.x() = point.x() + resolution;
   surround_point_inside.y() = point.y();
@@ -196,8 +202,12 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
   } else if ((node_inside != NULL &&
               manager_->octree_->isNodeOccupied(node_inside))) {
     return false;
+  } else if (node_inside == NULL) {
+    unknowCount++;
   }
-  return (xPositive || xNegative || yPositive || yNegative);
+  effectiveFree = xPositive || xNegative || yPositive || yNegative;
+  effectiveUnknown = unknowCount >= kEffectiveUnknownNumAroundFrontier;
+  return (effectiveFree && effectiveUnknown);
 }
 
 bool DualStateFrontier::FrontierInBoundry(octomap::point3d point) const {
@@ -238,38 +248,6 @@ bool DualStateFrontier::isCleanedFrontier(pcl::PointXYZ point) {
   return false;
 }
 
-bool DualStateFrontier::collisionCheckByTerrain(StateVec origin_point,
-                                                StateVec goal_point) {
-  int count = 0;
-  double distance = sqrt((goal_point.x() - origin_point.x()) *
-                             (goal_point.x() - origin_point.x()) +
-                         (goal_point.y() - origin_point.y()) *
-                             (goal_point.y() - origin_point.y()));
-  double check_point_num = distance / kTerrainCheckDist;
-  for (int j = 0; j < check_point_num; j++) {
-    geometry_msgs::Point p1;
-    p1.x =
-        origin_point.x() +
-        j * kTerrainCheckDist / distance * (goal_point.x() - origin_point.x());
-    p1.y =
-        origin_point.y() +
-        j * kTerrainCheckDist / distance * (goal_point.y() - origin_point.y());
-    for (int i = 0; i < terrain_cloud_crop_->points.size(); i++) {
-      double dist = sqrt((p1.x - terrain_cloud_crop_->points[i].x) *
-                             (p1.x - terrain_cloud_crop_->points[i].x) +
-                         (p1.y - terrain_cloud_crop_->points[i].y) *
-                             (p1.y - terrain_cloud_crop_->points[i].y));
-      if (dist < kTerrainCheckDist) {
-        count++;
-      }
-      if (count > kTerrainCheckPointNum) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
 bool DualStateFrontier::inSensorRangeofGraphPoints(StateVec point) {
   pcl::PointXYZ check_point;
   check_point.x = point[0];
@@ -301,7 +279,7 @@ bool DualStateFrontier::inSensorRangeofGraphPoints(StateVec point) {
       }
       if (manager_->CellStatus::kOccupied !=
               manager_->getVisibility(node_point, point, false) &&
-          !collisionCheckByTerrain(node_point, point)) {
+          !grid_->collisionCheckByTerrainWithVector(node_point, point)) {
         return true;
       }
     }
@@ -320,7 +298,7 @@ void DualStateFrontier::localFrontierUpdate(StateVec &center) {
     checkedPoint.z() = local_frontier_->points[i].z;
     if ((manager_->CellStatus::kOccupied !=
              manager_->getVisibility(center, checkedPoint, false) &&
-         !collisionCheckByTerrain(center, checkedPoint)) ||
+         !grid_->collisionCheckByTerrainWithVector(center, checkedPoint)) ||
         (!planner_status_ && inSensorRangeofGraphPoints(checkedPoint))) {
       local_frontier_pcl_->points.push_back(local_frontier_->points[i]);
       global_frontier_->points.push_back(local_frontier_->points[i]);
@@ -336,10 +314,6 @@ void DualStateFrontier::localFrontierUpdate(StateVec &center) {
 
 void DualStateFrontier::gloabalFrontierUpdate() {
   global_frontier_pcl_->clear();
-
-  /*point_ds_.setLeafSize(0.4, 0.4, 0.4);
-  point_ds_.setInputCloud(global_frontier_);
-  point_ds_.filter(*global_frontier_ds_);*/
 
   int size = global_frontier_->points.size();
   octomap::OcTreeNode *node;
@@ -370,6 +344,29 @@ void DualStateFrontier::gloabalFrontierUpdate() {
   point_ds_.filter(*global_frontier_);
 }
 
+void DualStateFrontier::globalFrontiersNeighbourCheck() {
+  global_frontier_pcl_->clear();
+
+  int size = global_frontier_->points.size();
+  pcl::PointXYZ p1;
+  std::vector<int> pointSearchInd;
+  std::vector<float> pointSearchDist;
+  if (size > 0) {
+    global_frontiers_kdtree_->setInputCloud(global_frontier_);
+    for (int i = 0; i < size; i++) {
+      p1 = global_frontier_->points[i];
+      pointSearchInd.clear();
+      pointSearchDist.clear();
+      global_frontiers_kdtree_->radiusSearch(p1, kFrontierNeighboutSearchRadius,
+                                             pointSearchInd, pointSearchDist);
+      if (pointSearchInd.size() > 1)
+        global_frontier_pcl_->points.push_back(p1);
+    }
+  }
+  global_frontier_->clear();
+  *global_frontier_ = *global_frontier_pcl_;
+}
+
 void DualStateFrontier::cleanAllUselessFrontiers() {
   global_frontier_->clear();
   local_frontier_->clear();
@@ -380,6 +377,7 @@ void DualStateFrontier::getFrontiers() {
   getUnknowPointcloudInBoundingBox(robot_position_, search_bounding);
   localFrontierUpdate(robot_position_);
   gloabalFrontierUpdate();
+  globalFrontiersNeighbourCheck();
   publishFrontiers();
 }
 
@@ -404,7 +402,6 @@ void DualStateFrontier::terrainCloudAndOdomCallback(
   robot_position_[2] = odom_msg->pose.pose.position.z;
   terrain_cloud_->clear();
   terrain_cloud_ds->clear();
-  terrain_cloud_crop_->clear();
   terrain_elev_cloud_->clear();
   terrain_voxel_points_num_.clear();
   terrain_voxel_min_elev_.clear();
@@ -420,6 +417,18 @@ void DualStateFrontier::terrainCloudAndOdomCallback(
   point_ds.setInputCloud(terrain_cloud_);
   point_ds.filter(*terrain_cloud_ds);
 
+  updateTerrainMinElevation();
+  updateTerrainElevationForKnown();
+  updateTerrainElevationForUnknow();
+
+  sensor_msgs::PointCloud2 elevVoxel2;
+  pcl::toROSMsg(*terrain_elev_cloud_, elevVoxel2);
+  elevVoxel2.header.stamp = ros::Time::now();
+  elevVoxel2.header.frame_id = "/map";
+  terrain_elev_cloud_pub_.publish(elevVoxel2);
+}
+
+void DualStateFrontier::updateTerrainMinElevation() {
   pcl::PointXYZI point;
   int terrainCloudSize = terrain_cloud_ds->points.size();
   for (int i = 0; i < terrainCloudSize; i++) {
@@ -427,12 +436,6 @@ void DualStateFrontier::terrainCloudAndOdomCallback(
     point.y = terrain_cloud_ds->points[i].y;
     point.z = terrain_cloud_ds->points[i].z;
     point.intensity = terrain_cloud_ds->points[i].intensity;
-    // crop all ground points
-    if (point.intensity > kObstacleHeightThre &&
-        point.intensity < kFlyingObstacleHeightThre) {
-      terrain_cloud_crop_->push_back(point);
-    }
-
     int indX = int((point.x - robot_position_[0] + kTerrainVoxelSize / 2) /
                    kTerrainVoxelSize) +
                kTerrainVoxelHalfWidth;
@@ -473,7 +476,10 @@ void DualStateFrontier::terrainCloudAndOdomCallback(
       }
     }
   }
-  // update elevation for all known voxels
+}
+
+void DualStateFrontier::updateTerrainElevationForKnown() {
+  pcl::PointXYZI point;
   for (int i = 0; i < kTerrainVoxelWidth * kTerrainVoxelWidth; i++) {
     if (terrain_voxel_points_num_[i] > 0) {
       if (terrain_voxel_max_elev_[i] - terrain_voxel_min_elev_[i] >= 0.4)
@@ -498,12 +504,15 @@ void DualStateFrontier::terrainCloudAndOdomCallback(
       terrain_elev_cloud_->push_back(point);
     }
   }
-  // update elevation for all unknown voxels
+}
+
+void DualStateFrontier::updateTerrainElevationForUnknow() {
   pcl::KdTreeFLANN<pcl::PointXYZI> kdtree;
   std::vector<int> pointIdxNKNSearch(1);
   std::vector<float> pointNKNSquaredDistance(1);
   kdtree.setInputCloud(terrain_elev_cloud_);
 
+  pcl::PointXYZI point;
   if (terrain_voxel_points_num_[0] <= 0) {
     terrain_voxel_elev_[0] = robot_position_[2] - kVehicleHeight;
   }
@@ -517,12 +526,6 @@ void DualStateFrontier::terrainCloudAndOdomCallback(
                 kTerrainVoxelSize / 2 + robot_position_[1];
       point.z = 0;
 
-      //      if (indY != 0)
-      //        terrain_voxel_elev_[i] = terrain_voxel_elev_[i - 1];
-      //      else
-      //        terrain_voxel_elev_[i] = terrain_voxel_elev_[kTerrainVoxelWidth
-      //        * (indX - 1) + indY];
-      //      point.intensity = terrain_voxel_elev_[i];
       if (terrain_elev_cloud_->points.size() > 0) {
         if (kdtree.nearestKSearch(point, 1, pointIdxNKNSearch,
                                   pointNKNSquaredDistance) > 0) {
@@ -532,15 +535,8 @@ void DualStateFrontier::terrainCloudAndOdomCallback(
         }
         terrain_elev_cloud_->push_back(point);
       }
-      //      point.intensity = 1000;
-      //      terrain_voxel_elev_[i] = point.intensity;
     }
   }
-  sensor_msgs::PointCloud2 elevVoxel2;
-  pcl::toROSMsg(*terrain_elev_cloud_, elevVoxel2);
-  elevVoxel2.header.stamp = ros::Time::now();
-  elevVoxel2.header.frame_id = "map";
-  terrain_elev_cloud_pub_.publish(elevVoxel2);
 }
 
 void DualStateFrontier::graphPointsCallback(
@@ -569,10 +565,6 @@ double DualStateFrontier::getZvalue(double x_position, double y_position) {
   return terrain_voxel_elev_[kTerrainVoxelWidth * indX + indY] + kVehicleHeight;
 }
 
-pcl::PointCloud<pcl::PointXYZI> DualStateFrontier::getTerrainPoints() {
-  return *terrain_cloud_crop_;
-}
-
 std::vector<double> DualStateFrontier::getTerrainVoxelElev() {
   return terrain_voxel_elev_;
 }
@@ -596,12 +588,6 @@ bool DualStateFrontier::initialize() {
   sync_->registerCallback(boost::bind(
       &DualStateFrontier::terrainCloudAndOdomCallback, this, _1, _2));
 
-  //  terrain_point_cloud_sub_ =
-  //      nh_.subscribe(sub_terrain_point_cloud_topic_, 1,
-  //      &DualStateFrontier::terrainCloudCallback, this);
-  //  odom_sub_ = nh_.subscribe(sub_odom_topic_, 1,
-  //  &DualStateFrontier::odomCallback, this);
-  // Initialize publishers
   unknown_points_pub_ =
       nh_.advertise<sensor_msgs::PointCloud2>(pub_unknown_points_topic_, 1);
   global_frontier_points_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(
@@ -622,9 +608,11 @@ bool DualStateFrontier::initialize() {
     terrain_voxel_min_elev_.push_back(1000);
     terrain_voxel_max_elev_.push_back(-1000);
   }
+
   ROS_INFO("Successfully launched DualStateFrontier node");
 
   return true;
 }
 
 void DualStateFrontier::execute(const ros::TimerEvent &e) { getFrontiers(); }
+}
