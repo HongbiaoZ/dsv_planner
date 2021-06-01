@@ -1,5 +1,5 @@
 <launch>
     <arg name="bag_name" default="garage"/>
     <node pkg="rosbag" type="record" name="rosbag_record_dsvp"
-          args="record -o $(env HOME)/Desktop/simulation_bags/dsvp/garage/ /tf /registered_scan /state_estimation /way_point /local_graph /global_graph /new_tree_path /remaining_tree_path /planner_boundry /globalSelectedfrontier /threefrontier /graph_planner_command /graph_planner_status /graph_planner_path /global_frontier /local_frontier /threefrontier /plan_time /runtime /totaltime /next_goal" />
+          args="record -o $(env HOME)/Desktop/simulation_bags/dsvp/$(arg bag_name)/ /tf /registered_scan /state_estimation /way_point /local_graph /global_graph /new_tree_path /remaining_tree_path /planner_boundry /globalSelectedfrontier /threefrontier /graph_planner_command /graph_planner_status /graph_planner_path /global_frontier /local_frontier /threefrontier /plan_time /runtime /totaltime /next_goal /dsvplanner/octomap_occupied" />
 </launch>

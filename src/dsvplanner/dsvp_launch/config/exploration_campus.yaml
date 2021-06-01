@@ -5,7 +5,7 @@ drrt/gain/kUnknown: 1.0
 drrt/gain/kMinEffectiveGain: 5
 drrt/gain/kRange: 5
 drrt/gain/kRangeZMinus: 0.4
-drrt/gain/kRangeZPlus: 1.0
+drrt/gain/kRangeZPlus: 0.4
 drrt/gain/kZero: 0.0
 drrt/tree/kExtensionRange: 1.0
 drrt/tree/kMinExtensionRange: 0.8
@@ -127,4 +127,6 @@ frontier/kSearchBoundingX: 40
 frontier/kSearchBoundingY: 40
 frontier/kSearchBoundingZ: 0.5
 frontier/kEffectiveUnknownNumAroundFrontier: 1
+frontier/kFrontierNeighboutSearchRadius: 5
+
 
