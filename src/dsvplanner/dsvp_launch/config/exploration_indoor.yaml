@@ -16,7 +16,7 @@ drrt/tree/kCuttoffIterations: 200
 drrt/vertexSize: 120
 drrt/keepTryingNum: 3
 drrt/kLoopCountThres: 1500
-drrt/tfFrame: /map
+drrt/tfFrame: map
 
 #Planner Topics
 planner/odomSubTopic: /state_estimation
@@ -40,7 +40,7 @@ interface/initY: 0
 interface/initZ: 0
 interface/returnHomeThres: 1.5
 interface/robotMovingThres: 10.0
-interface/tfFrame: /map
+interface/tfFrame: map
 interface/autoExp: true
 
 
@@ -74,7 +74,7 @@ elevation/kTerrainVoxelWidth: 101
 elevation/kTerrainVoxelSize: 0.4
 
 #OccupancyGrid Constants
-grid/world_frame_id: /map
+grid/world_frame_id: map
 grid/odomSubTopic: /state_estimation
 grid/terrainCloudSubTopic: /terrain_map_ext
 grid/pubGridPointsTopic: /occpancy_grid_map
