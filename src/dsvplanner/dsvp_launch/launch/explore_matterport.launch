@@ -14,7 +14,7 @@
     <param name="simulation" type="bool" value="$(arg simulation)" />
   </node>
 
-  <include file="$(find graph_planner)/launch/graph_planner.launch"/>
+  <include file="$(find graph_planner)/launch/graph_planner_matterport.launch"/>
 
   <group if="$(arg enable_bag_record)">
     <include file="$(find dsvp_launch)/launch/rosbag_record.launch">

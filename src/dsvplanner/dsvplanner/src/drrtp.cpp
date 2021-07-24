@@ -238,6 +238,14 @@ bool dsvplanner_ns::drrtPlanner::setParams() {
                        params_.kCuttoffIterations);
   nh_private_.getParam("/drrt/tree/kGlobalExtraIterations",
                        params_.kGlobalExtraIterations);
+  nh_private_.getParam("/drrt/tree/kRemainingNodeScaleSize",
+                       params_.kRemainingNodeScaleSize);
+  nh_private_.getParam("/drrt/tree/kRemainingBranchScaleSize",
+                       params_.kRemainingBranchScaleSize);
+  nh_private_.getParam("/drrt/tree/kNewNodeScaleSize",
+                       params_.kNewNodeScaleSize);
+  nh_private_.getParam("/drrt/tree/kNewBranchScaleSize",
+                       params_.kNewBranchScaleSize);
   nh_private_.getParam("/drrt/tfFrame", params_.explorationFrame);
   nh_private_.getParam("/drrt/vertexSize", params_.kVertexSize);
   nh_private_.getParam("/drrt/keepTryingNum", params_.kKeepTryingNum);

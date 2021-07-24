@@ -84,6 +84,11 @@ struct Params {
   int kTerrainVoxelWidth;
   int kTerrainVoxelHalfWidth;
 
+  double kRemainingNodeScaleSize;
+  double kRemainingBranchScaleSize;
+  double kNewNodeScaleSize;
+  double kNewBranchScaleSize;
+
   std::string explorationFrame;
 };
 
