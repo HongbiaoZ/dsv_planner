@@ -20,7 +20,7 @@ drrt/tree/kCuttoffIterations: 200
 drrt/vertexSize: 40
 drrt/keepTryingNum: 1
 drrt/kLoopCountThres: 1500
-drrt/tfFrame: /map
+drrt/tfFrame: map
 
 #Planner Topics
 planner/odomSubTopic: /state_estimation
@@ -44,7 +44,7 @@ interface/initY: 0
 interface/initZ: 0
 interface/returnHomeThres: 1.5
 interface/robotMovingThres: 10.0
-interface/tfFrame: /map
+interface/tfFrame: map
 interface/autoExp: true
 
 
@@ -78,7 +78,7 @@ elevation/kTerrainVoxelWidth: 101
 elevation/kTerrainVoxelSize: 0.4
 
 #OccupancyGrid Constants
-grid/world_frame_id: /map
+grid/world_frame_id: map
 grid/odomSubTopic: /state_estimation
 grid/terrainCloudSubTopic: /terrain_map_ext
 grid/pubGridPointsTopic: /occpancy_grid_map
@@ -89,7 +89,7 @@ grid/kFlyingObstacleHeightThre: 0.75
 grid/kObstacleHeightThre: 0.05
 
 # Graph Constants
-graph/world_frame_id                          : /map
+graph/world_frame_id                          : map
 graph/pub_local_graph_topic                   : /local_graph
 graph/pub_global_graph_topic                  : /global_graph
 graph/pub_global_points_topic                 : /global_points
@@ -116,7 +116,7 @@ graph/kMinGainRange                           : 0.5 #min range to count the gain
 graph/kMinDistanceToRobotToCheck              : 4 #min distace of the vertex to the robot to check the collision state of its edge
 
 #Frontier Constants
-frontier/world_frame_id: /map
+frontier/world_frame_id: map
 frontier/robot_frame_id: /sensor
 frontier/sub_graph_points_topic: /global_points
 frontier/pub_unknown_points_topic: /octomap_unknown
