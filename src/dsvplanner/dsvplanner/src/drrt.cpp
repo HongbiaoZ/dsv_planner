@@ -233,6 +233,7 @@ bool dsvplanner_ns::Drrt::generateRrtNodeToLocalFrontier(StateVec &newNode) {
     newNode[2] = potentialNode[2];
     return true;
   }
+  return false;
 }
 
 void dsvplanner_ns::Drrt::getNextNodeToClosestGlobalFrontier() {
