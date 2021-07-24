@@ -886,7 +886,7 @@ void dsvplanner_ns::Drrt::publishNode() {
   node.ns = "drrt_node";
   node.type = visualization_msgs::Marker::POINTS;
   node.action = visualization_msgs::Marker::ADD;
-  node.scale.x = 0.4;
+  node.scale.x = params_.kRemainingNodeScaleSize;
   node.color.r = 167.0 / 255.0;
   node.color.g = 167.0 / 255.0;
   node.color.b = 0.0;
@@ -898,7 +898,7 @@ void dsvplanner_ns::Drrt::publishNode() {
   branch.header.frame_id = params_.explorationFrame;
   branch.type = visualization_msgs::Marker::LINE_LIST;
   branch.action = visualization_msgs::Marker::ADD;
-  branch.scale.x = 0.08;
+  branch.scale.x = params_.kRemainingBranchScaleSize;
   branch.color.r = 167.0 / 255.0;
   branch.color.g = 167.0 / 255.0;
   branch.color.b = 0.0;
@@ -927,10 +927,12 @@ void dsvplanner_ns::Drrt::publishNode() {
     params_.remainingTreePathPub_.publish(branch);
     node.points.clear();
     branch.points.clear();
+    node.scale.x = params_.kNewNodeScaleSize;
     node.color.r = 167.0 / 255.0;
     node.color.g = 0.0 / 255.0;
     node.color.b = 167.0 / 255.0;
     node.color.a = 1.0;
+    branch.scale.x = params_.kNewBranchScaleSize;
     branch.color.r = 167.0 / 255.0;
     branch.color.g = 0.0 / 255.0;
     branch.color.b = 167.0 / 255.0;

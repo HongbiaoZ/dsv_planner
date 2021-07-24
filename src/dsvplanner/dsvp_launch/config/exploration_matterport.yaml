@@ -2,25 +2,25 @@
 drrt/gain/kFree: 0.0
 drrt/gain/kOccupied: 0.0
 drrt/gain/kUnknown: 1.0
-drrt/gain/kMinEffectiveGain: 5
+drrt/gain/kMinEffectiveGain: 10
 drrt/gain/kRange: 5
 drrt/gain/kRangeZMinus: 0.4
 drrt/gain/kRangeZPlus: 0.4
 drrt/gain/kZero: 0.0
-drrt/tree/kExtensionRange: 1.3
-drrt/tree/kMinExtensionRange: 1.3
-drrt/tree/kMaxExtensionAlongZ: 0.5
+drrt/tree/kExtensionRange: 0.4
+drrt/tree/kMinExtensionRange: 0.4
+drrt/tree/kMaxExtensionAlongZ: 0.05
 drrt/tree/kExactRoot: false
 drrt/tree/kGlobalExtraIterations_: 300
 drrt/tree/kCuttoffIterations: 200
-/drrt/tree/kRemainingNodeScaleSize: 0.4
-/drrt/tree/kRemainingBranchScaleSize: 0.08
-/drrt/tree/kNewNodeScaleSize: 0.4
-/drrt/tree/kNewBranchScaleSize: 0.08
-drrt/vertexSize: 120
-drrt/keepTryingNum: 0
-drrt/kLoopCountThres: 1000
-drrt/tfFrame: map
+/drrt/tree/kRemainingNodeScaleSize: 0.2
+/drrt/tree/kRemainingBranchScaleSize: 0.04
+/drrt/tree/kNewNodeScaleSize: 0.2
+/drrt/tree/kNewBranchScaleSize: 0.04
+drrt/vertexSize: 40
+drrt/keepTryingNum: 1
+drrt/kLoopCountThres: 1500
+drrt/tfFrame: /map
 
 #Planner Topics
 planner/odomSubTopic: /state_estimation
@@ -43,34 +43,34 @@ interface/initX: 4
 interface/initY: 0
 interface/initZ: 0
 interface/returnHomeThres: 1.5
-interface/robotMovingThres: 6.0
-interface/tfFrame: map
+interface/robotMovingThres: 10.0
+interface/tfFrame: /map
 interface/autoExp: true
 
 
 # Exploration Boundary (local boundary and global boundary)
-lb/kMinXLocal: -15.0
-lb/kMinYLocal: -15.0
+lb/kMinXLocal: -4.0
+lb/kMinYLocal: -4.0
 lb/kMinZLocal: -5.0
-lb/kMaxXLocal: 15.0
-lb/kMaxYLocal: 15.0
+lb/kMaxXLocal: 4.0
+lb/kMaxYLocal: 4.0
 lb/kMaxZLocal: 5.0
 
-gb/kMinXGlobal: -300.0
-gb/kMinYGlobal: -300.0
-gb/kMinZGlobal: -30.0
-gb/kMaxXGlobal: 300.0
-gb/kMaxYGlobal: 300.0
-gb/kMaxZGlobal: 25.0
+gb/kMinXGlobal: -100.0
+gb/kMinYGlobal: -100.0
+gb/kMinZGlobal: -15.0
+gb/kMaxXGlobal: 100.0
+gb/kMaxYGlobal: 100.0
+gb/kMaxZGlobal: 15.0
 
 # Robot Model (including robot bounding box and sensor model)
 rm/kSensorPitch: 0.0
 rm/kSensorHorizontal: 360.0
 rm/kSensorVertical: 30.0
-rm/kBoundX: 0.5
-rm/kBoundY: 0.5
-rm/kBoundZ: 0.4
-rm/kVehicleHeight: 0.75
+rm/kBoundX: 0.25
+rm/kBoundY: 0.25
+rm/kBoundZ: 0.2
+rm/kVehicleHeight: 0.5
 
 #Terrain Elevation Constants
 elevation/kTerrainVoxelHalfWidth: 50
@@ -78,18 +78,18 @@ elevation/kTerrainVoxelWidth: 101
 elevation/kTerrainVoxelSize: 0.4
 
 #OccupancyGrid Constants
-grid/world_frame_id: map
+grid/world_frame_id: /map
 grid/odomSubTopic: /state_estimation
 grid/terrainCloudSubTopic: /terrain_map_ext
 grid/pubGridPointsTopic: /occpancy_grid_map
 grid/kMapWidth: 40
-grid/kGridSize: 0.1
+grid/kGridSize: 0.05
 grid/kDownsampleSize: 0.05
-grid/kFlyingObstacleHeightThre: 1.0
-grid/kObstacleHeightThre: 0.2
+grid/kFlyingObstacleHeightThre: 0.75
+grid/kObstacleHeightThre: 0.05
 
 # Graph Constants
-graph/world_frame_id                          : map
+graph/world_frame_id                          : /map
 graph/pub_local_graph_topic                   : /local_graph
 graph/pub_global_graph_topic                  : /global_graph
 graph/pub_global_points_topic                 : /global_points
@@ -97,40 +97,39 @@ graph/sub_keypose_topic                       : /state_estimation_at_scan
 graph/sub_path_topic                          : /graph_planner_path
 graph/sub_graph_planner_status_topic          : /graph_planner_status
 
-graph/kCropPathWithTerrain                    : false
+graph/kCropPathWithTerrain                    : true
 graph/kConnectVertexDistMax                   : 3.0 #7.0
 graph/kDegressiveCoeff                        : 0.3
-graph/kDirectionCoeff                         : 0.2
+graph/kDirectionCoeff                         : 0.4
 graph/kDistBadEdge                            : 5.0 # edges beyond this distance are penalised
-graph/kExistingPathRatioThreshold             : 1.0 # if ratio of existing path to edge is beyond this, edge is added
-graph/kExistingPathRatioThresholdGlobal       : 1.4 # if ratio of existing path to edge is beyond this, edge is added to global graph
+graph/kExistingPathRatioThreshold             : 1.2 # if ratio of existing path to edge is beyond this, edge is added
+graph/kExistingPathRatioThresholdGlobal       : 1.2 # if ratio of existing path to edge is beyond this, edge is added to global graph
 graph/kLongEdgePenaltyMultiplier              : 5.0 # edge costs are multiplied by this amount if they are long
 graph/kMaxLongEdgeDist                        : 6.0 # absolute maximum, no edges longer than this (even if marked as bad)
 graph/kMaxVertexAngleAlongZ                   : 38.0 # max angle between two vertex along Z when add edge
-graph/kMaxVertexDiffAlongZ                    : 0.5 # max distance along Z when add edge between two vertex
+graph/kMaxVertexDiffAlongZ                    : 0.1 # max distance along Z when add edge between two vertex
 graph/kMaxDistToPrunedRoot                    : 10 # max distance when pruning the local graph between root and closest vertex
 graph/kMaxPrunedNodeDist                      : 15 # max distance when pruning the local graph between root and new node
-graph/kMinVertexDist                          : 1.0 # new vertex only created if keypose is at least this distance away from existing vertices
+graph/kMinVertexDist                          : 0.35 # new vertex only created if keypose is at least this distance away from existing vertices
 graph/kSurroundRange                          : 4 #range to count node arround the vertex
-graph/kMinGainRange                           : 4 #min range to count the gain. vertext that in this range has no gain
+graph/kMinGainRange                           : 0.5 #min range to count the gain. vertext that in this range has no gain
 graph/kMinDistanceToRobotToCheck              : 4 #min distace of the vertex to the robot to check the collision state of its edge
 
 #Frontier Constants
-frontier/world_frame_id: map
-frontier/robot_frame_id: sensor
+frontier/world_frame_id: /map
+frontier/robot_frame_id: /sensor
 frontier/sub_graph_points_topic: /global_points
 frontier/pub_unknown_points_topic: /octomap_unknown
 frontier/pub_global_frontier_points_topic: /global_frontier
 frontier/pub_local_frontier_points_topic: /local_frontier
 
 frontier/kExecuteFrequency: 10
-frontier/kFrontierResolution: 0.8
-frontier/kFrontierFilterSize: 2.5
-frontier/kSearchRadius: 12
-frontier/kSearchBoundingX: 40
-frontier/kSearchBoundingY: 40
+frontier/kFrontierResolution: 0.2
+frontier/kFrontierFilterSize: 0.3
+frontier/kSearchRadius: 10
+frontier/kSearchBoundingX: 22
+frontier/kSearchBoundingY: 22
 frontier/kSearchBoundingZ: 0.5
 frontier/kEffectiveUnknownNumAroundFrontier: 1
 frontier/kFrontierNeighboutSearchRadius: 5
-
 
