@@ -97,7 +97,7 @@ graph/sub_keypose_topic                       : /state_estimation_at_scan
 graph/sub_path_topic                          : /graph_planner_path
 graph/sub_graph_planner_status_topic          : /graph_planner_status
 
-graph/kCropPathWithTerrain                    : true
+graph/kCropPathWithTerrain                    : false
 graph/kConnectVertexDistMax                   : 3.0 #7.0
 graph/kDegressiveCoeff                        : 0.3
 graph/kDirectionCoeff                         : 0.4
