@@ -131,5 +131,5 @@ frontier/kSearchBoundingX: 40
 frontier/kSearchBoundingY: 40
 frontier/kSearchBoundingZ: 0.5
 frontier/kEffectiveUnknownNumAroundFrontier: 1
-frontier/kFrontierNeighboutSearchRadius: 5
+frontier/kFrontierNeighbourSearchRadius: 5
 

@@ -68,7 +68,7 @@ public:
   double kGlobalMinX;
   double kGlobalMinY;
   double kGlobalMinZ;
-  double kFrontierNeighboutSearchRadius;
+  double kFrontierNeighbourSearchRadius;
   int kEffectiveUnknownNumAroundFrontier;
 
   StateVec robot_bounding;
