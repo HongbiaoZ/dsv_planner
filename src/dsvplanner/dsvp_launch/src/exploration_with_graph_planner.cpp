@@ -37,6 +37,8 @@ using namespace std::chrono;
 
 geometry_msgs::Point wayPoint;
 geometry_msgs::Point wayPoint_pre;
+geometry_msgs::Point goal_point;
+geometry_msgs::Point home_point;
 graph_planner::GraphPlannerCommand graph_planner_command;
 std_msgs::Float32 effective_time;
 std_msgs::Float32 total_time;
@@ -157,6 +159,9 @@ int main(int argc, char **argv) {
   wp.point.x = init_x + current_odom_x;
   wp.point.y = init_y + current_odom_y;
   wp.point.z = init_z + current_odom_z;
+  home_point.x = current_odom_x;
+  home_point.y = current_odom_y;
+  home_point.z = current_odom_z;
 
   ros::Duration(0.5).sleep(); // wait for sometime to make sure waypoint can be
                               // published properly
@@ -208,6 +213,7 @@ int main(int argc, char **argv) {
 
         if (planSrv.response.mode.data == 2) {
           return_home = true;
+          goal_point = home_point;
           std::cout << std::endl
                     << "\033[1;32mExploration completed, returning home\033[0m"
                     << std::endl
@@ -216,6 +222,7 @@ int main(int argc, char **argv) {
           effective_plan_time_pub.publish(effective_time);
         } else {
           return_home = false;
+          goal_point = planSrv.response.goal[0];
           plan_over = steady_clock::now();
           time_span = plan_over - plan_start;
           effective_time.data = float(time_span.count()) *
@@ -228,39 +235,38 @@ int main(int argc, char **argv) {
 
         if (!simulation) { // when not in simulation mode, the robot will go to
                            // the goal point according to graph planner
-          for (size_t i = 0; i < planSrv.response.goal.size(); i++) {
-            graph_planner_command.command =
-                graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
-            graph_planner_command.location = planSrv.response.goal[i];
-            gp_command_pub.publish(graph_planner_command);
-            ros::Duration(dtime).sleep(); // give sometime to graph planner for
-                                          // searching path to goal point
-            ros::spinOnce();              // update gp_in_progree
-            int count = 200;
-            previous_odom_x = current_odom_x;
-            previous_odom_y = current_odom_y;
-            previous_odom_z = current_odom_z;
-            while (gp_in_progress) { // if the waypoint keep the same for 20
-                                     // (200*0.1)
-              ros::Duration(0.1).sleep(); // seconds, then give up the goal
-              wayPoint_pre = wayPoint;
-              ros::spinOnce();
-              bool robotMoving = robotPositionChange();
-              if (robotMoving) {
-                count = 200;
-              } else {
-                count--;
-              }
-              if (count <= 0) { // when the goal point cannot be reached, clean
-                                // its correspoinding frontier if there is
-                cleanSrv.request.header.stamp = ros::Time::now();
-                cleanSrv.request.header.frame_id = map_frame;
-                ros::service::call("cleanFrontierSrv", cleanSrv);
-                ros::Duration(0.1).sleep();
-                break;
-              }
+          graph_planner_command.command =
+              graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
+          graph_planner_command.location = goal_point;
+          gp_command_pub.publish(graph_planner_command);
+          ros::Duration(dtime).sleep(); // give sometime to graph planner for
+                                        // searching path to goal point
+          ros::spinOnce();              // update gp_in_progree
+          int count = 200;
+          previous_odom_x = current_odom_x;
+          previous_odom_y = current_odom_y;
+          previous_odom_z = current_odom_z;
+          while (gp_in_progress) {      // if the waypoint keep the same for 20
+                                        // (200*0.1)
+            ros::Duration(0.1).sleep(); // seconds, then give up the goal
+            wayPoint_pre = wayPoint;
+            ros::spinOnce();
+            bool robotMoving = robotPositionChange();
+            if (robotMoving) {
+              count = 200;
+            } else {
+              count--;
+            }
+            if (count <= 0) { // when the goal point cannot be reached, clean
+                              // its correspoinding frontier if there is
+              cleanSrv.request.header.stamp = ros::Time::now();
+              cleanSrv.request.header.frame_id = map_frame;
+              ros::service::call("cleanFrontierSrv", cleanSrv);
+              ros::Duration(0.1).sleep();
+              break;
             }
           }
+
           graph_planner_command.command =
               graph_planner::GraphPlannerCommand::COMMAND_DISABLE;
           gp_command_pub.publish(graph_planner_command);
@@ -286,7 +292,9 @@ int main(int argc, char **argv) {
       iteration++;
     } else {
       ros::spinOnce();
-      if (fabs(current_odom_x) + fabs(current_odom_y) + fabs(current_odom_z) <=
+      if (fabs(current_odom_x - home_point.x) +
+              fabs(current_odom_y - home_point.y) +
+              fabs(current_odom_z - home_point.z) <=
           return_home_threshold) {
         printf(cursclean);
         std::cout << "\033[1;32mReturn home completed\033[0m" << std::endl;
