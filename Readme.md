@@ -38,6 +38,11 @@ Now, users should see autonomous exploration in action. To launch with a differe
 roslaunch vehicle_simulator system_environment.launch
 roslaunch dsvp_launch explore_environment.launch
 ```
+To run DSV Planner in a [Matterport3D](https://niessner.github.io/Matterport) environment, follow instructions on the development environment page to setup the Matterport3D environment. Then, use the command lines below to launch the system and DSV Planner.
+```bash
+roslaunch vehicle_simulator system_matterport.launch
+roslaunch dsvp_launch explore_matterport.launch
+```
 ### Credits ###
 [catkin_simple](https://github.com/catkin/catkin_simple), [kdtree](https://github.com/ethz-asl/nbvplanner/tree/master/kdtree), [minkindr](https://github.com/ethz-asl/minkindr), [minkindr_ros](https://github.com/ethz-asl/minkindr_ros), and [volumetric_mapping](https://github.com/ethz-asl/volumetric_mapping) packages are from open-source releases.
 
