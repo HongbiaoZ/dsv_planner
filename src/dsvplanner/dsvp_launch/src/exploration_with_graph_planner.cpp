@@ -136,14 +136,15 @@ bool robotPositionChange() {
 }
 
 void initilization() {
-  tf::Vector3 vec(init_x, init_y, init_z);
-  vec = transformToMap * vec;
+  tf::Vector3 vec_init(init_x, init_y, init_z);
+  tf::Vector3 vec_goal;
+  vec_goal = transformToMap * vec_init;
   geometry_msgs::PointStamped wp;
   wp.header.frame_id = map_frame;
   wp.header.stamp = ros::Time::now();
-  wp.point.x = vec.x();
-  wp.point.y = vec.y();
-  wp.point.z = vec.z();
+  wp.point.x = vec_goal.x();
+  wp.point.y = vec_goal.y();
+  wp.point.z = vec_goal.z();
   home_point.x = current_odom_x;
   home_point.y = current_odom_y;
   home_point.z = current_odom_z;
@@ -159,6 +160,10 @@ void initilization() {
     init_time_count++;
     ros::Duration(0.1).sleep();
     ros::spinOnce();
+    vec_goal = transformToMap * vec_init;
+    wp.point.x = vec_goal.x();
+    wp.point.y = vec_goal.y();
+    wp.point.z = vec_goal.z();
     waypoint_pub.publish(wp);
     double dist =
         sqrt((wp.point.x - current_odom_x) * (wp.point.x - current_odom_x) +
