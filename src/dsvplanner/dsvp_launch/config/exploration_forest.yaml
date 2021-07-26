@@ -42,11 +42,20 @@ interface/dtime: 1
 interface/initX: 4
 interface/initY: 0
 interface/initZ: 0
+interface/initTime: 4
 interface/returnHomeThres: 1.5
 interface/robotMovingThres: 6.0
-interface/tfFrame: /map
 interface/autoExp: true
-
+interface/tfFrame: /map
+interface/waypointTopic: /way_point
+interface/cmdVelTopic: /cmd_vel
+interface/graphPlannerCommandTopic: /graph_planner_command
+interface/effectivePlanTimeTopic: /runtime
+interface/totalPlanTimeTopic: /totaltime
+interface/gpStatusTopic: /graph_planner_status
+interface/odomTopic: /state_estimation
+interface/beginSignalTopic: /start_exploring
+interface/stopSignalTopic: /stop_exploring
 
 # Exploration Boundary (local boundary and global boundary)
 lb/kMinXLocal: -15.0
