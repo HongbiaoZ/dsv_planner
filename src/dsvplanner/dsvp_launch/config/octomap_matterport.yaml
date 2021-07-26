@@ -1,7 +1,7 @@
 #Octomap Parameters
 octo/tfFrame: /map
 octo/robotFrame: /sensor_at_scan
-octo/resolution: 0.2
+octo/resolution: 0.18
 octo/probabilityHit: 0.65
 octo/probabilityMiss: 0.4
 octo/thresholdMin: 0.12

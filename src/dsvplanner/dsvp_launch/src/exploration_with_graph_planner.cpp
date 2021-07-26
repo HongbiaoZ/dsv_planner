@@ -299,10 +299,17 @@ int main(int argc, char **argv) {
         printf(cursclean);
         std::cout << "\033[1;32mReturn home completed\033[0m" << std::endl;
         printf(cursup);
-
         std_msgs::Bool stop_exploring;
         stop_exploring.data = true;
         stop_signal_pub.publish(stop_exploring);
+      } else {
+        std::cout << "send command again" << std::endl;
+        if (return_home) {
+          graph_planner_command.command =
+              graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
+          graph_planner_command.location = goal_point;
+          gp_command_pub.publish(graph_planner_command);
+        }
       }
       ros::Duration(0.1).sleep();
     }
