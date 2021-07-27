@@ -302,6 +302,9 @@ void DualStateGraph::addNewGlobalVertexWithKeypose(
   if (!already_exists && !too_long) {
     prev_track_vertex_idx_ = closest_vertex_idx;
     addNewGlobalVertex(vertex_msg);
+    addGlobalEdgeWithoutCheck(prev_track_keypose_vertex_idx_,
+                              track_globalvertex_idx_, true);
+    prev_track_keypose_vertex_idx_ = track_globalvertex_idx_;
   }
 }
 
@@ -326,7 +329,8 @@ void DualStateGraph::addNewGlobalVertex(geometry_msgs::Pose &vertex_msg) {
     vertex_new.parent_idx = prev_track_vertex_idx_;
 
     // Add an edge to previous vertex
-    addGlobalEdgeWithoutCheck(prev_track_vertex_idx_, track_globalvertex_idx_);
+    addGlobalEdgeWithoutCheck(prev_track_vertex_idx_, track_globalvertex_idx_,
+                              false);
 
     // Also add edges to nearby vertices
     for (auto &graph_vertex : global_graph_.vertices) {
@@ -436,7 +440,8 @@ void DualStateGraph::addEdge(int start_vertex_idx, int end_vertex_idx,
 }
 
 void DualStateGraph::addGlobalEdgeWithoutCheck(int start_vertex_idx,
-                                               int end_vertex_idx) {
+                                               int end_vertex_idx,
+                                               bool trajectory_edge) {
   // Add an edge in the graph from vertex start_vertex_idx to vertex
   // end_vertex_idx
 
@@ -448,6 +453,14 @@ void DualStateGraph::addGlobalEdgeWithoutCheck(int start_vertex_idx,
   for (auto &edge : start_vertex.edges) {
     if (edge.vertex_id_end == end_vertex_idx) {
       // don't add duplicate edge
+      edge.keypose_edge = trajectory_edge;
+      for (auto &edge : end_vertex.edges) {
+        if (edge.vertex_id_end == start_vertex_idx) {
+          // don't add duplicate edge
+          edge.keypose_edge = trajectory_edge;
+          break;
+        }
+      }
       return;
     }
   }
@@ -468,6 +481,9 @@ void DualStateGraph::addGlobalEdgeWithoutCheck(int start_vertex_idx,
   // For now, this is just Euclidean distance
   edge_to_start.traversal_costs = dist_diff;
   edge_to_end.traversal_costs = dist_diff;
+
+  edge_to_start.keypose_edge = trajectory_edge;
+  edge_to_end.keypose_edge = trajectory_edge;
 
   // Add these two edges to the vertices
   start_vertex.edges.push_back(edge_to_end);
@@ -524,7 +540,7 @@ void DualStateGraph::addGlobalEdge(int start_vertex_idx, int end_vertex_idx) {
       end.z() = global_graph_.vertices[end_vertex_idx].location.z;
       if (volumetric_mapping::OctomapManager::CellStatus::kFree ==
           manager_->getLineStatusBoundingBox(origin, end, robot_bounding)) {
-        addGlobalEdgeWithoutCheck(start_vertex_idx, end_vertex_idx);
+        addGlobalEdgeWithoutCheck(start_vertex_idx, end_vertex_idx, false);
       }
     }
   }
@@ -856,10 +872,15 @@ void DualStateGraph::pathCallback(const nav_msgs::Path::ConstPtr &graph_path) {
         for (int j = 0;
              j < local_graph_.vertices[origin_vertex_id].edges.size(); j++) {
           if (local_graph_.vertices[origin_vertex_id].edges[j].vertex_id_end ==
-              end_vertex_id) {
+                  end_vertex_id &&
+              local_graph_.vertices[origin_vertex_id].edges[j].keypose_edge ==
+                  false) {
             local_graph_.vertices[origin_vertex_id].edges.erase(
                 local_graph_.vertices[origin_vertex_id].edges.begin() + j);
-            if (planner_status_ == true) {
+            if (planner_status_ == true &&
+                global_graph_.vertices[origin_vertex_id]
+                        .edges[j]
+                        .keypose_edge == false) {
               global_graph_.vertices[origin_vertex_id].edges.erase(
                   global_graph_.vertices[origin_vertex_id].edges.begin() + j);
             }
@@ -869,10 +890,15 @@ void DualStateGraph::pathCallback(const nav_msgs::Path::ConstPtr &graph_path) {
         for (int j = 0; j < local_graph_.vertices[end_vertex_id].edges.size();
              j++) {
           if (local_graph_.vertices[end_vertex_id].edges[j].vertex_id_end ==
-              origin_vertex_id) {
+                  origin_vertex_id &&
+              local_graph_.vertices[origin_vertex_id].edges[j].keypose_edge ==
+                  false) {
             local_graph_.vertices[end_vertex_id].edges.erase(
                 local_graph_.vertices[end_vertex_id].edges.begin() + j);
-            if (planner_status_ == true) {
+            if (planner_status_ == true &&
+                global_graph_.vertices[origin_vertex_id]
+                        .edges[j]
+                        .keypose_edge == false) {
               global_graph_.vertices[end_vertex_id].edges.erase(
                   global_graph_.vertices[end_vertex_id].edges.begin() + j);
             }
@@ -924,6 +950,7 @@ bool DualStateGraph::initialize() {
   robot_yaw_ = 0.0;
   track_localvertex_idx_ = 0;
   track_globalvertex_idx_ = 0;
+  prev_track_keypose_vertex_idx_ = 0;
   DTWValue_ = 0;
 
   // Read in parameters

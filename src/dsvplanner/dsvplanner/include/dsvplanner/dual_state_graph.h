@@ -83,6 +83,7 @@ public:
   int track_localvertex_idx_;
   int track_globalvertex_idx_;
   int prev_track_vertex_idx_;
+  int prev_track_keypose_vertex_idx_;
 
   int localEdgeSize_;
   int globalEdgeSize_;
@@ -114,7 +115,8 @@ public:
                                           graph_utils::TopologicalGraph &graph);
   void addNewPrunedVertex(geometry_msgs::Pose &vertex_msg,
                           graph_utils::TopologicalGraph &graph);
-  void addGlobalEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx);
+  void addGlobalEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx,
+                                 bool trajectory_edge);
   void addGlobalEdge(int start_vertex_idx, int end_vertex_idx);
   void addNewGlobalVertex(geometry_msgs::Pose &vertex_msg);
   void addNewGlobalVertexWithoutDuplicates(geometry_msgs::Pose &vertex_msg);

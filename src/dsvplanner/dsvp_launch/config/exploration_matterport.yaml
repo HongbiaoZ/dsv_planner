@@ -42,7 +42,7 @@ interface/dtime: 1
 interface/initX: 2
 interface/initY: 0
 interface/initZ: 0
-interface/initTime: 4
+interface/initTime: 2
 interface/returnHomeThres: 1.5
 interface/robotMovingThres: 10.0
 interface/autoExp: true
