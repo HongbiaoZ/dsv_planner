@@ -7,16 +7,16 @@ drrt/gain/kRange: 5
 drrt/gain/kRangeZMinus: 0.4
 drrt/gain/kRangeZPlus: 0.4
 drrt/gain/kZero: 0.0
-drrt/tree/kExtensionRange: 0.4
-drrt/tree/kMinExtensionRange: 0.4
-drrt/tree/kMaxExtensionAlongZ: 0.05
+drrt/tree/kExtensionRange: 0.3
+drrt/tree/kMinExtensionRange: 0.3
+drrt/tree/kMaxExtensionAlongZ: 0.2
 drrt/tree/kExactRoot: false
-drrt/tree/kGlobalExtraIterations_: 300
-drrt/tree/kCuttoffIterations: 200
+drrt/tree/kGlobalExtraIterations_: 200
+drrt/tree/kCuttoffIterations: 150
 /drrt/tree/kRemainingNodeScaleSize: 0.2
-/drrt/tree/kRemainingBranchScaleSize: 0.04
+/drrt/tree/kRemainingBranchScaleSize: 0.03
 /drrt/tree/kNewNodeScaleSize: 0.2
-/drrt/tree/kNewBranchScaleSize: 0.04
+/drrt/tree/kNewBranchScaleSize: 0.03
 drrt/vertexSize: 40
 drrt/keepTryingNum: 1
 drrt/kLoopCountThres: 1500
@@ -39,21 +39,31 @@ planner/cleanFrontierServiceName: /cleanFrontierSrv
 
 #Interface Constants
 interface/dtime: 1
-interface/initX: 4
+interface/initX: 2
 interface/initY: 0
 interface/initZ: 0
+interface/initTime: 4
 interface/returnHomeThres: 1.5
 interface/robotMovingThres: 10.0
-interface/tfFrame: map
 interface/autoExp: true
+interface/tfFrame: map
+interface/waypointTopic: /way_point
+interface/cmdVelTopic: /cmd_vel
+interface/graphPlannerCommandTopic: /graph_planner_command
+interface/effectivePlanTimeTopic: /runtime
+interface/totalPlanTimeTopic: /totaltime
+interface/gpStatusTopic: /graph_planner_status
+interface/odomTopic: /state_estimation
+interface/beginSignalTopic: /start_exploring
+interface/stopSignalTopic: /stop_exploring
 
 
 # Exploration Boundary (local boundary and global boundary)
-lb/kMinXLocal: -4.0
-lb/kMinYLocal: -4.0
+lb/kMinXLocal: -8.0
+lb/kMinYLocal: -8.0
 lb/kMinZLocal: -5.0
-lb/kMaxXLocal: 4.0
-lb/kMaxYLocal: 4.0
+lb/kMaxXLocal: 8.0
+lb/kMaxYLocal: 8.0
 lb/kMaxZLocal: 5.0
 
 gb/kMinXGlobal: -100.0
@@ -75,7 +85,7 @@ rm/kVehicleHeight: 0.5
 #Terrain Elevation Constants
 elevation/kTerrainVoxelHalfWidth: 50
 elevation/kTerrainVoxelWidth: 101
-elevation/kTerrainVoxelSize: 0.4
+elevation/kTerrainVoxelSize: 0.1
 
 #OccupancyGrid Constants
 grid/world_frame_id: map
@@ -107,9 +117,9 @@ graph/kExistingPathRatioThresholdGlobal       : 1.2 # if ratio of existing path 
 graph/kLongEdgePenaltyMultiplier              : 5.0 # edge costs are multiplied by this amount if they are long
 graph/kMaxLongEdgeDist                        : 6.0 # absolute maximum, no edges longer than this (even if marked as bad)
 graph/kMaxVertexAngleAlongZ                   : 38.0 # max angle between two vertex along Z when add edge
-graph/kMaxVertexDiffAlongZ                    : 0.1 # max distance along Z when add edge between two vertex
+graph/kMaxVertexDiffAlongZ                    : 0.2 # max distance along Z when add edge between two vertex
 graph/kMaxDistToPrunedRoot                    : 10 # max distance when pruning the local graph between root and closest vertex
-graph/kMaxPrunedNodeDist                      : 15 # max distance when pruning the local graph between root and new node
+graph/kMaxPrunedNodeDist                      : 8 # max distance when pruning the local graph between root and new node
 graph/kMinVertexDist                          : 0.35 # new vertex only created if keypose is at least this distance away from existing vertices
 graph/kSurroundRange                          : 4 #range to count node arround the vertex
 graph/kMinGainRange                           : 0.5 #min range to count the gain. vertext that in this range has no gain
@@ -131,5 +141,5 @@ frontier/kSearchBoundingX: 22
 frontier/kSearchBoundingY: 22
 frontier/kSearchBoundingZ: 0.5
 frontier/kEffectiveUnknownNumAroundFrontier: 1
-frontier/kFrontierNeighboutSearchRadius: 5
+frontier/kFrontierNeighbourSearchRadius: 5
 
