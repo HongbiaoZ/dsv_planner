@@ -40,10 +40,10 @@ planner/cleanFrontierServiceName: /cleanFrontierSrv
 
 #Interface Constants
 interface/dtime: 1
-interface/initX: 2
+interface/initX: 1
 interface/initY: 0
 interface/initZ: 0
-interface/initTime: 2
+interface/initTime: 1
 interface/returnHomeThres: 1.5
 interface/robotMovingThres: 10.0
 interface/autoExp: true
