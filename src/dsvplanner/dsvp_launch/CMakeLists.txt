@@ -10,8 +10,6 @@ find_package(catkin REQUIRED COMPONENTS
   pcl_conversions
   pcl_ros
   sensor_msgs
-  visualization_msgs
-  graph_utils
   nav_msgs
   dsvplanner
   graph_planner
@@ -22,11 +20,15 @@ include_directories(${Eigen_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})
 catkin_package(
   INCLUDE_DIRS ${Eigen_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS}
   LIBRARIES ${catkin_LIBRARIES}
-  CATKIN_DEPENDS tf visualization_msgs graph_utils dsvplanner graph_planner
+  CATKIN_DEPENDS tf dsvplanner graph_planner
 )
 
-add_executable(exploration_with_graph_planner src/exploration_with_graph_planner.cpp)
-target_link_libraries(exploration_with_graph_planner
+add_executable(exploration src/exploration.cpp)
+target_link_libraries(exploration
   ${catkin_LIBRARIES}
 )
-add_dependencies(exploration_with_graph_planner ${catkin_EXPORTED_TARGETS})
+add_dependencies(exploration ${catkin_EXPORTED_TARGETS})
+
+add_executable(navigationBoundary src/navigationBoundary.cpp)
+target_link_libraries(navigationBoundary ${catkin_LIBRARIES} ${PCL_LIBRARIES})
+add_dependencies(navigationBoundary ${catkin_EXPORTED_TARGETS})

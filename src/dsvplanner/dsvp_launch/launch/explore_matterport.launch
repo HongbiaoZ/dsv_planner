@@ -10,7 +10,13 @@
 
   <node name="dsvplanner" pkg="dsvplanner" type="dsvplanner" output="screen" />
 
-  <node name="exploration" pkg="dsvp_launch" type="exploration_with_graph_planner" output="screen" >
+  <node pkg="dsvp_launch" type="navigationBoundary" name="navigationBoundary" output="screen" required="true">
+      <param name="boundary_file_dir" type="string" value="$(find dsvp_launch)/data/boundary_matterport.ply" />
+      <param name="sendBoundary" type="bool" value="true" />
+      <param name="sendBoundaryInterval" type="int" value="2" />
+  </node>
+
+  <node name="exploration" pkg="dsvp_launch" type="exploration" output="screen" required="true">
     <param name="simulation" type="bool" value="$(arg simulation)" />
   </node>
 

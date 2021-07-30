@@ -26,6 +26,7 @@ public:
   ros::NodeHandle nh_private_;
 
   ros::Subscriber odomSub_;
+  ros::Subscriber boundarySub_;
 
   ros::ServiceServer plannerService_;
   ros::ServiceServer cleanFrontierService_;
@@ -41,6 +42,7 @@ public:
   bool setParams();
   // bool setPublisherPointer();
   void odomCallback(const nav_msgs::Odometry &pose);
+  void boundaryCallback(const geometry_msgs::PolygonStamped &boundary);
   bool plannerServiceCallback(dsvplanner::dsvplanner_srv::Request &req,
                               dsvplanner::dsvplanner_srv::Response &res);
   bool
@@ -53,8 +55,7 @@ public:
 
 private:
   std::string odomSubTopic;
-  std::string terrainCloudSubTopic;
-  std::string terrainVoxelElevSubTopic;
+  std::string boundarySubTopic;
   std::string newTreePathPubTopic;
   std::string remainingTreePathPubTopic;
   std::string boundaryPubTopic;

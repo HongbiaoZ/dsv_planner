@@ -10,7 +10,7 @@
 
   <node name="dsvplanner" pkg="dsvplanner" type="dsvplanner" output="screen" />
 
-  <node name="exploration" pkg="dsvp_launch" type="exploration_with_graph_planner" output="screen" >
+  <node name="exploration" pkg="dsvp_launch" type="exploration" output="screen" >
     <param name="simulation" type="bool" value="$(arg simulation)" />
   </node>
 

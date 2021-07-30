@@ -25,7 +25,6 @@ Created and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 
-#include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 
 #include "dsvplanner/clean_frontier_srv.h"

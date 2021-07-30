@@ -16,6 +16,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include <vector>
 
 #include <geometry_msgs/Point.h>
+#include <geometry_msgs/PolygonStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <ros/package.h>
