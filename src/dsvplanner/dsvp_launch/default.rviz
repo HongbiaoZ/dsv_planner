@@ -305,19 +305,11 @@ Visualization Manager:
             drrt_node: true
           Queue Size: 1000
           Value: true
-        - Class: rviz/Marker
-          Enabled: false
-          Marker Topic: /planner_boundry
-          Name: originBoundary
-          Namespaces:
-            {}
-          Queue Size: 1000
-          Value: false
         - Alpha: 1
           Class: rviz/Polygon
           Color: 25; 255; 0
           Enabled: false
-          Name: customizedBoundary
+          Name: Boundary
           Topic: /navigation_boundary
           Unreliable: false
           Value: true
