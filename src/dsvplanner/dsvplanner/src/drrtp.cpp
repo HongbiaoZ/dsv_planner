@@ -55,6 +55,12 @@ void dsvplanner_ns::drrtPlanner::odomCallback(const nav_msgs::Odometry &pose) {
   drrt_->plannerReady_ = true;
 }
 
+void dsvplanner_ns::drrtPlanner::boundaryCallback(
+    const geometry_msgs::PolygonStamped &boundary) {
+  drrt_->setBoundary(boundary);
+  drrt_->boundaryLoaded_ = true;
+}
+
 bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(
     dsvplanner::dsvplanner_srv::Request &req,
     dsvplanner::dsvplanner_srv::Response &res) {
@@ -269,6 +275,7 @@ bool dsvplanner_ns::drrtPlanner::setParams() {
   nh_private_.getParam("/elevation/kTerrainVoxelHalfWidth",
                        params_.kTerrainVoxelHalfWidth);
   nh_private_.getParam("/planner/odomSubTopic", odomSubTopic);
+  nh_private_.getParam("/planner/boundarySubTopic", boundarySubTopic);
   nh_private_.getParam("/planner/newTreePathPubTopic", newTreePathPubTopic);
   nh_private_.getParam("/planner/remainingTreePathPubTopic",
                        remainingTreePathPubTopic);
@@ -296,6 +303,9 @@ bool dsvplanner_ns::drrtPlanner::init() {
 
   odomSub_ = nh_.subscribe(odomSubTopic, 10,
                            &dsvplanner_ns::drrtPlanner::odomCallback, this);
+  boundarySub_ =
+      nh_.subscribe(boundarySubTopic, 10,
+                    &dsvplanner_ns::drrtPlanner::boundaryCallback, this);
 
   params_.newTreePathPub_ =
       nh_.advertise<visualization_msgs::Marker>(newTreePathPubTopic, 1000);

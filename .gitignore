@@ -1,4 +1,3 @@
-src/dsvplanner/dsvp_launch/data/
 src/CMakeLists.txt
 .catkin_tools
 dsvplanner.workspace

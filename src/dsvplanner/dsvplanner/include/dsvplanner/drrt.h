@@ -27,6 +27,7 @@ public:
 
   typedef Vector3d StateVec;
   bool plannerReady_;
+  bool boundaryLoaded_;
   bool global_plan_;
   bool global_plan_pre_;
   bool local_plan_;
@@ -43,12 +44,14 @@ public:
                    // while 2
                    // or 3 times when there is no local frontier
   pcl::PointXYZ selectedGlobalFrontier_;
+  geometry_msgs::Polygon boundary_polygon_;
   StateVec root_;
 
   void init();
   void clear();
   void setParams(Params params);
   void setRootWithOdom(const nav_msgs::Odometry &pose);
+  void setBoundary(const geometry_msgs::PolygonStamped &boundary);
   void setTerrainVoxelElev();
   void getThreeLocalFrontierPoint();
   void getNextNodeToClosestGlobalFrontier();

@@ -13,6 +13,7 @@ Created by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 #include <cstdlib>
 #include <dsvplanner/drrt.h>
+#include <misc_utils/misc_utils.h>
 
 dsvplanner_ns::Drrt::Drrt(volumetric_mapping::OctomapManager *manager,
                           DualStateGraph *graph, DualStateFrontier *frontier,
@@ -39,6 +40,7 @@ void dsvplanner_ns::Drrt::init() {
   rootNode_ = NULL;
   nodeCounter_ = 0;
   plannerReady_ = false;
+  boundaryLoaded_ = false;
 
   global_plan_ = false;
   global_plan_pre_ = true;
@@ -62,6 +64,11 @@ void dsvplanner_ns::Drrt::setRootWithOdom(const nav_msgs::Odometry &pose) {
   root_[0] = pose.pose.pose.position.x;
   root_[1] = pose.pose.pose.position.y;
   root_[2] = pose.pose.pose.position.z;
+}
+
+void dsvplanner_ns::Drrt::setBoundary(
+    const geometry_msgs::PolygonStamped &boundary) {
+  boundary_polygon_ = boundary.polygon;
 }
 
 void dsvplanner_ns::Drrt::setTerrainVoxelElev() {
@@ -180,22 +187,32 @@ bool dsvplanner_ns::Drrt::inPlanningBoundary(StateVec node) {
 }
 
 bool dsvplanner_ns::Drrt::inGlobalBoundary(StateVec node) {
-  if (node.x() < params_.kMinXGlobalBound + 0.5 * params_.boundingBox.x()) {
-    return false;
-  } else if (node.y() <
-             params_.kMinYGlobalBound + 0.5 * params_.boundingBox.y()) {
-    return false;
-  } else if (node.z() <
-             params_.kMinZGlobalBound + 0.5 * params_.boundingBox.z()) {
-    return false;
-  } else if (node.x() >
-             params_.kMaxXGlobalBound - 0.5 * params_.boundingBox.x()) {
-    return false;
-  } else if (node.y() >
-             params_.kMaxYGlobalBound - 0.5 * params_.boundingBox.y()) {
-    return false;
-  } else if (node.z() >
-             params_.kMaxZGlobalBound - 0.5 * params_.boundingBox.z()) {
+  if (boundaryLoaded_) {
+    geometry_msgs::Point node_point;
+    node_point.x = node.x();
+    node_point.y = node.y();
+    node_point.z = node.z();
+    if (!misc_utils_ns::PointInPolygon(node_point, boundary_polygon_)) {
+      return false;
+    }
+  } else {
+    if (node.x() < params_.kMinXGlobalBound + 0.5 * params_.boundingBox.x()) {
+      return false;
+    } else if (node.y() <
+               params_.kMinYGlobalBound + 0.5 * params_.boundingBox.y()) {
+      return false;
+    } else if (node.z() <
+               params_.kMinZGlobalBound + 0.5 * params_.boundingBox.z()) {
+      return false;
+    } else if (node.x() >
+               params_.kMaxXGlobalBound - 0.5 * params_.boundingBox.x()) {
+      return false;
+    } else if (node.y() >
+               params_.kMaxYGlobalBound - 0.5 * params_.boundingBox.y()) {
+      return false;
+    }
+  }
+  if (node.z() > params_.kMaxZGlobalBound - 0.5 * params_.boundingBox.z()) {
     return false;
   } else {
     return true;
@@ -262,8 +279,8 @@ void dsvplanner_ns::Drrt::getNextNodeToClosestGlobalFrontier() {
               (this->manager_->getSensorMaxRange() + params_.kGainRange) ||
           fabs(p1.z() - p2.z()) > params_.kMaxExtensionAlongZ) // Not only
                                                                // consider the
-                                                               // sensor range,
-                                                               // also take the
+      // sensor range,
+      // also take the
       // node's view range into consideration
       {
         continue; // When the node is too far away from the frontier or the
@@ -272,7 +289,8 @@ void dsvplanner_ns::Drrt::getNextNodeToClosestGlobalFrontier() {
       // No need to use FOV here.
       if (volumetric_mapping::OctomapManager::CellStatus::kOccupied ==
           manager_->getVisibility(p1, p2, false)) {
-        continue; // Only when there is no occupied voxels between the node and
+        continue; // Only when there is no occupied voxels between the node
+                  // and
                   // frontier, we consider
       }           // the node can potentially see this frontier
       else {
@@ -584,8 +602,8 @@ void dsvplanner_ns::Drrt::plannerInit() {
           localPlanOnceMore_ = false;
           keepTryingNum_ = params_.kKeepTryingNum +
                            1; // After switching to relocation stage, give
-                              // another more chance in case that some frontiers
-                              // are not updated
+          // another more chance in case that some frontiers
+          // are not updated
         }
       }
     }
@@ -624,7 +642,8 @@ void dsvplanner_ns::Drrt::plannerInit() {
         nodeCounter_ = dual_state_graph_->global_graph_.vertices.size();
         global_vertex_size_ = nodeCounter_;
         dual_state_graph_->publishGlobalGraph();
-      } else { // Rebuild the rrt accordingt to current graph and then extend in
+      } else { // Rebuild the rrt accordingt to current graph and then extend
+               // in
                // plannerIterate. This only happens when no
                // global frontiers can be seen. Mostly used at the end of the
                // exploration in case that there are some narrow

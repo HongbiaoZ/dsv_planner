@@ -290,7 +290,7 @@ Visualization Manager:
         - Class: rviz/Marker
           Enabled: true
           Marker Topic: /new_tree_path
-          Name: new_rrt path
+          Name: newRRTPath
           Namespaces:
             drrt_branches: true
             drrt_node: true
@@ -299,20 +299,20 @@ Visualization Manager:
         - Class: rviz/Marker
           Enabled: true
           Marker Topic: /remaining_tree_path
-          Name: prev_rrt path
+          Name: prevRRTPath
           Namespaces:
             drrt_branches: true
             drrt_node: true
           Queue Size: 1000
           Value: true
-        - Class: rviz/Marker
+        - Alpha: 1
+          Class: rviz/Polygon
+          Color: 25; 255; 0
           Enabled: false
-          Marker Topic: /planner_boundry
-          Name: boundary
-          Namespaces:
-            {}
-          Queue Size: 1000
-          Value: false
+          Name: Boundary
+          Topic: /navigation_boundary
+          Unreliable: false
+          Value: true
         - Class: rviz/Marker
           Enabled: false
           Marker Topic: /local_graph_markers
