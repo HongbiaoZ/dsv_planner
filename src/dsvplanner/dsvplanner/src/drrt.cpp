@@ -69,6 +69,7 @@ void dsvplanner_ns::Drrt::setRootWithOdom(const nav_msgs::Odometry &pose) {
 void dsvplanner_ns::Drrt::setBoundary(
     const geometry_msgs::PolygonStamped &boundary) {
   boundary_polygon_ = boundary.polygon;
+  boundaryLoaded_ = true;
 }
 
 void dsvplanner_ns::Drrt::setTerrainVoxelElev() {
@@ -241,7 +242,8 @@ bool dsvplanner_ns::Drrt::generateRrtNodeToLocalFrontier(StateVec &newNode) {
       continue;
     }
 
-    if (!inPlanningBoundary(potentialNode)) {
+    if (!inPlanningBoundary(potentialNode) ||
+        !inGlobalBoundary(potentialNode)) {
       continue;
     }
     nodeFound = true;
@@ -399,9 +401,9 @@ void dsvplanner_ns::Drrt::plannerIterate() {
   bool generateNodeArroundFrontierSuccess = false;
 
   double radius = 0.5 * sqrt(SQ(minX_ - maxX_) + SQ(minY_ - maxY_));
-  bool solutionFound = false;
+  bool candidateFound = false;
   int count = 0;
-  while (!solutionFound) {
+  while (!candidateFound) {
     count++;
     if (count > 1000)
       return; // Plan fail if cannot find a required node in 1000 iterations
@@ -425,7 +427,7 @@ void dsvplanner_ns::Drrt::plannerIterate() {
         newState[0] += root_[0];
         newState[1] += root_[1];
         newState[2] += root_[2];
-        if ((!inPlanningBoundary(newState)) && (!inGlobalBoundary(newState))) {
+        if ((!inPlanningBoundary(newState)) || (!inGlobalBoundary(newState))) {
           continue;
         }
       }
@@ -440,11 +442,11 @@ void dsvplanner_ns::Drrt::plannerIterate() {
       newState[0] += root_[0];
       newState[1] += root_[1];
       newState[2] += root_[2];
-      if ((!inPlanningBoundary(newState)) && (!inGlobalBoundary(newState))) {
+      if ((!inPlanningBoundary(newState)) || (!inGlobalBoundary(newState))) {
         continue;
       }
     }
-    solutionFound = true;
+    candidateFound = true;
   }
 
   pcl::PointXYZI sampledPoint;

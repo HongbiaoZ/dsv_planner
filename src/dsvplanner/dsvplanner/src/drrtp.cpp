@@ -58,7 +58,6 @@ void dsvplanner_ns::drrtPlanner::odomCallback(const nav_msgs::Odometry &pose) {
 void dsvplanner_ns::drrtPlanner::boundaryCallback(
     const geometry_msgs::PolygonStamped &boundary) {
   drrt_->setBoundary(boundary);
-  drrt_->boundaryLoaded_ = true;
 }
 
 bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(
