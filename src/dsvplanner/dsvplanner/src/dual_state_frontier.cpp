@@ -10,6 +10,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 
 #include "dsvplanner/dual_state_frontier.h"
 
+#include <misc_utils/misc_utils.h>
 #include <tf/transform_broadcaster.h>
 #include <tf/transform_datatypes.h>
 
@@ -49,6 +50,8 @@ bool DualStateFrontier::readParameters() {
                        kEffectiveUnknownNumAroundFrontier);
   nh_private_.getParam("/frontier/kFrontierNeighbourSearchRadius",
                        kFrontierNeighbourSearchRadius);
+  nh_private_.getParam("/frontier/kEliminateFrontiersAroundRobots",
+                       kEliminateFrontiersAroundRobots);
   nh_private_.getParam("/gb/kMaxXGlobal", kGlobalMaxX);
   nh_private_.getParam("/gb/kMaxYGlobal", kGlobalMaxY);
   nh_private_.getParam("/gb/kMaxZGlobal", kGlobalMaxZ);
@@ -212,17 +215,27 @@ bool DualStateFrontier::frontierDetect(octomap::point3d point) const {
 }
 
 bool DualStateFrontier::FrontierInBoundry(octomap::point3d point) const {
-  if (point.x() > kGlobalMaxX)
+  if (boundaryLoaded_) {
+    geometry_msgs::Point node_point;
+    node_point.x = point.x();
+    node_point.y = point.y();
+    node_point.z = point.z();
+    if (!misc_utils_ns::PointInPolygon(node_point, boundary_polygon_)) {
+      return false;
+    }
+  } else {
+    if (point.x() > kGlobalMaxX)
+      return false;
+    else if (point.y() > kGlobalMaxY)
+      return false;
+    else if (point.x() < kGlobalMinX)
+      return false;
+    else if (point.y() < kGlobalMinY)
+      return false;
+  }
+  if (point.z() > kGlobalMaxZ)
     return false;
-  else if (point.y() > kGlobalMaxY)
-    return false;
-  else if (point.z() > kGlobalMaxZ)
-    return false;
-  else if (point.x() < kGlobalMinX)
-    return false;
-  else if (point.y() < kGlobalMinY)
-    return false;
-  else if (point.z() < kGlobalMinZ)
+  if (point.z() < kGlobalMinZ)
     return false;
   else
     return true;
@@ -289,6 +302,32 @@ bool DualStateFrontier::inSensorRangeofGraphPoints(StateVec point) {
   return false;
 }
 
+bool DualStateFrontier::inSensorRangeofRobot(StateVec point) {
+  pcl::PointXYZ check_point;
+  check_point.x = point[0];
+  check_point.y = point[1];
+  check_point.z = point[2];
+  StateVec dir = point - robot_position_;
+  // Skip if distance is too large
+  double rangeSq = pow(kSearchRadius, 2.0);
+  if (dir.transpose().dot(dir) > rangeSq) {
+    return false;
+  }
+  bool insideAFieldOfView = false;
+  if (fabs(dir[2] < sqrt(dir[0] * dir[0] + dir[1] * dir[1]) *
+                        tan(M_PI * kSensorVerticalView / 360))) {
+    insideAFieldOfView = true;
+  }
+  if (!insideAFieldOfView) {
+    return false;
+  }
+  if (manager_->CellStatus::kFree !=
+      manager_->getVisibility(robot_position_, point, false)) {
+    return false;
+  }
+  return true;
+}
+
 void DualStateFrontier::localFrontierUpdate(StateVec &center) {
   local_frontier_pcl_->clear();
   StateVec checkedPoint;
@@ -297,10 +336,13 @@ void DualStateFrontier::localFrontierUpdate(StateVec &center) {
     checkedPoint.x() = local_frontier_->points[i].x;
     checkedPoint.y() = local_frontier_->points[i].y;
     checkedPoint.z() = local_frontier_->points[i].z;
-    if ((manager_->CellStatus::kOccupied !=
-             manager_->getVisibility(center, checkedPoint, false) &&
-         !grid_->collisionCheckByTerrainWithVector(center, checkedPoint)) ||
-        (!planner_status_ && inSensorRangeofGraphPoints(checkedPoint))) {
+
+    if (!(kEliminateFrontiersAroundRobots &&
+          inSensorRangeofRobot(checkedPoint)) &&
+        ((manager_->CellStatus::kOccupied !=
+              manager_->getVisibility(center, checkedPoint, false) &&
+          !grid_->collisionCheckByTerrainWithVector(center, checkedPoint)) ||
+         (!planner_status_ && inSensorRangeofGraphPoints(checkedPoint)))) {
       local_frontier_pcl_->points.push_back(local_frontier_->points[i]);
       global_frontier_->points.push_back(local_frontier_->points[i]);
     }
@@ -484,7 +526,8 @@ void DualStateFrontier::updateTerrainElevationForKnown() {
   for (int i = 0; i < kTerrainVoxelWidth * kTerrainVoxelWidth; i++) {
     if (terrain_voxel_points_num_[i] > 0) {
       if (terrain_voxel_max_elev_[i] - terrain_voxel_min_elev_[i] >= 0.4)
-        terrain_voxel_elev_[i] = 1000;
+        terrain_voxel_elev_[i] = 1000; // set a high value to untraversable
+                                       // voxel
       else
         terrain_voxel_elev_[i] = terrain_voxel_min_elev_[i];
 
@@ -574,6 +617,12 @@ void DualStateFrontier::setPlannerStatus(bool status) {
   planner_status_ = status;
 }
 
+void DualStateFrontier::setBoundary(
+    const geometry_msgs::PolygonStamped &boundary) {
+  boundary_polygon_ = boundary.polygon;
+  boundaryLoaded_ = true;
+}
+
 bool DualStateFrontier::initialize() {
   // Read in parameters
   if (!readParameters())
@@ -609,6 +658,8 @@ bool DualStateFrontier::initialize() {
     terrain_voxel_min_elev_.push_back(1000);
     terrain_voxel_max_elev_.push_back(-1000);
   }
+
+  boundaryLoaded_ = false;
 
   ROS_INFO("Successfully launched DualStateFrontier node");
 

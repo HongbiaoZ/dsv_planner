@@ -27,7 +27,7 @@ planner/odomSubTopic: /state_estimation
 planner/terrainCloudSubTopic: /terrain_map_ext
 planner/newTreePathPubTopic: /new_tree_path
 planner/remainingTreePathPubTopic: /remaining_tree_path
-planner/boundaryPubTopic: /planner_boundry
+planner/boundaryPubTopic: /planning_horizon
 planner/globalSelectedFrontierPubTopic: /globalSelectedfrontier
 planner/localSelectedFrontierPubTopic: /threefrontier
 planner/plantimePubTopic: /plan_time
@@ -142,5 +142,7 @@ frontier/kSearchBoundingY: 40
 frontier/kSearchBoundingZ: 0.5
 frontier/kEffectiveUnknownNumAroundFrontier: 1
 frontier/kFrontierNeighbourSearchRadius: 5
+frontier/kEliminateFrontiersAroundRobots: false
+
 
 

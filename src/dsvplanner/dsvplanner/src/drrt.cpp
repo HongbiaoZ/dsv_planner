@@ -202,9 +202,6 @@ bool dsvplanner_ns::Drrt::inGlobalBoundary(StateVec node) {
     } else if (node.y() <
                params_.kMinYGlobalBound + 0.5 * params_.boundingBox.y()) {
       return false;
-    } else if (node.z() <
-               params_.kMinZGlobalBound + 0.5 * params_.boundingBox.z()) {
-      return false;
     } else if (node.x() >
                params_.kMaxXGlobalBound - 0.5 * params_.boundingBox.x()) {
       return false;
@@ -214,6 +211,9 @@ bool dsvplanner_ns::Drrt::inGlobalBoundary(StateVec node) {
     }
   }
   if (node.z() > params_.kMaxZGlobalBound - 0.5 * params_.boundingBox.z()) {
+    return false;
+  } else if (node.z() <
+             params_.kMinZGlobalBound + 0.5 * params_.boundingBox.z()) {
     return false;
   } else {
     return true;
@@ -306,30 +306,31 @@ void dsvplanner_ns::Drrt::getNextNodeToClosestGlobalFrontier() {
     if (nextNodeFound_)
       break;
   }
-  if (nextNodeFound_) {
-    for (int i = dual_state_graph_->local_graph_.vertices.size() - 1; i >= 0;
-         i--) {
-      p1.x() = dual_state_graph_->local_graph_.vertices[i].location.x;
-      p1.y() = dual_state_graph_->local_graph_.vertices[i].location.y;
-      p1.z() = dual_state_graph_->local_graph_.vertices[i].location.z;
-      length2 = sqrt(SQ(p1.x() - p2.x()) + SQ(p1.y() - p2.y()));
-      if (length2 > length1 ||
-          fabs(p1.z() - p2.z()) > params_.kMaxExtensionAlongZ) {
-        continue;
-      }
-      if (volumetric_mapping::OctomapManager::CellStatus::kOccupied ==
-          manager_->getLineStatusBoundingBox(p1, p2, params_.boundingBox)) {
-        continue;
-      }
-      length1 = length2;
-      NextBestNodeIdx_ = i;
-      nextNodeFound_ = true;
-      p3.x = p1.x();
-      p3.y = p1.y();
-      p3.z = p1.z();
-    }
-    globalSelectedFrontier->points.push_back(p3);
-  }
+  //  if (nextNodeFound_) {
+  //    for (int i = dual_state_graph_->local_graph_.vertices.size() - 1; i >=
+  //    0;
+  //         i--) {
+  //      p1.x() = dual_state_graph_->local_graph_.vertices[i].location.x;
+  //      p1.y() = dual_state_graph_->local_graph_.vertices[i].location.y;
+  //      p1.z() = dual_state_graph_->local_graph_.vertices[i].location.z;
+  //      length2 = sqrt(SQ(p1.x() - p2.x()) + SQ(p1.y() - p2.y()));
+  //      if (length2 > length1 ||
+  //          fabs(p1.z() - p2.z()) > params_.kMaxExtensionAlongZ) {
+  //        continue;
+  //      }
+  //      if (volumetric_mapping::OctomapManager::CellStatus::kOccupied ==
+  //          manager_->getLineStatusBoundingBox(p1, p2, params_.boundingBox)) {
+  //        continue;
+  //      }
+  //      length1 = length2;
+  //      NextBestNodeIdx_ = i;
+  //      nextNodeFound_ = true;
+  //      p3.x = p1.x();
+  //      p3.y = p1.y();
+  //      p3.z = p1.z();
+  //    }
+  //    globalSelectedFrontier->points.push_back(p3);
+  //  }
   sensor_msgs::PointCloud2 globalFrontier;
   pcl::toROSMsg(*globalSelectedFrontier, globalFrontier);
   globalFrontier.header.frame_id = params_.explorationFrame;
@@ -719,8 +720,11 @@ void dsvplanner_ns::Drrt::plannerInit() {
     minY_ = params_.kMinYGlobalBound;
     minZ_ = params_.kMinZGlobalBound;
   }
+  publishPlanningHorizon();
+}
 
-  // Publish visualization of total current planning boundary
+void dsvplanner_ns::Drrt::publishPlanningHorizon() { // Publish visualization of
+                                                     // current planning horizon
   visualization_msgs::Marker p;
   p.header.stamp = ros::Time::now();
   p.header.frame_id = params_.explorationFrame;
@@ -841,6 +845,12 @@ double dsvplanner_ns::Drrt::gain(StateVec state) {
         if (!insideAFieldOfView) {
           continue;
         }
+
+        //        // Check if the point is outside the global boundary
+        //        if (!inGlobalBoundary(vec)) {
+        //          continue;
+        //        }
+
         // Check cell status and add to the gain considering the corresponding
         // factor.
         double probability;

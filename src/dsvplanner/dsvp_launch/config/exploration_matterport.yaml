@@ -28,7 +28,7 @@ planner/boundarySubTopic: /navigation_boundary
 planner/terrainCloudSubTopic: /terrain_map_ext
 planner/newTreePathPubTopic: /new_tree_path
 planner/remainingTreePathPubTopic: /remaining_tree_path
-planner/boundaryPubTopic: /planner_boundry
+planner/boundaryPubTopic: /planning_horizon
 planner/globalSelectedFrontierPubTopic: /globalSelectedfrontier
 planner/localSelectedFrontierPubTopic: /threefrontier
 planner/plantimePubTopic: /plan_time
@@ -80,7 +80,7 @@ rm/kSensorHorizontal: 360.0
 rm/kSensorVertical: 30.0
 rm/kBoundX: 0.25
 rm/kBoundY: 0.25
-rm/kBoundZ: 0.2
+rm/kBoundZ: 0.4
 rm/kVehicleHeight: 0.5
 
 #Terrain Elevation Constants
@@ -96,8 +96,8 @@ grid/pubGridPointsTopic: /occpancy_grid_map
 grid/kMapWidth: 20
 grid/kGridSize: 0.05
 grid/kDownsampleSize: 0.05
-grid/kFlyingObstacleHeightThre: 0.75
-grid/kObstacleHeightThre: 0.05
+grid/kFlyingObstacleHeightThre: 1.0
+grid/kObstacleHeightThre: 0.15
 
 # Graph Constants
 graph/world_frame_id                          : /map
@@ -143,4 +143,5 @@ frontier/kSearchBoundingY: 22
 frontier/kSearchBoundingZ: 0.5
 frontier/kEffectiveUnknownNumAroundFrontier: 1
 frontier/kFrontierNeighbourSearchRadius: 5
+frontier/kEliminateFrontiersAroundRobots: true
 
