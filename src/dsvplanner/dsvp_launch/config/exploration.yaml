@@ -24,6 +24,7 @@ drrt/tfFrame: map
 
 #Planner Topics
 planner/odomSubTopic: /state_estimation
+planner/boundarySubTopic: /navigation_boundary
 planner/terrainCloudSubTopic: /terrain_map_ext
 planner/newTreePathPubTopic: /new_tree_path
 planner/remainingTreePathPubTopic: /remaining_tree_path
@@ -141,5 +142,6 @@ frontier/kSearchBoundingX: 40
 frontier/kSearchBoundingY: 40
 frontier/kSearchBoundingZ: 0.5
 frontier/kEffectiveUnknownNumAroundFrontier: 1
+frontier/kFrontierNeighbourSearchRadius: 5
 frontier/kEliminateFrontiersAroundRobots: false
 

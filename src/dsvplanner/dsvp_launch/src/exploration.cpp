@@ -355,7 +355,7 @@ int main(int argc, char **argv) {
       } else {
         while (!gp_in_progress) {
           ros::spinOnce();
-          ros::Duration(0.1).sleep();
+          ros::Duration(2.0).sleep();
 
           graph_planner_command.command =
               graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;

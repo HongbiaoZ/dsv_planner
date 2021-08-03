@@ -24,6 +24,7 @@ drrt/tfFrame: map
 
 #Planner Topics
 planner/odomSubTopic: /state_estimation
+planner/boundarySubTopic: /navigation_boundary
 planner/terrainCloudSubTopic: /terrain_map_ext
 planner/newTreePathPubTopic: /new_tree_path
 planner/remainingTreePathPubTopic: /remaining_tree_path
@@ -56,6 +57,7 @@ interface/gpStatusTopic: /graph_planner_status
 interface/odomTopic: /state_estimation
 interface/beginSignalTopic: /start_exploring
 interface/stopSignalTopic: /stop_exploring
+
 
 # Exploration Boundary (local boundary and global boundary)
 lb/kMinXLocal: -15.0
