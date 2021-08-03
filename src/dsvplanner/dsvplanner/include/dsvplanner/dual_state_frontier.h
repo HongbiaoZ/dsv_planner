@@ -70,6 +70,7 @@ public:
   double kGlobalMinZ;
   double kFrontierNeighbourSearchRadius;
   int kEffectiveUnknownNumAroundFrontier;
+  bool kEliminateFrontiersAroundRobots;
 
   StateVec robot_bounding;
   StateVec search_bounding;
@@ -87,7 +88,11 @@ public:
   std::vector<double> terrain_voxel_min_elev_;
   std::vector<double> terrain_voxel_max_elev_;
   StateVec robot_position_;
-  bool planner_status_; // 0 means exploration and 1 means relocation
+  geometry_msgs::Polygon boundary_polygon_;
+
+  bool planner_status_; // false means exploration and true means relocation
+  bool boundaryLoaded_;
+
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_cloud_ =
       pcl::PointCloud<pcl::PointXYZI>::Ptr(
           new pcl::PointCloud<pcl::PointXYZI>());
@@ -132,8 +137,10 @@ public:
   void localFrontierUpdate(StateVec &center);
   void cleanAllUselessFrontiers();
   void setPlannerStatus(bool status);
+  void setBoundary(const geometry_msgs::PolygonStamped &boundary);
   bool frontierDetect(octomap::point3d point) const;
   bool inSensorRangeofGraphPoints(StateVec point);
+  bool inSensorRangeofRobot(StateVec point);
   bool FrontierInBoundry(octomap::point3d point) const;
   bool isCleanedFrontier(pcl::PointXYZ point);
   double getZvalue(double x_position, double y_position);

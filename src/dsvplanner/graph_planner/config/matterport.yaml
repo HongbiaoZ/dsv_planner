@@ -13,7 +13,7 @@ kLookAheadDist                      : 0.8 # the minimum distance between next go
 kWaypointProjectionDistance         : 5.0 # distance between waypoint and robot must larger than this value when going to location or home
 kDownsampleSize                     : 0.1 # terrain cloud downsample size
 kObstacleHeightThres                : 0.05 # the obstacle height that will be considered when filtering the terrain cloud
-kOverheadObstacleHeightThres        : 0.75 # the overhead obstacle height that will be considered when filtering the terrain cloud
-kCollisionCheckDistace              : 0.2 # the collision check radius
+kOverheadObstacleHeightThres        : 1.0 # the overhead obstacle height that will be considered when filtering the terrain cloud
+kCollisionCheckDistace              : 0.15 # the collision check radius
 kNextVertexMaintainTime             : 5   # when next vertex goal makes the path longer, keep the previous goal for this long time
 kExecuteFrequency                   : 5   # the frequency of the execute function
