@@ -2,7 +2,7 @@
   <arg name="enable_bag_record" default="false"/>
   <arg name="bag_name" default="indoor"/>
   <arg name="simulation" default="false"/>
-  <arg name="use_boundary" default="true"/>
+  <arg name="use_boundary" default="false"/>
   <arg name="planner_param_file" default="$(find dsvp_launch)/config/exploration_matterport.yaml" />
   <arg name="octomap_param_file" default="$(find dsvp_launch)/config/octomap_matterport.yaml" />
 
