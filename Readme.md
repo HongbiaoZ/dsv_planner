@@ -55,7 +55,8 @@ roslaunch dsvp_launch explore_matterport.launch
 - H. Zhu, C. Cao, S. Scherer, J. Zhang, and W. Wang. DSVP: Dual-Stage Viewpoint Planner for Rapid Exploration by Dynamic Expansion. IEEE/RSJ Intl. Conf. on Intelligent Robots and Systems (IROS). Prague, Czech, Sept. 2021.
 
 ## Author
-Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
+
+[Hongbiao Zhu](http://www.hongbiaoz.com) (hongbiaz@andrew.cmu.edu)
 
 ## Credit
 
