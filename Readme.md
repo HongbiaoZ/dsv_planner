@@ -1,21 +1,19 @@
 Dual-Stage Viewpoint Planner incorporates two planning stages in autonomous exploration - an exploration stage for extending the boundary of the map, and a relocation stage for explicitly transiting the robot to different sub-areas in the environment. The exploration stage develops Rapidly-exploring Random Tree (RRT) and dynamically expand the RRT over replanning steps. The relocation stage maintains a graph through the mapped environment. During the course of exploration, the method transitions back-and-forth between the two stages to explore all areas in the environment.
 
+Please use instructions on our [project page](https://www.cmu-exploration.com/dsv-planner).
+
 <p align="center">
   <img src="image/system_overview.jpg" alt="Header" width="60%"/>
 </p>
 
-Please use instructions on our [project page](https://www.cmu-exploration.com/dsv-planner).
+## Usage
 
-## Instruction
-
-The repository has been tested in Ubuntu 18.04 with ROS Melodic and Ubuntu 20.04 with ROS Noetic. Follow instructions in [Autonomous Exploration Development Environment](https://www.cmu-exploration.com/) to setup the development environment. Make sure to checkout the branch that matches the computer setup, compile, and download the simulation environments.
-To setup DSV Planner, install dependencies with command lines below. Replace 'distribution' with 'melodic' or 'noetic' to match the computer setup.
+The repository has been tested in Ubuntu 18.04 with ROS Melodic and Ubuntu 20.04 with ROS Noetic. Follow instructions in [Autonomous Exploration Development Environment](https://www.cmu-exploration.com/) to setup the development environment. Make sure to checkout the branch that matches the computer setup, compile, and download the simulation environments. To setup DSV Planner, install dependencies with command lines below. Replace 'distribution' with 'melodic' or 'noetic' to match the computer setup.
 ```bash
 sudo apt update
 sudo apt install ros-distribution-octomap-ros libgoogle-glog-dev libgflags-dev
 ```
-
-### Clone and Compile
+Clone the repository.
 
 ```bash
 git clone https://github.com/HongbiaoZ/dsv_planner.git
@@ -26,8 +24,6 @@ cd dsv_planner
 git checkout distribution
 catkin_make
 ```
-
-### Launch
 
 To run the code, go to the development environment folder in a terminal, source the ROS workspace, and launch.
 ```bash
