@@ -52,7 +52,7 @@ roslaunch dsvp_launch explore_matterport.launch
 
 ## Author
 
-[Hongbiao Zhu](http://www.hongbiaoz.com) (hongbiaz@andrew.cmu.edu)
+[Hongbiao Zhu](http://www.hongbiaoz.com) (zhuhbhit@gmail.com)
 
 ## Credit
 
