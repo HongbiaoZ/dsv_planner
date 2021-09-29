@@ -11,11 +11,11 @@ Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "graph_visualization");
-    ros::NodeHandle node_handle("~");
+  ros::init(argc, argv, "graph_visualization");
+  ros::NodeHandle node_handle("~");
 
-    GraphMarkers graph_markers(node_handle);
-    graph_markers.execute();
+  GraphMarkers graph_markers(node_handle);
+  graph_markers.execute();
 
-    return 0;
+  return 0;
 }
