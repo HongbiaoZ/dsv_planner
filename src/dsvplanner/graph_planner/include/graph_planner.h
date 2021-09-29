@@ -36,18 +36,21 @@ Modified and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include "graph_utils/TopologicalGraph.h"
 #include "graph_utils/Vertex.h"
 
-namespace graph_planner_ns {
+namespace graph_planner_ns
+{
 typedef pcl::PointXYZ PCLPointType;
 typedef pcl::PointCloud<PCLPointType> PCLCloudType;
 
 class GraphPlanner;
-typedef struct {
+typedef struct
+{
   bool in_polygon;
   float cost_estimate;
 } VertexScore;
-} // namespace dfs_behavior_planner_ns
+}  // namespace dfs_behavior_planner_ns
 
-class graph_planner_ns::GraphPlanner {
+class graph_planner_ns::GraphPlanner
+{
 private:
   // ROS Nodehandler
   ros::NodeHandle nh_;
@@ -84,40 +87,41 @@ private:
   int kExecuteFrequency;
 
   // "State" variables
-  enum GraphPlannerState { ALL_OTHER_STATES = 0, NEARBY_OPENING = 1 };
+  enum GraphPlannerState
+  {
+    ALL_OTHER_STATES = 0,
+    NEARBY_OPENING = 1
+  };
   GraphPlannerState state_;
 
   // Variables
-  graph_planner::GraphPlannerCommand graph_planner_command_; // received command
-  graph_utils::TopologicalGraph
-      planned_graph_; // the received graph that can be palnned path in
-  geometry_msgs::PointStamped waypoint_; // goal waypoint being published by
-                                         // this node (if in mode IN_CONTROL)
-  geometry_msgs::Point robot_pos_;       // current robot position
+  graph_planner::GraphPlannerCommand graph_planner_command_;  // received command
+  graph_utils::TopologicalGraph planned_graph_;               // the received graph that can be palnned path in
+  geometry_msgs::PointStamped waypoint_;                      // goal waypoint being published by
+                                                              // this node (if in mode IN_CONTROL)
+  geometry_msgs::Point robot_pos_;                            // current robot position
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_point_ =
-      pcl::PointCloud<pcl::PointXYZI>::Ptr(
-          new pcl::PointCloud<pcl::PointXYZI>());
+      pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>());
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_point_crop_ =
-      pcl::PointCloud<pcl::PointXYZI>::Ptr(
-          new pcl::PointCloud<pcl::PointXYZI>());
-  std::vector<geometry_msgs::Point> planned_path_; // only used for debugging --
-                                                   // the waypoint_ is what is
-                                                   // actually
-                                                   // output
-  double robot_yaw_;                               // current robot yaw
-  bool in_progress_ = false; // current graph planner status
+      pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>());
+  std::vector<geometry_msgs::Point> planned_path_;  // only used for debugging --
+                                                    // the waypoint_ is what is
+                                                    // actually
+                                                    // output
+  double robot_yaw_;                                // current robot yaw
+  bool in_progress_ = false;                        // current graph planner status
   bool wrong_id_ = false;
   int backTraceCount_ = 0;
-  int previous_shortest_path_size_ = 100000; // the size of the previous planned
-                                             // path. used to avoid moving back
-                                             // and forth in some cases
-  int previous_vertex_id_; // the id of the previous planned goal vertex
+  int previous_shortest_path_size_ = 100000;  // the size of the previous planned
+                                              // path. used to avoid moving back
+                                              // and forth in some cases
+  int previous_vertex_id_;                    // the id of the previous planned goal vertex
 
   // Callbacks
-  void odometryCallback(const nav_msgs::Odometry::ConstPtr &odometry_msg);
-  void graphCallback(const graph_utils::TopologicalGraph::ConstPtr &graph_msg);
-  void commandCallback(const graph_planner::GraphPlannerCommand::ConstPtr &msg);
-  void terrainCallback(const sensor_msgs::PointCloud2::ConstPtr &terrain_msg);
+  void odometryCallback(const nav_msgs::Odometry::ConstPtr& odometry_msg);
+  void graphCallback(const graph_utils::TopologicalGraph::ConstPtr& graph_msg);
+  void commandCallback(const graph_planner::GraphPlannerCommand::ConstPtr& msg);
+  void terrainCallback(const sensor_msgs::PointCloud2::ConstPtr& terrain_msg);
   // Other functions
   void publishPath();
   void alterAndPublishWaypoint();
@@ -125,22 +129,20 @@ private:
   bool readParameters();
   bool goToVertex(int current_vertex_idx, int goal_vertex_idx);
   bool goToPoint(geometry_msgs::Point point);
-  bool collisionCheckByTerrain(geometry_msgs::Point robot_position,
-                               int end_vertex_idx);
-  geometry_msgs::Point projectWayPoint(geometry_msgs::Point next_vertex_pos,
-                                       geometry_msgs::Point robot_pos);
+  bool collisionCheckByTerrain(geometry_msgs::Point robot_position, int end_vertex_idx);
+  geometry_msgs::Point projectWayPoint(geometry_msgs::Point next_vertex_pos, geometry_msgs::Point robot_pos);
 
   // Execute function variants
-  void executeGoToOrigin();   // for returning home
-  void executeGoToLocation(); // for going to goal point
+  void executeGoToOrigin();    // for returning home
+  void executeGoToLocation();  // for going to goal point
   void executeCommand();
 
 public:
-  explicit GraphPlanner(const ros::NodeHandle &nh);
+  explicit GraphPlanner(const ros::NodeHandle& nh);
 
   virtual bool initialize();
   virtual bool execute();
   virtual ~GraphPlanner() = default;
 };
 
-#endif // GRAPH_PLANNER_H
+#endif  // GRAPH_PLANNER_H

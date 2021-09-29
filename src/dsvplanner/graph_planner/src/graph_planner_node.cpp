@@ -11,11 +11,11 @@ Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "graph_planner");
-    ros::NodeHandle node_handle("~");
+  ros::init(argc, argv, "graph_planner");
+  ros::NodeHandle node_handle("~");
 
-    graph_planner_ns::GraphPlanner graph_planner(node_handle);
-    graph_planner.execute();
+  graph_planner_ns::GraphPlanner graph_planner(node_handle);
+  graph_planner.execute();
 
-    return 0;
+  return 0;
 }

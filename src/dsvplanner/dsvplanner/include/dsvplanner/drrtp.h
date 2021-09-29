@@ -19,8 +19,10 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include "dsvplanner/grid.h"
 #include "octomap_world/octomap_manager.h"
 
-namespace dsvplanner_ns {
-class drrtPlanner {
+namespace dsvplanner_ns
+{
+class drrtPlanner
+{
 public:
   ros::NodeHandle nh_;
   ros::NodeHandle nh_private_;
@@ -32,25 +34,23 @@ public:
   ros::ServiceServer cleanFrontierService_;
 
   Params params_;
-  volumetric_mapping::OctomapManager *manager_;
-  DualStateGraph *dual_state_graph_;
-  DualStateFrontier *dual_state_frontier_;
-  Drrt *drrt_;
-  OccupancyGrid *grid_;
+  volumetric_mapping::OctomapManager* manager_;
+  DualStateGraph* dual_state_graph_;
+  DualStateFrontier* dual_state_frontier_;
+  Drrt* drrt_;
+  OccupancyGrid* grid_;
 
   bool init();
   bool setParams();
   // bool setPublisherPointer();
-  void odomCallback(const nav_msgs::Odometry &pose);
-  void boundaryCallback(const geometry_msgs::PolygonStamped &boundary);
-  bool plannerServiceCallback(dsvplanner::dsvplanner_srv::Request &req,
-                              dsvplanner::dsvplanner_srv::Response &res);
-  bool
-  cleanFrontierServiceCallback(dsvplanner::clean_frontier_srv::Request &req,
-                               dsvplanner::clean_frontier_srv::Response &res);
+  void odomCallback(const nav_msgs::Odometry& pose);
+  void boundaryCallback(const geometry_msgs::PolygonStamped& boundary);
+  bool plannerServiceCallback(dsvplanner::dsvplanner_srv::Request& req, dsvplanner::dsvplanner_srv::Response& res);
+  bool cleanFrontierServiceCallback(dsvplanner::clean_frontier_srv::Request& req,
+                                    dsvplanner::clean_frontier_srv::Response& res);
   void cleanLastSelectedGlobalFrontier();
 
-  drrtPlanner(const ros::NodeHandle &nh, const ros::NodeHandle &nh_private);
+  drrtPlanner(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
   ~drrtPlanner();
 
 private:
@@ -76,4 +76,4 @@ private:
 };
 }
 
-#endif // DRRTP_H
+#endif  // DRRTP_H

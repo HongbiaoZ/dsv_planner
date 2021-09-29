@@ -29,8 +29,10 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #define SQRT2 0.70711
 
 using namespace Eigen;
-namespace dsvplanner_ns {
-struct Params {
+namespace dsvplanner_ns
+{
+struct Params
+{
   ros::Publisher newTreePathPub_;
   ros::Publisher remainingTreePathPub_;
   ros::Publisher boundaryPub_;
@@ -93,16 +95,17 @@ struct Params {
   std::string explorationFrame;
 };
 
-class Node {
+class Node
+{
 public:
   Node(){};
   ~Node(){};
   Vector3d state_;
-  Node *parent_;
-  std::vector<Node *> children_;
+  Node* parent_;
+  std::vector<Node*> children_;
   double gain_;
   double distance_;
 };
 }
 
-#endif // DRRT_BASE_H_
+#endif  // DRRT_BASE_H_

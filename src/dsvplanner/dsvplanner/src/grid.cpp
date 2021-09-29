@@ -14,34 +14,37 @@ Created by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 #include "dsvplanner/grid.h"
 
-namespace dsvplanner_ns {
-OccupancyGrid::OccupancyGrid(const ros::NodeHandle &nh,
-                             const ros::NodeHandle &nh_private)
-    : nh_(nh), nh_private_(nh_private) {
+namespace dsvplanner_ns
+{
+OccupancyGrid::OccupancyGrid(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private)
+  : nh_(nh), nh_private_(nh_private)
+{
   initialize();
 }
 
-OccupancyGrid::~OccupancyGrid() {}
+OccupancyGrid::~OccupancyGrid()
+{
+}
 
-bool OccupancyGrid::readParameters() {
+bool OccupancyGrid::readParameters()
+{
   nh_private_.getParam("/grid/world_frame_id", world_frame_id_);
   nh_private_.getParam("/grid/odomSubTopic", sub_odom_topic_);
-  nh_private_.getParam("/grid/terrainCloudSubTopic",
-                       sub_terrain_point_cloud_topic_);
+  nh_private_.getParam("/grid/terrainCloudSubTopic", sub_terrain_point_cloud_topic_);
   nh_private_.getParam("/grid/pubGridPointsTopic", pub_grid_points_topic_);
   nh_private_.getParam("/grid/kMapWidth", kMapWidth);
   nh_private_.getParam("/grid/kGridSize", kGridSize);
   nh_private_.getParam("/grid/kDownsampleSize", kDownsampleSize);
   nh_private_.getParam("/grid/kObstacleHeightThre", kObstacleHeightThre);
-  nh_private_.getParam("/grid/kFlyingObstacleHeightThre",
-                       kFlyingObstacleHeightThre);
+  nh_private_.getParam("/grid/kFlyingObstacleHeightThre", kFlyingObstacleHeightThre);
   nh_private_.getParam("/rm/kBoundX", kCollisionCheckX);
   nh_private_.getParam("/rm/kBoundY", kCollisionCheckY);
 
   return true;
 }
 
-bool OccupancyGrid::initialize() {
+bool OccupancyGrid::initialize()
+{
   // Read in parameters
   if (!readParameters())
     return false;
@@ -49,11 +52,9 @@ bool OccupancyGrid::initialize() {
   odom_sub_.subscribe(nh_, sub_odom_topic_, 1);
   terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_, 1);
   sync_.reset(new Sync(syncPolicy(100), odom_sub_, terrain_point_cloud_sub_));
-  sync_->registerCallback(
-      boost::bind(&OccupancyGrid::terrainCloudAndOdomCallback, this, _1, _2));
+  sync_->registerCallback(boost::bind(&OccupancyGrid::terrainCloudAndOdomCallback, this, _1, _2));
 
-  grid_cloud_pub_ =
-      nh_.advertise<sensor_msgs::PointCloud2>(pub_grid_points_topic_, 1);
+  grid_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(pub_grid_points_topic_, 1);
 
   map_half_width_grid_num_ = int(kMapWidth / 2 / kGridSize);
   map_width_grid_num_ = map_half_width_grid_num_ * 2 + 1;
@@ -65,9 +66,9 @@ bool OccupancyGrid::initialize() {
   return true;
 }
 
-void OccupancyGrid::terrainCloudAndOdomCallback(
-    const nav_msgs::Odometry::ConstPtr &odom_msg,
-    const sensor_msgs::PointCloud2::ConstPtr &terrain_msg) {
+void OccupancyGrid::terrainCloudAndOdomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg,
+                                                const sensor_msgs::PointCloud2::ConstPtr& terrain_msg)
+{
   terrain_time_ = terrain_msg->header.stamp;
   robot_position_[0] = odom_msg->pose.pose.position.x;
   robot_position_[1] = odom_msg->pose.pose.position.y;
@@ -85,16 +86,19 @@ void OccupancyGrid::terrainCloudAndOdomCallback(
 
   pcl::PointXYZI point;
   int terrainCloudSize = terrain_cloud_ds->points.size();
-  for (int i = 0; i < terrainCloudSize; i++) {
+  for (int i = 0; i < terrainCloudSize; i++)
+  {
     point.x = terrain_cloud_ds->points[i].x;
     point.y = terrain_cloud_ds->points[i].y;
     point.z = terrain_cloud_ds->points[i].z;
     point.intensity = terrain_cloud_ds->points[i].intensity;
     // crop all ground points
-    if (point.intensity > kObstacleHeightThre &&
-        point.intensity < kFlyingObstacleHeightThre) {
+    if (point.intensity > kObstacleHeightThre && point.intensity < kFlyingObstacleHeightThre)
+    {
       terrain_cloud_obstacle_->push_back(point);
-    } else if (point.intensity <= kObstacleHeightThre) {
+    }
+    else if (point.intensity <= kObstacleHeightThre)
+    {
       terrain_cloud_traversable_->push_back(point);
     }
   }
@@ -104,7 +108,8 @@ void OccupancyGrid::terrainCloudAndOdomCallback(
   publishGridMap();
 }
 
-geometry_msgs::Point OccupancyGrid::getPoint(GridIndex p) {
+geometry_msgs::Point OccupancyGrid::getPoint(GridIndex p)
+{
   int indX = p[0];
   int indY = p[1];
   double x = kGridSize * (indX - map_half_width_grid_num_) + robot_position_[0];
@@ -116,11 +121,10 @@ geometry_msgs::Point OccupancyGrid::getPoint(GridIndex p) {
   return point;
 }
 
-GridIndex OccupancyGrid::getIndex(StateVec point) {
-  int indX = int((point.x() - robot_position_[0] + kGridSize / 2) / kGridSize) +
-             map_half_width_grid_num_;
-  int indY = int((point.y() - robot_position_[1] + kGridSize / 2) / kGridSize) +
-             map_half_width_grid_num_;
+GridIndex OccupancyGrid::getIndex(StateVec point)
+{
+  int indX = int((point.x() - robot_position_[0] + kGridSize / 2) / kGridSize) + map_half_width_grid_num_;
+  int indY = int((point.y() - robot_position_[1] + kGridSize / 2) / kGridSize) + map_half_width_grid_num_;
   if (point.x() - robot_position_[0] + kGridSize / 2 < 0)
     indX--;
   if (point.y() - robot_position_[1] + kGridSize / 2 < 0)
@@ -137,12 +141,15 @@ GridIndex OccupancyGrid::getIndex(StateVec point) {
   return grid_index;
 }
 
-void OccupancyGrid::clearGrid() {
+void OccupancyGrid::clearGrid()
+{
   gridState_.clear();
   std::vector<int> y_vector;
-  for (int i = 0; i < map_width_grid_num_; i++) {
+  for (int i = 0; i < map_width_grid_num_; i++)
+  {
     y_vector.clear();
-    for (int j = 0; j < map_width_grid_num_; j++) {
+    for (int j = 0; j < map_width_grid_num_; j++)
+    {
       gridStatus grid_state = unknown;
       y_vector.push_back(grid_state);
     }
@@ -150,14 +157,14 @@ void OccupancyGrid::clearGrid() {
   }
 }
 
-void OccupancyGrid::updateGrid() {
+void OccupancyGrid::updateGrid()
+{
   pcl::PointXYZI point;
-  for (int i = 0; i < terrain_cloud_obstacle_->points.size(); i++) {
+  for (int i = 0; i < terrain_cloud_obstacle_->points.size(); i++)
+  {
     point = terrain_cloud_obstacle_->points[i];
-    int indX = int((point.x - robot_position_[0] + kGridSize / 2) / kGridSize) +
-               map_half_width_grid_num_;
-    int indY = int((point.y - robot_position_[1] + kGridSize / 2) / kGridSize) +
-               map_half_width_grid_num_;
+    int indX = int((point.x - robot_position_[0] + kGridSize / 2) / kGridSize) + map_half_width_grid_num_;
+    int indY = int((point.y - robot_position_[1] + kGridSize / 2) / kGridSize) + map_half_width_grid_num_;
     if (point.x - robot_position_[0] + kGridSize / 2 < 0)
       indX--;
     if (point.y - robot_position_[1] + kGridSize / 2 < 0)
@@ -171,18 +178,17 @@ void OccupancyGrid::updateGrid() {
     if (indY > map_width_grid_num_ - 1)
       indY = map_width_grid_num_ - 1;
 
-    if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 &&
-        indY < map_width_grid_num_) {
+    if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 && indY < map_width_grid_num_)
+    {
       gridStatus grid_state = occupied;
       gridState_[indX][indY] = grid_state;
     }
   }
-  for (int i = 0; i < terrain_cloud_traversable_->points.size(); i++) {
+  for (int i = 0; i < terrain_cloud_traversable_->points.size(); i++)
+  {
     point = terrain_cloud_traversable_->points[i];
-    int indX = int((point.x - robot_position_[0] + kGridSize / 2) / kGridSize) +
-               map_half_width_grid_num_;
-    int indY = int((point.y - robot_position_[1] + kGridSize / 2) / kGridSize) +
-               map_half_width_grid_num_;
+    int indX = int((point.x - robot_position_[0] + kGridSize / 2) / kGridSize) + map_half_width_grid_num_;
+    int indY = int((point.y - robot_position_[1] + kGridSize / 2) / kGridSize) + map_half_width_grid_num_;
     if (point.x - robot_position_[0] + kGridSize / 2 < 0)
       indX--;
     if (point.y - robot_position_[1] + kGridSize / 2 < 0)
@@ -195,15 +201,19 @@ void OccupancyGrid::updateGrid() {
       indX = map_width_grid_num_ - 1;
     if (indY > map_width_grid_num_ - 1)
       indY = map_width_grid_num_ - 1;
-    if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 &&
-        indY < map_width_grid_num_) {
-      if (gridState_[indX][indY] == 2) {
+    if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 && indY < map_width_grid_num_)
+    {
+      if (gridState_[indX][indY] == 2)
+      {
         continue;
       }
-      if (updateFreeGridWithSurroundingGrids(indX, indY) == false) {
+      if (updateFreeGridWithSurroundingGrids(indX, indY) == false)
+      {
         gridStatus grid_state = free;
         gridState_[indX][indY] = grid_state;
-      } else {
+      }
+      else
+      {
         gridStatus grid_state = near_occupied;
         gridState_[indX][indY] = grid_state;
       }
@@ -211,13 +221,16 @@ void OccupancyGrid::updateGrid() {
   }
 }
 
-void OccupancyGrid::publishGridMap() {
+void OccupancyGrid::publishGridMap()
+{
   grid_cloud_->clear();
   pcl::PointXYZI p1;
   geometry_msgs::Point p2;
   GridIndex p3;
-  for (int i = 0; i < map_width_grid_num_; i++) {
-    for (int j = 0; j < map_width_grid_num_; j++) {
+  for (int i = 0; i < map_width_grid_num_; i++)
+  {
+    for (int j = 0; j < map_width_grid_num_; j++)
+    {
       p3[0] = i;
       p3[1] = j;
       p2 = getPoint(p3);
@@ -235,18 +248,22 @@ void OccupancyGrid::publishGridMap() {
   grid_cloud_pub_.publish(gridCloud2);
 }
 
-bool OccupancyGrid::updateFreeGridWithSurroundingGrids(int indx, int indy) {
+bool OccupancyGrid::updateFreeGridWithSurroundingGrids(int indx, int indy)
+{
   int count_x = ceil(0.5 * kCollisionCheckX / kGridSize);
   int count_y = ceil(0.5 * kCollisionCheckY / kGridSize);
   int indX;
   int indY;
-  for (int i = -count_x; i <= count_x; i++) {
-    for (int j = -count_y; j <= count_y; j++) {
+  for (int i = -count_x; i <= count_x; i++)
+  {
+    for (int j = -count_y; j <= count_y; j++)
+    {
       indX = indx + i;
       indY = indy + j;
-      if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 &&
-          indY < map_width_grid_num_) {
-        if (gridState_[indX][indY] == 2) {
+      if (indX >= 0 && indX < map_width_grid_num_ && indY >= 0 && indY < map_width_grid_num_)
+      {
+        if (gridState_[indX][indY] == 2)
+        {
           return true;
         }
       }
@@ -255,63 +272,71 @@ bool OccupancyGrid::updateFreeGridWithSurroundingGrids(int indx, int indy) {
   return false;
 }
 
-bool OccupancyGrid::collisionCheckByTerrainWithVector(StateVec origin_point,
-                                                      StateVec goal_point) {
+bool OccupancyGrid::collisionCheckByTerrainWithVector(StateVec origin_point, StateVec goal_point)
+{
   //  ROS_INFO("Start Check Collision");
   GridIndex origin_grid_index = getIndex(origin_point);
   GridIndex goal_grid_index = getIndex(goal_point);
   GridIndex max_grid_index(map_width_grid_num_ - 1, map_width_grid_num_ - 1);
   GridIndex min_grid_index(0, 0);
   GridIndex grid_index;
-  std::vector<GridIndex> ray_tracing_grids = rayCast(
-      origin_grid_index, goal_grid_index, max_grid_index, min_grid_index);
+  std::vector<GridIndex> ray_tracing_grids =
+      rayCast(origin_grid_index, goal_grid_index, max_grid_index, min_grid_index);
   int length = ray_tracing_grids.size();
-  for (int i = 0; i < length; i++) {
+  for (int i = 0; i < length; i++)
+  {
     grid_index = ray_tracing_grids[i];
-    if (gridState_[grid_index[0]][grid_index[1]] == 2 ||
-        gridState_[grid_index[0]][grid_index[1]] == 3) {
+    if (gridState_[grid_index[0]][grid_index[1]] == 2 || gridState_[grid_index[0]][grid_index[1]] == 3)
+    {
       return true;
     }
   }
   return false;
 }
 
-bool OccupancyGrid::collisionCheckByTerrain(geometry_msgs::Point origin,
-                                            geometry_msgs::Point goal) {
+bool OccupancyGrid::collisionCheckByTerrain(geometry_msgs::Point origin, geometry_msgs::Point goal)
+{
   StateVec origin_point(origin.x, origin.y, origin.z);
   StateVec goal_point(goal.x, goal.y, goal.z);
 
   return collisionCheckByTerrainWithVector(origin_point, goal_point);
 }
 
-bool OccupancyGrid::InRange(const GridIndex sub, const GridIndex max_sub,
-                            const GridIndex min_sub) {
-  return sub.x() >= min_sub.x() && sub.x() <= max_sub.x() &&
-         sub.y() >= min_sub.y() && sub.y() <= max_sub.y();
+bool OccupancyGrid::InRange(const GridIndex sub, const GridIndex max_sub, const GridIndex min_sub)
+{
+  return sub.x() >= min_sub.x() && sub.x() <= max_sub.x() && sub.y() >= min_sub.y() && sub.y() <= max_sub.y();
 }
 
-int OccupancyGrid::signum(int x) { return x == 0 ? 0 : x < 0 ? -1 : 1; }
+int OccupancyGrid::signum(int x)
+{
+  return x == 0 ? 0 : x < 0 ? -1 : 1;
+}
 
-double OccupancyGrid::intbound(double s, double ds) {
+double OccupancyGrid::intbound(double s, double ds)
+{
   // Find the smallest positive t such that s+t*ds is an integer.
-  if (ds < 0) {
+  if (ds < 0)
+  {
     return intbound(-s, -ds);
-  } else {
+  }
+  else
+  {
     s = mod(s, 1);
     // problem is now s+t*ds = 1
     return (1 - s) / ds;
   }
 }
 
-double OccupancyGrid::mod(double value, double modulus) {
+double OccupancyGrid::mod(double value, double modulus)
+{
   return fmod(fmod(value, modulus) + modulus, modulus);
 }
 
-std::vector<GridIndex> OccupancyGrid::rayCast(GridIndex origin, GridIndex goal,
-                                              GridIndex max_grid,
-                                              GridIndex min_grid) {
+std::vector<GridIndex> OccupancyGrid::rayCast(GridIndex origin, GridIndex goal, GridIndex max_grid, GridIndex min_grid)
+{
   std::vector<GridIndex> grid_pairs;
-  if (origin == goal) {
+  if (origin == goal)
+  {
     grid_pairs.push_back(origin);
     return grid_pairs;
   }
@@ -326,21 +351,29 @@ std::vector<GridIndex> OccupancyGrid::rayCast(GridIndex origin, GridIndex goal,
   double dist = 0;
   GridIndex cur_sub = origin;
 
-  while (true) {
-    if (InRange(cur_sub, max_grid, min_grid)) {
+  while (true)
+  {
+    if (InRange(cur_sub, max_grid, min_grid))
+    {
       grid_pairs.push_back(cur_sub);
       dist = (cur_sub - origin).squaredNorm();
-      if (cur_sub == goal || dist > max_dist) {
+      if (cur_sub == goal || dist > max_dist)
+      {
         return grid_pairs;
       }
-      if (t_max_x < t_max_y) {
+      if (t_max_x < t_max_y)
+      {
         cur_sub.x() += step_x;
         t_max_x += t_delta_x;
-      } else {
+      }
+      else
+      {
         cur_sub.y() += step_y;
         t_max_y += t_delta_y;
       }
-    } else {
+    }
+    else
+    {
       return grid_pairs;
     }
   }

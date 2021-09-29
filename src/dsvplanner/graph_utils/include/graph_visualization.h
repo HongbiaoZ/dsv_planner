@@ -12,9 +12,9 @@ Modified and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 #include "graph_utils/TopologicalGraph.h"
 
-class GraphMarkers {
- private:
-
+class GraphMarkers
+{
+private:
   // ROS handler
   ros::NodeHandle nh_;
 
@@ -51,9 +51,9 @@ class GraphMarkers {
   void generateMarkers();
   void generateGlobalMarkers();
   void publishMarkers();
-  void publishGlobalMarkers();  
+  void publishGlobalMarkers();
 
- public:
+public:
   explicit GraphMarkers(const ros::NodeHandle& nh);
 
   virtual bool initialize();

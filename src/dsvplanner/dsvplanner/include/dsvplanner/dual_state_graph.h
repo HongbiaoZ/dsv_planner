@@ -19,8 +19,10 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include "graph_utils/TopologicalGraph.h"
 #include "octomap_world/octomap_manager.h"
 
-namespace dsvplanner_ns {
-class DualStateGraph {
+namespace dsvplanner_ns
+{
+class DualStateGraph
+{
 public:
   typedef std::shared_ptr<DualStateGraph> Ptr;
   ros::NodeHandle nh_;
@@ -76,10 +78,10 @@ public:
   pcl::PointCloud<pcl::PointXYZ>::Ptr graph_point_cloud_ =
       pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>());
   std::vector<int> gainID_;
-  volumetric_mapping::OctomapManager *manager_;
-  OccupancyGrid *grid_;
+  volumetric_mapping::OctomapManager* manager_;
+  OccupancyGrid* grid_;
 
-  bool planner_status_; // false means local plan and true means global plan
+  bool planner_status_;  // false means local plan and true means global plan
   int track_localvertex_idx_;
   int track_globalvertex_idx_;
   int prev_track_vertex_idx_;
@@ -103,24 +105,17 @@ public:
   Eigen::Vector3d getExploreDirection();
 
   // General Functions
-  void addEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx,
-                           graph_utils::TopologicalGraph &graph);
-  void addEdge(int start_vertex_idx, int end_vertex_idx,
-               graph_utils::TopologicalGraph &graph);
-  void addNewLocalVertex(geometry_msgs::Pose &vertex_msg,
-                         graph_utils::TopologicalGraph &graph);
-  void addNewLocalVertexWithoutEdge(geometry_msgs::Pose &vertex_msg,
-                                    graph_utils::TopologicalGraph &graph);
-  void addNewLocalVertexWithoutDuplicates(geometry_msgs::Pose &vertex_msg,
-                                          graph_utils::TopologicalGraph &graph);
-  void addNewPrunedVertex(geometry_msgs::Pose &vertex_msg,
-                          graph_utils::TopologicalGraph &graph);
-  void addGlobalEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx,
-                                 bool trajectory_edge);
+  void addEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx, graph_utils::TopologicalGraph& graph);
+  void addEdge(int start_vertex_idx, int end_vertex_idx, graph_utils::TopologicalGraph& graph);
+  void addNewLocalVertex(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph);
+  void addNewLocalVertexWithoutEdge(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph);
+  void addNewLocalVertexWithoutDuplicates(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph);
+  void addNewPrunedVertex(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph);
+  void addGlobalEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx, bool trajectory_edge);
   void addGlobalEdge(int start_vertex_idx, int end_vertex_idx);
-  void addNewGlobalVertex(geometry_msgs::Pose &vertex_msg);
-  void addNewGlobalVertexWithoutDuplicates(geometry_msgs::Pose &vertex_msg);
-  void addNewGlobalVertexWithKeypose(geometry_msgs::Pose &vertex_msg);
+  void addNewGlobalVertex(geometry_msgs::Pose& vertex_msg);
+  void addNewGlobalVertexWithoutDuplicates(geometry_msgs::Pose& vertex_msg);
+  void addNewGlobalVertexWithKeypose(geometry_msgs::Pose& vertex_msg);
   void clearLocalGraph();
   void DTW(std::vector<int> path, geometry_msgs::Point robot_position);
   void pruneGraph(geometry_msgs::Point root);
@@ -131,23 +126,20 @@ public:
   void updateGlobalGraph();
   void updateExploreDirection();
 
-  bool zCollisionCheck(int start_vertex_idx, int end_vertex_idx,
-                       graph_utils::TopologicalGraph graph);
+  bool zCollisionCheck(int start_vertex_idx, int end_vertex_idx, graph_utils::TopologicalGraph graph);
 
   // Callback Functions
-  void keyposeCallback(const nav_msgs::Odometry::ConstPtr &msg);
-  void pathCallback(const nav_msgs::Path::ConstPtr &graph_path);
-  void graphPlannerStatusCallback(
-      const graph_planner::GraphPlannerStatusConstPtr &status);
+  void keyposeCallback(const nav_msgs::Odometry::ConstPtr& msg);
+  void pathCallback(const nav_msgs::Path::ConstPtr& graph_path);
+  void graphPlannerStatusCallback(const graph_planner::GraphPlannerStatusConstPtr& status);
 
 public:
-  DualStateGraph(const ros::NodeHandle &nh, const ros::NodeHandle &nh_private,
-                 volumetric_mapping::OctomapManager *manager,
-                 OccupancyGrid *grid);
+  DualStateGraph(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private,
+                 volumetric_mapping::OctomapManager* manager, OccupancyGrid* grid);
   bool readParameters();
   bool initialize();
   bool execute();
   ~DualStateGraph();
 };
 }
-#endif // DUAL_STATE_GRAPH_H
+#endif  // DUAL_STATE_GRAPH_H

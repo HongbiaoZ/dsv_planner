@@ -18,74 +18,88 @@ Modified and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 #include <string>
 
-namespace graph_planner_ns {
-bool GraphPlanner::readParameters() {
-  if (!nh_.getParam("world_frame_id", world_frame_id_)) {
+namespace graph_planner_ns
+{
+bool GraphPlanner::readParameters()
+{
+  if (!nh_.getParam("world_frame_id", world_frame_id_))
+  {
     ROS_ERROR("Cannot read parameter: world_frame_id_");
     return false;
   }
-  if (!nh_.getParam("graph_planner_command_topic",
-                    graph_planner_command_topic_)) {
+  if (!nh_.getParam("graph_planner_command_topic", graph_planner_command_topic_))
+  {
     ROS_ERROR("Cannot read parameter: graph_planner_command_topic_");
     return false;
   }
-  if (!nh_.getParam("graph_planner_status_topic",
-                    graph_planner_status_topic_)) {
+  if (!nh_.getParam("graph_planner_status_topic", graph_planner_status_topic_))
+  {
     ROS_ERROR("Cannot read parameter: graph_planner_status_topic_");
     return false;
   }
-  if (!nh_.getParam("pub_waypoint_topic", pub_waypoint_topic_)) {
+  if (!nh_.getParam("pub_waypoint_topic", pub_waypoint_topic_))
+  {
     ROS_ERROR("Cannot read parameter: pub_waypoint_topic_");
     return false;
   }
-  if (!nh_.getParam("pub_path_topic", pub_path_topic_)) {
+  if (!nh_.getParam("pub_path_topic", pub_path_topic_))
+  {
     ROS_ERROR("Cannot read parameter: pub_path_topic_");
     return false;
   }
-  if (!nh_.getParam("sub_odometry_topic", sub_odometry_topic_)) {
+  if (!nh_.getParam("sub_odometry_topic", sub_odometry_topic_))
+  {
     ROS_ERROR("Cannot read parameter: sub_odometry_topic_");
     return false;
   }
-  if (!nh_.getParam("sub_terrain_topic", sub_terrain_topic_)) {
+  if (!nh_.getParam("sub_terrain_topic", sub_terrain_topic_))
+  {
     ROS_ERROR("Cannot read parameter: sub_terrain_topic_");
     return false;
   }
-  if (!nh_.getParam("sub_graph_topic", sub_graph_topic_)) {
+  if (!nh_.getParam("sub_graph_topic", sub_graph_topic_))
+  {
     ROS_ERROR("Cannot read parameter: sub_graph_topic_");
     return false;
   }
 
-  if (!nh_.getParam("kLookAheadDist", kLookAheadDist)) {
+  if (!nh_.getParam("kLookAheadDist", kLookAheadDist))
+  {
     ROS_ERROR("Cannot read parameter: kLookAheadDist");
     return false;
   }
-  if (!nh_.getParam("kWaypointProjectionDistance",
-                    kWaypointProjectionDistance)) {
+  if (!nh_.getParam("kWaypointProjectionDistance", kWaypointProjectionDistance))
+  {
     ROS_ERROR("Cannot read parameter: kWaypointProjectionDistance");
     return false;
   }
-  if (!nh_.getParam("kDownsampleSize", kDownsampleSize)) {
+  if (!nh_.getParam("kDownsampleSize", kDownsampleSize))
+  {
     ROS_ERROR("Cannot read parameter: kDownsampleSize");
     return false;
   }
-  if (!nh_.getParam("kObstacleHeightThres", kObstacleHeightThres)) {
+  if (!nh_.getParam("kObstacleHeightThres", kObstacleHeightThres))
+  {
     ROS_ERROR("Cannot read parameter: kObstacleHeightThres");
     return false;
   }
-  if (!nh_.getParam("kOverheadObstacleHeightThres",
-                    kOverheadObstacleHeightThres)) {
+  if (!nh_.getParam("kOverheadObstacleHeightThres", kOverheadObstacleHeightThres))
+  {
     ROS_ERROR("Cannot read parameter: kOverheadObstacleHeightThres");
     return false;
   }
-  if (!nh_.getParam("kCollisionCheckDistace", kCollisionCheckDistace)) {
+  if (!nh_.getParam("kCollisionCheckDistace", kCollisionCheckDistace))
+  {
     ROS_ERROR("Cannot read parameter: kCollisionCheckDistace");
     return false;
   }
-  if (!nh_.getParam("kNextVertexMaintainTime", kNextVertexMaintainTime)) {
+  if (!nh_.getParam("kNextVertexMaintainTime", kNextVertexMaintainTime))
+  {
     ROS_ERROR("Cannot read parameter: kNextVertexMaintainTime");
     return false;
   }
-  if (!nh_.getParam("kExecuteFrequency", kExecuteFrequency)) {
+  if (!nh_.getParam("kExecuteFrequency", kExecuteFrequency))
+  {
     ROS_ERROR("Cannot read parameter: kExecuteFrequency");
     return false;
   }
@@ -93,66 +107,71 @@ bool GraphPlanner::readParameters() {
   return true;
 }
 
-void GraphPlanner::publishPath() {
+void GraphPlanner::publishPath()
+{
   nav_msgs::Path planned_path;
   planned_path.header.frame_id = world_frame_id_;
   planned_path.header.stamp = ros::Time::now();
 
-  if (in_progress_ && !planned_path_.empty()) {
+  if (in_progress_ && !planned_path_.empty())
+  {
     planned_path.poses.resize(planned_path_.size() + 1);
     planned_path.poses[0].pose.position = robot_pos_;
-    for (int i = 0; i < planned_path_.size(); i++) {
+    for (int i = 0; i < planned_path_.size(); i++)
+    {
       planned_path.poses[i + 1].pose.position = planned_path_[i];
     }
-  } else {
+  }
+  else
+  {
     planned_path.poses.resize(1);
     planned_path.poses[0].pose.position = robot_pos_;
   }
   graph_planner_path_pub_.publish(planned_path);
 }
 
-void GraphPlanner::odometryCallback(
-    const nav_msgs::Odometry::ConstPtr &odometry_msg) {
+void GraphPlanner::odometryCallback(const nav_msgs::Odometry::ConstPtr& odometry_msg)
+{
   double roll, pitch, yaw;
   geometry_msgs::Quaternion geo_quat = odometry_msg->pose.pose.orientation;
-  tf::Matrix3x3(tf::Quaternion(geo_quat.x, geo_quat.y, geo_quat.z, geo_quat.w))
-      .getRPY(roll, pitch, yaw);
+  tf::Matrix3x3(tf::Quaternion(geo_quat.x, geo_quat.y, geo_quat.z, geo_quat.w)).getRPY(roll, pitch, yaw);
 
   robot_yaw_ = yaw;
   robot_pos_ = odometry_msg->pose.pose.position;
 }
 
-void GraphPlanner::commandCallback(
-    const graph_planner::GraphPlannerCommand::ConstPtr &msg) {
+void GraphPlanner::commandCallback(const graph_planner::GraphPlannerCommand::ConstPtr& msg)
+{
   graph_planner_command_ = *msg;
-  if (graph_planner_command_.command ==
-      graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION) {
+  if (graph_planner_command_.command == graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION)
+  {
     previous_shortest_path_size_ = 100000;
   }
 }
 
-void GraphPlanner::graphCallback(
-    const graph_utils::TopologicalGraph::ConstPtr &graph_msg) {
+void GraphPlanner::graphCallback(const graph_utils::TopologicalGraph::ConstPtr& graph_msg)
+{
   planned_graph_ = *graph_msg;
 }
 
-void GraphPlanner::terrainCallback(
-    const sensor_msgs::PointCloud2::ConstPtr &terrain_msg) {
+void GraphPlanner::terrainCallback(const sensor_msgs::PointCloud2::ConstPtr& terrain_msg)
+{
   terrain_point_->clear();
   terrain_point_crop_->clear();
   pcl::fromROSMsg(*terrain_msg, *terrain_point_);
 
   pcl::PointXYZI point;
   int terrainCloudSize = terrain_point_->points.size();
-  for (int i = 0; i < terrainCloudSize; i++) {
+  for (int i = 0; i < terrainCloudSize; i++)
+  {
     point = terrain_point_->points[i];
 
     float pointX = point.x;
     float pointY = point.y;
     float pointZ = point.z;
 
-    if (point.intensity > kObstacleHeightThres &&
-        point.intensity < kOverheadObstacleHeightThres) {
+    if (point.intensity > kObstacleHeightThres && point.intensity < kOverheadObstacleHeightThres)
+    {
       point.x = pointX;
       point.y = pointY;
       point.z = pointZ;
@@ -165,42 +184,49 @@ void GraphPlanner::terrainCallback(
   point_ds.filter(*terrain_point_crop_);
 }
 
-void GraphPlanner::publishInProgress(bool in_progress) {
-  in_progress_ = in_progress; // used mainly for debugging
+void GraphPlanner::publishInProgress(bool in_progress)
+{
+  in_progress_ = in_progress;  // used mainly for debugging
 
   graph_planner::GraphPlannerStatus status;
-  if (in_progress) {
+  if (in_progress)
+  {
     status.status = graph_planner::GraphPlannerStatus::STATUS_IN_PROGRESS;
-  } else {
+  }
+  else
+  {
     status.status = graph_planner::GraphPlannerStatus::STATUS_DISABLED;
-    state_ = ALL_OTHER_STATES; // reset
+    state_ = ALL_OTHER_STATES;  // reset
   }
 
   graph_planner_status_pub_.publish(status);
 }
 
-void GraphPlanner::alterAndPublishWaypoint() {
+void GraphPlanner::alterAndPublishWaypoint()
+{
   // Ship it!
-  waypoint_.header.frame_id = world_frame_id_; // added by Hong in 20191203
-  waypoint_.header.stamp = ros::Time::now();   // added by Hong in 20191203
+  waypoint_.header.frame_id = world_frame_id_;  // added by Hong in 20191203
+  waypoint_.header.stamp = ros::Time::now();    // added by Hong in 20191203
   waypoint_pub_.publish(waypoint_);
 }
 
-bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx) {
+bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx)
+{
   std::vector<int> shortest_path;
-  graph_utils_ns::ShortestPathBtwVertex(shortest_path, planned_graph_,
-                                        current_vertex_idx, goal_vertex_idx);
+  graph_utils_ns::ShortestPathBtwVertex(shortest_path, planned_graph_, current_vertex_idx, goal_vertex_idx);
 
-  if (shortest_path.size() <= 0) {
+  if (shortest_path.size() <= 0)
+  {
     // ROS_WARN("Graph planner did not find path to selected goal!");
 
     // clear the saved path
     planned_path_.clear();
 
     return false;
-  } else if (shortest_path.size() <= 2) {
-    geometry_msgs::Point next_waypoint =
-        planned_graph_.vertices[shortest_path.back()].location;
+  }
+  else if (shortest_path.size() <= 2)
+  {
+    geometry_msgs::Point next_waypoint = planned_graph_.vertices[shortest_path.back()].location;
 
     waypoint_.header.stamp = ros::Time::now();
     waypoint_.point.x = next_waypoint.x;
@@ -214,43 +240,51 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx) {
 
     alterAndPublishWaypoint();
     return false;
-  } else {
+  }
+  else
+  {
     int next_vertex_id;
-    next_vertex_id = graph_utils_ns::GetFirstVertexBeyondThreshold(
-        robot_pos_, shortest_path, planned_graph_, kLookAheadDist);
-    for (int i = 1; i < shortest_path.size(); i++) {
+    next_vertex_id =
+        graph_utils_ns::GetFirstVertexBeyondThreshold(robot_pos_, shortest_path, planned_graph_, kLookAheadDist);
+    for (int i = 1; i < shortest_path.size(); i++)
+    {
       //      std::cout << "i = " << i << " id is " << shortest_path[i] <<
       //      std::endl;
-      if (shortest_path[i] != next_vertex_id &&
-          collisionCheckByTerrain(robot_pos_, shortest_path[i])) {
+      if (shortest_path[i] != next_vertex_id && collisionCheckByTerrain(robot_pos_, shortest_path[i]))
+      {
         next_vertex_id = shortest_path[i - 1];
         break;
-      } else if (shortest_path[i] == next_vertex_id) {
+      }
+      else if (shortest_path[i] == next_vertex_id)
+      {
         next_vertex_id = shortest_path[i];
         break;
       }
     }
 
     std::vector<int> next_shortest_path;
-    graph_utils_ns::ShortestPathBtwVertex(next_shortest_path, planned_graph_,
-                                          next_vertex_id, goal_vertex_idx);
+    graph_utils_ns::ShortestPathBtwVertex(next_shortest_path, planned_graph_, next_vertex_id, goal_vertex_idx);
 
     // prevent back and forth between two vertices
-    if (next_shortest_path.size() > previous_shortest_path_size_) {
+    if (next_shortest_path.size() > previous_shortest_path_size_)
+    {
       next_vertex_id = previous_vertex_id_;
       backTraceCount_++;
-      if (backTraceCount_ > kNextVertexMaintainTime * kExecuteFrequency) {
+      if (backTraceCount_ > kNextVertexMaintainTime * kExecuteFrequency)
+      {
         backTraceCount_ = 0;
         previous_shortest_path_size_ = 100000;
       }
-    } else {
+    }
+    else
+    {
       previous_vertex_id_ = next_vertex_id;
       previous_shortest_path_size_ = next_shortest_path.size();
     }
 
-    geometry_msgs::Point next_waypoint =
-        planned_graph_.vertices[next_vertex_id].location;
-    if (next_vertex_id != shortest_path.back()) {
+    geometry_msgs::Point next_waypoint = planned_graph_.vertices[next_vertex_id].location;
+    if (next_vertex_id != shortest_path.back())
+    {
       next_waypoint = projectWayPoint(next_waypoint, robot_pos_);
     }
     waypoint_.header.stamp = ros::Time::now();
@@ -261,78 +295,75 @@ bool GraphPlanner::goToVertex(int current_vertex_idx, int goal_vertex_idx) {
 
     // save path for debugging
     planned_path_.clear();
-    for (const auto &v : shortest_path) {
+    for (const auto& v : shortest_path)
+    {
       planned_path_.push_back(planned_graph_.vertices[v].location);
     }
 
-    if (next_vertex_id == shortest_path.back()) {
+    if (next_vertex_id == shortest_path.back())
+    {
       // Assume reached vertex -- publish the last waypoint and then end
       alterAndPublishWaypoint();
       return false;
-    } else {
+    }
+    else
+    {
       // Keep moving along planned path
       return true;
     }
   }
 }
 
-bool GraphPlanner::goToPoint(geometry_msgs::Point point) {
-  if (planned_graph_.vertices.size() <= 0) {
+bool GraphPlanner::goToPoint(geometry_msgs::Point point)
+{
+  if (planned_graph_.vertices.size() <= 0)
+  {
     return false;
   }
   // Find where I am on this graph
-  int current_vertex_idx =
-      graph_utils_ns::GetClosestVertexIdxToPoint(planned_graph_, robot_pos_);
+  int current_vertex_idx = graph_utils_ns::GetClosestVertexIdxToPoint(planned_graph_, robot_pos_);
 
   // find closest goal vertex
-  int goal_vertex_idx =
-      graph_utils_ns::GetClosestVertexIdxToPoint(planned_graph_, point);
+  int goal_vertex_idx = graph_utils_ns::GetClosestVertexIdxToPoint(planned_graph_, point);
 
   // Set the waypoint
   return goToVertex(current_vertex_idx, goal_vertex_idx);
 }
 
-bool GraphPlanner::collisionCheckByTerrain(geometry_msgs::Point robot_position,
-                                           int end_vertex_idx) {
+bool GraphPlanner::collisionCheckByTerrain(geometry_msgs::Point robot_position, int end_vertex_idx)
+{
   geometry_msgs::Point start_point = robot_position;
-  geometry_msgs::Point end_point =
-      planned_graph_.vertices[end_vertex_idx].location;
+  geometry_msgs::Point end_point = planned_graph_.vertices[end_vertex_idx].location;
 
   int count = 0;
-  double distance =
-      sqrt((end_point.x - start_point.x) * (end_point.x - start_point.x) +
-           (end_point.y - start_point.y) * (end_point.y - start_point.y));
+  double distance = sqrt((end_point.x - start_point.x) * (end_point.x - start_point.x) +
+                         (end_point.y - start_point.y) * (end_point.y - start_point.y));
   double check_point_num = distance / (kCollisionCheckDistace);
-  for (int j = 0; j < check_point_num; j++) {
+  for (int j = 0; j < check_point_num; j++)
+  {
     geometry_msgs::Point p1;
-    p1.x =
-        start_point.x +
-        j * kCollisionCheckDistace / distance * (end_point.x - start_point.x);
-    p1.y =
-        start_point.y +
-        j * kCollisionCheckDistace / distance * (end_point.y - start_point.y);
-    for (int i = 0; i < terrain_point_crop_->points.size(); i++) {
-      double dist = sqrt((p1.x - terrain_point_crop_->points[i].x) *
-                             (p1.x - terrain_point_crop_->points[i].x) +
-                         (p1.y - terrain_point_crop_->points[i].y) *
-                             (p1.y - terrain_point_crop_->points[i].y));
-      if (dist < kCollisionCheckDistace) {
+    p1.x = start_point.x + j * kCollisionCheckDistace / distance * (end_point.x - start_point.x);
+    p1.y = start_point.y + j * kCollisionCheckDistace / distance * (end_point.y - start_point.y);
+    for (int i = 0; i < terrain_point_crop_->points.size(); i++)
+    {
+      double dist = sqrt((p1.x - terrain_point_crop_->points[i].x) * (p1.x - terrain_point_crop_->points[i].x) +
+                         (p1.y - terrain_point_crop_->points[i].y) * (p1.y - terrain_point_crop_->points[i].y));
+      if (dist < kCollisionCheckDistace)
+      {
         count++;
       }
-      if (count > 0) {
+      if (count > 0)
+      {
         return true;
       }
     }
   }
   return false;
 }
-geometry_msgs::Point
-GraphPlanner::projectWayPoint(geometry_msgs::Point next_vertex_pos,
-                              geometry_msgs::Point robot_pos) {
-  double ratio =
-      misc_utils_ns::PointXYDist<geometry_msgs::Point, geometry_msgs::Point>(
-          robot_pos, next_vertex_pos) /
-      kWaypointProjectionDistance;
+geometry_msgs::Point GraphPlanner::projectWayPoint(geometry_msgs::Point next_vertex_pos, geometry_msgs::Point robot_pos)
+{
+  double ratio = misc_utils_ns::PointXYDist<geometry_msgs::Point, geometry_msgs::Point>(robot_pos, next_vertex_pos) /
+                 kWaypointProjectionDistance;
   double x = (next_vertex_pos.x - robot_pos.x) / ratio + robot_pos.x;
   double y = (next_vertex_pos.y - robot_pos.y) / ratio + robot_pos.y;
   double z = (next_vertex_pos.z - robot_pos.z) / ratio + robot_pos.z;
@@ -340,7 +371,8 @@ GraphPlanner::projectWayPoint(geometry_msgs::Point next_vertex_pos,
   return way_point;
 }
 
-bool GraphPlanner::initialize() {
+bool GraphPlanner::initialize()
+{
   if (!readParameters())
     return false;
 
@@ -352,20 +384,14 @@ bool GraphPlanner::initialize() {
   waypoint_.header.frame_id = world_frame_id_;
 
   // Initialize subscribers
-  graph_sub_ =
-      nh_.subscribe(sub_graph_topic_, 1, &GraphPlanner::graphCallback, this);
-  graph_planner_command_sub_ = nh_.subscribe(
-      graph_planner_command_topic_, 1, &GraphPlanner::commandCallback, this);
-  odometry_sub_ = nh_.subscribe(sub_odometry_topic_, 1,
-                                &GraphPlanner::odometryCallback, this);
-  terrain_sub_ = nh_.subscribe(sub_terrain_topic_, 1,
-                               &GraphPlanner::terrainCallback, this);
+  graph_sub_ = nh_.subscribe(sub_graph_topic_, 1, &GraphPlanner::graphCallback, this);
+  graph_planner_command_sub_ = nh_.subscribe(graph_planner_command_topic_, 1, &GraphPlanner::commandCallback, this);
+  odometry_sub_ = nh_.subscribe(sub_odometry_topic_, 1, &GraphPlanner::odometryCallback, this);
+  terrain_sub_ = nh_.subscribe(sub_terrain_topic_, 1, &GraphPlanner::terrainCallback, this);
 
   // Initialize publishers
-  waypoint_pub_ =
-      nh_.advertise<geometry_msgs::PointStamped>(pub_waypoint_topic_, 2);
-  graph_planner_status_pub_ = nh_.advertise<graph_planner::GraphPlannerStatus>(
-      graph_planner_status_topic_, 2);
+  waypoint_pub_ = nh_.advertise<geometry_msgs::PointStamped>(pub_waypoint_topic_, 2);
+  graph_planner_status_pub_ = nh_.advertise<graph_planner::GraphPlannerStatus>(graph_planner_status_topic_, 2);
   graph_planner_path_pub_ = nh_.advertise<nav_msgs::Path>(pub_path_topic_, 10);
 
   ROS_INFO("Successfully launched graph_planner node");
@@ -373,7 +399,8 @@ bool GraphPlanner::initialize() {
   return true;
 }
 
-void GraphPlanner::executeGoToOrigin() {
+void GraphPlanner::executeGoToOrigin()
+{
   // Aim for (0,0,0)
   geometry_msgs::Point origin;
   origin.x = 0;
@@ -381,53 +408,68 @@ void GraphPlanner::executeGoToOrigin() {
   origin.z = 0;
   bool success = goToPoint(origin);
 
-  if (!success) {
+  if (!success)
+  {
     publishInProgress(false);
-  } else {
+  }
+  else
+  {
     alterAndPublishWaypoint();
     publishInProgress(true);
   }
 }
 
-void GraphPlanner::executeGoToLocation() {
+void GraphPlanner::executeGoToLocation()
+{
   // Compute waypoint
   bool success = goToPoint(graph_planner_command_.location);
 
-  if (!success) {
+  if (!success)
+  {
     publishInProgress(false);
-  } else {
+  }
+  else
+  {
     alterAndPublishWaypoint();
     publishInProgress(true);
   }
 }
 
-void GraphPlanner::executeCommand() {
+void GraphPlanner::executeCommand()
+{
   // Choose from one of the graph_planner variants based on the command
 
-  if (graph_planner_command_.command ==
-      graph_planner::GraphPlannerCommand::COMMAND_GO_TO_ORIGIN) {
+  if (graph_planner_command_.command == graph_planner::GraphPlannerCommand::COMMAND_GO_TO_ORIGIN)
+  {
     // COMMAND_GO_TO_ORIGIN
     executeGoToOrigin();
-  } else if (graph_planner_command_.command ==
-             graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION) {
+  }
+  else if (graph_planner_command_.command == graph_planner::GraphPlannerCommand::COMMAND_GO_TO_LOCATION)
+  {
     // COMMAND_GO_TO_LOCATION
     executeGoToLocation();
-  } else {
+  }
+  else
+  {
     publishInProgress(false);
   }
 }
 
-bool GraphPlanner::execute() {
+bool GraphPlanner::execute()
+{
   ros::Rate rate(kExecuteFrequency);
   bool status = ros::ok();
-  while (status) {
+  while (status)
+  {
     ros::spinOnce();
 
-    if (graph_planner_command_.command ==
-        graph_planner::GraphPlannerCommand::COMMAND_DISABLE) {
+    if (graph_planner_command_.command == graph_planner::GraphPlannerCommand::COMMAND_DISABLE)
+    {
       // Graph planner is disabled -- do nothing
       publishInProgress(false);
-    } else {
+    }
+    else
+    {
       // Graph planner is enabled -- select waypoint according to current
       // command
       executeCommand();
@@ -443,9 +485,10 @@ bool GraphPlanner::execute() {
   return true;
 }
 
-GraphPlanner::GraphPlanner(const ros::NodeHandle &nh) {
+GraphPlanner::GraphPlanner(const ros::NodeHandle& nh)
+{
   nh_ = nh;
   initialize();
 }
 
-} // namespace graph_planner_ns
+}  // namespace graph_planner_ns
