@@ -184,17 +184,7 @@ int main(int argc, char** argv)
   ros::init(argc, argv, "exploration");
   ros::NodeHandle nh;
   ros::NodeHandle nhPrivate = ros::NodeHandle("~");
-
-  waypoint_pub = nh.advertise<geometry_msgs::PointStamped>(waypoint_topic, 5);
-  gp_command_pub = nh.advertise<graph_planner::GraphPlannerCommand>(gp_command_topic, 1);
-  effective_plan_time_pub = nh.advertise<std_msgs::Float32>(effective_plan_time_topic, 1);
-  total_plan_time_pub = nh.advertise<std_msgs::Float32>(total_plan_time_topic, 1);
-  gp_status_sub = nh.subscribe<graph_planner::GraphPlannerStatus>(gp_status_topic, 1, gp_status_callback);
-  waypoint_sub = nh.subscribe<geometry_msgs::PointStamped>(waypoint_topic, 1, waypoint_callback);
-  odom_sub = nh.subscribe<nav_msgs::Odometry>(odom_topic, 1, odom_callback);
-  begin_signal_sub = nh.subscribe<std_msgs::Bool>(begin_signal_topic, 1, begin_signal_callback);
-  stop_signal_pub = nh.advertise<std_msgs::Bool>(stop_signal_topic, 1);
-
+  
   nhPrivate.getParam("simulation", simulation);
   nhPrivate.getParam("/interface/dtime", dtime);
   nhPrivate.getParam("/interface/initX", init_x);
@@ -214,6 +204,16 @@ int main(int argc, char** argv)
   nhPrivate.getParam("/interface/odomTopic", odom_topic);
   nhPrivate.getParam("/interface/beginSignalTopic", begin_signal_topic);
   nhPrivate.getParam("/interface/stopSignalTopic", stop_signal_topic);
+
+  waypoint_pub = nh.advertise<geometry_msgs::PointStamped>(waypoint_topic, 5);
+  gp_command_pub = nh.advertise<graph_planner::GraphPlannerCommand>(gp_command_topic, 1);
+  effective_plan_time_pub = nh.advertise<std_msgs::Float32>(effective_plan_time_topic, 1);
+  total_plan_time_pub = nh.advertise<std_msgs::Float32>(total_plan_time_topic, 1);
+  gp_status_sub = nh.subscribe<graph_planner::GraphPlannerStatus>(gp_status_topic, 1, gp_status_callback);
+  waypoint_sub = nh.subscribe<geometry_msgs::PointStamped>(waypoint_topic, 1, waypoint_callback);
+  odom_sub = nh.subscribe<nav_msgs::Odometry>(odom_topic, 1, odom_callback);
+  begin_signal_sub = nh.subscribe<std_msgs::Bool>(begin_signal_topic, 1, begin_signal_callback);
+  stop_signal_pub = nh.advertise<std_msgs::Bool>(stop_signal_topic, 1);
 
   ros::Duration(1.0).sleep();
   ros::spinOnce();
