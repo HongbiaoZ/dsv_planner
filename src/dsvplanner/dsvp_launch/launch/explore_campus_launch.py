@@ -9,10 +9,10 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition
 
 def generate_launch_description():
-    param_dir_planning = os.path.join(get_package_share_directory('davp_launch'), 'config', 'exploration_campus.yaml')
-    param_dir_octomap = os.path.join(get_package_share_directory('davp_launch'), 'config', 'octomap_campus.yaml')
-    param_dir_boundary = os.path.join(get_package_share_directory('davp_launch'), 'data', 'boundary.ply')
-    rviz_path = os.path.join(get_package_share_directory('davp_launch'), 'default.rviz')
+    param_dir_planning = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'exploration_campus.yaml')
+    param_dir_octomap = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'octomap_campus.yaml')
+    param_dir_boundary = os.path.join(get_package_share_directory('dsvp_launch'), 'data', 'boundary.ply')
+    rviz_path = os.path.join(get_package_share_directory('dsvp_launch'), 'default.rviz')
     use_boundary = LaunchConfiguration('use_boundary', default='false')
     enable_bag_record = LaunchConfiguration('enable_bag_record', default='false')
     bag_name = LaunchConfiguration('bag_name', default='campus')

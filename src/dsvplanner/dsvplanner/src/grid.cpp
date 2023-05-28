@@ -16,8 +16,8 @@ Created by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 namespace dsvplanner_ns
 {
-OccupancyGrid::OccupancyGrid(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private)
-  : nh_(nh), nh_private_(nh_private)
+OccupancyGrid::OccupancyGrid(rclcpp::Node::SharedPtr& node_handle)
+  : nh_(node_handle)
 {
   initialize();
 }
@@ -28,17 +28,29 @@ OccupancyGrid::~OccupancyGrid()
 
 bool OccupancyGrid::readParameters()
 {
-  nh_private_.getParam("/grid/world_frame_id", world_frame_id_);
-  nh_private_.getParam("/grid/odomSubTopic", sub_odom_topic_);
-  nh_private_.getParam("/grid/terrainCloudSubTopic", sub_terrain_point_cloud_topic_);
-  nh_private_.getParam("/grid/pubGridPointsTopic", pub_grid_points_topic_);
-  nh_private_.getParam("/grid/kMapWidth", kMapWidth);
-  nh_private_.getParam("/grid/kGridSize", kGridSize);
-  nh_private_.getParam("/grid/kDownsampleSize", kDownsampleSize);
-  nh_private_.getParam("/grid/kObstacleHeightThre", kObstacleHeightThre);
-  nh_private_.getParam("/grid/kFlyingObstacleHeightThre", kFlyingObstacleHeightThre);
-  nh_private_.getParam("/rm/kBoundX", kCollisionCheckX);
-  nh_private_.getParam("/rm/kBoundY", kCollisionCheckY);
+  nh_->declare_parameter("grid/world_frame_id", world_frame_id_);
+  nh_->declare_parameter("grid/odomSubTopic", sub_odom_topic_);
+  nh_->declare_parameter("grid/terrainCloudSubTopic", sub_terrain_point_cloud_topic_);
+  nh_->declare_parameter("grid/pubGridPointsTopic", pub_grid_points_topic_);
+  nh_->declare_parameter("grid/kMapWidth", kMapWidth);
+  nh_->declare_parameter("grid/kGridSize", kGridSize);
+  nh_->declare_parameter("grid/kDownsampleSize", kDownsampleSize);
+  nh_->declare_parameter("grid/kObstacleHeightThre", kObstacleHeightThre);
+  nh_->declare_parameter("grid/kFlyingObstacleHeightThre", kFlyingObstacleHeightThre);
+  nh_->declare_parameter("/rm/kBoundX", kCollisionCheckX);
+  nh_->declare_parameter("/rm/kBoundY", kCollisionCheckY);
+
+  nh_->get_parameter("grid/world_frame_id", world_frame_id_);
+  nh_->get_parameter("grid/odomSubTopic", sub_odom_topic_);
+  nh_->get_parameter("grid/terrainCloudSubTopic", sub_terrain_point_cloud_topic_);
+  nh_->get_parameter("grid/pubGridPointsTopic", pub_grid_points_topic_);
+  nh_->get_parameter("grid/kMapWidth", kMapWidth);
+  nh_->get_parameter("grid/kGridSize", kGridSize);
+  nh_->get_parameter("grid/kDownsampleSize", kDownsampleSize);
+  nh_->get_parameter("grid/kObstacleHeightThre", kObstacleHeightThre);
+  nh_->get_parameter("grid/kFlyingObstacleHeightThre", kFlyingObstacleHeightThre);
+  nh_->get_parameter("/rm/kBoundX", kCollisionCheckX);
+  nh_->get_parameter("/rm/kBoundY", kCollisionCheckY);
 
   return true;
 }
@@ -49,25 +61,25 @@ bool OccupancyGrid::initialize()
   if (!readParameters())
     return false;
   // Initialize subscriber
-  odom_sub_.subscribe(nh_, sub_odom_topic_, 1);
-  terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_, 1);
+  odom_sub_.subscribe(nh_, sub_odom_topic_);
+  terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_);
   sync_.reset(new Sync(syncPolicy(100), odom_sub_, terrain_point_cloud_sub_));
-  sync_->registerCallback(boost::bind(&OccupancyGrid::terrainCloudAndOdomCallback, this, _1, _2));
+  sync_->registerCallback(std::bind(&OccupancyGrid::terrainCloudAndOdomCallback, this, std::placeholders::_1, std::placeholders::_2));
 
-  grid_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(pub_grid_points_topic_, 1);
+  grid_cloud_pub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>(pub_grid_points_topic_, 1);
 
   map_half_width_grid_num_ = int(kMapWidth / 2 / kGridSize);
   map_width_grid_num_ = map_half_width_grid_num_ * 2 + 1;
 
   clearGrid();
 
-  ROS_INFO("Successfully launched OccupancyGrid node");
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched OccupancyGrid node");
 
   return true;
 }
 
-void OccupancyGrid::terrainCloudAndOdomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg,
-                                                const sensor_msgs::PointCloud2::ConstPtr& terrain_msg)
+void OccupancyGrid::terrainCloudAndOdomCallback(const nav_msgs::msg::Odometry::ConstSharedPtr odom_msg,
+                                                const sensor_msgs::msg::PointCloud2::ConstSharedPtr terrain_msg)
 {
   terrain_time_ = terrain_msg->header.stamp;
   robot_position_[0] = odom_msg->pose.pose.position.x;
@@ -108,13 +120,13 @@ void OccupancyGrid::terrainCloudAndOdomCallback(const nav_msgs::Odometry::ConstP
   publishGridMap();
 }
 
-geometry_msgs::Point OccupancyGrid::getPoint(GridIndex p)
+geometry_msgs::msg::Point OccupancyGrid::getPoint(GridIndex p)
 {
   int indX = p[0];
   int indY = p[1];
   double x = kGridSize * (indX - map_half_width_grid_num_) + robot_position_[0];
   double y = kGridSize * (indY - map_half_width_grid_num_) + robot_position_[1];
-  geometry_msgs::Point point;
+  geometry_msgs::msg::Point point;
   point.x = x;
   point.y = y;
   point.z = robot_position_[2];
@@ -225,7 +237,7 @@ void OccupancyGrid::publishGridMap()
 {
   grid_cloud_->clear();
   pcl::PointXYZI p1;
-  geometry_msgs::Point p2;
+  geometry_msgs::msg::Point p2;
   GridIndex p3;
   for (int i = 0; i < map_width_grid_num_; i++)
   {
@@ -241,11 +253,11 @@ void OccupancyGrid::publishGridMap()
       grid_cloud_->points.push_back(p1);
     }
   }
-  sensor_msgs::PointCloud2 gridCloud2;
+  sensor_msgs::msg::PointCloud2 gridCloud2;
   pcl::toROSMsg(*grid_cloud_, gridCloud2);
   gridCloud2.header.stamp = terrain_time_;
   gridCloud2.header.frame_id = world_frame_id_;
-  grid_cloud_pub_.publish(gridCloud2);
+  grid_cloud_pub_->publish(gridCloud2);
 }
 
 bool OccupancyGrid::updateFreeGridWithSurroundingGrids(int indx, int indy)
@@ -294,7 +306,7 @@ bool OccupancyGrid::collisionCheckByTerrainWithVector(StateVec origin_point, Sta
   return false;
 }
 
-bool OccupancyGrid::collisionCheckByTerrain(geometry_msgs::Point origin, geometry_msgs::Point goal)
+bool OccupancyGrid::collisionCheckByTerrain(geometry_msgs::msg::Point origin, geometry_msgs::msg::Point goal)
 {
   StateVec origin_point(origin.x, origin.y, origin.z);
   StateVec goal_point(goal.x, goal.y, goal.z);

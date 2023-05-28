@@ -1,8 +1,0 @@
-<launch>
-
-    <!-- Generate markers for the keypose graph (TopologicalWorldAbstraction) -->
-    <node name="graph_visualization" pkg="graph_utils" type="graph_visualization" output="screen" respawn="true">
-        <rosparam command="load" file="$(find graph_utils)/config/default.yaml" />
-    </node>
-
-</launch>

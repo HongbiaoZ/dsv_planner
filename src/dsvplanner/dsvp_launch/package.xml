@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="3">
   <name>dsvp_launch</name>
   <version>0.0.1</version>
   <description>The package that interfaces and launches the DSV Planner</description>
@@ -8,8 +8,8 @@
   
   <author>Hongbiao Zhu</author>
 
-  <buildtool_depend>catkin</buildtool_depend>
-  <build_depend>tf</build_depend>
+  <buildtool_depend>ament_cmake</buildtool_depend>
+  <build_depend>tf2</build_depend>
   <buildtool_depend>geometry_msgs</buildtool_depend>
   <build_depend>libpcl-all-dev</build_depend>
   <build_depend>sensor_msgs</build_depend>
@@ -19,14 +19,8 @@
   <build_depend>dsvplanner</build_depend>
   <build_depend>graph_planner</build_depend>
 
-  <run_depend>tf</run_depend>
-  <run_depend>geometry_msgs</run_depend>
-  <run_depend>libpcl-all</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>visualization_msgs</run_depend>
-  <run_depend>graph_utils</run_depend>
-  <run_depend>nav_msgs</run_depend>
-  <run_depend>dsvplanner</run_depend>
-  <run_depend>graph_planner</run_depend>
+  <export>
+    <build_type>ament_cmake</build_type>
+  </export>
 
 </package>

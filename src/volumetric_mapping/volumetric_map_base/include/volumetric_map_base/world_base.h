@@ -33,9 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <kindr/minimal/quat-transformation.h>
 #include <opencv2/opencv.hpp>
 #include <pcl/point_types.h>
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <stereo_msgs/DisparityImage.h>
+#include <sensor_msgs/msg/camera_info.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <stereo_msgs/msg/disparity_image.hpp>
 #include <pcl/conversions.h>
 #include <Eigen/StdVector>
 
@@ -65,7 +65,7 @@ class WorldBase {
   //      camera_calibration_and_3d_reconstruction.html#reprojectimageto3d
   void insertDisparityImage(
       const Transformation& sensor_to_world,
-      const stereo_msgs::DisparityImageConstPtr& disparity,
+      const stereo_msgs::msg::DisparityImage::SharedPtr disparity,
       const Eigen::Matrix4d& Q_full, const Eigen::Vector2d& full_image_size);
   void insertDisparityImage(const Transformation& sensor_to_world,
                             const cv::Mat& disparity,
@@ -80,14 +80,14 @@ class WorldBase {
                                  const Eigen::Matrix3d& right_cam_matrix,
                                  const Eigen::Vector2d& full_image_size) const;
   Eigen::Matrix4d getQForROSCameras(
-      const sensor_msgs::CameraInfo& left_camera,
-      const sensor_msgs::CameraInfo& right_camera) const;
+      const sensor_msgs::msg::CameraInfo& left_camera,
+      const sensor_msgs::msg::CameraInfo& right_camera) const;
 
   // Calls insertPointcloudImpl() or insertPointcloudIntoMapWithWeightsImpl(),
   // depending if points are to be weighted.
   void insertPointcloud(
       const Transformation& T_G_sensor,
-      const sensor_msgs::PointCloud2::ConstPtr& pointcloud_sensor);
+      const sensor_msgs::msg::PointCloud2::SharedPtr pointcloud_sensor);
   void insertPointcloud(const Transformation& T_G_sensor,
                         const Eigen::Matrix3Xd& pointcloud_sensor);
   void insertPointcloud(
@@ -198,24 +198,24 @@ class WorldBase {
   // the sensor coordinate frame, of type CV_32FC3.
   virtual void insertProjectedDisparityIntoMapImpl(
       const Transformation& sensor_to_world, const cv::Mat& projected_points) {
-    LOG(ERROR) << "Calling unimplemented disparity insertion!";
+    printf("Calling unimplemented disparity insertion!");
   }
   virtual void insertProjectedDisparityIntoMapWithWeightsImpl(
       const Transformation& sensor_to_world, const cv::Mat& projected_points,
       const cv::Mat& weights) {
-    LOG(ERROR) << "Calling unimplemented disparity insertion!";
+    printf("Calling unimplemented disparity insertion!");
   }
 
   virtual void insertPointcloudIntoMapImpl(
       const Transformation& T_G_sensor,
       const pcl::PointCloud<pcl::PointXYZ>::Ptr& pointcloud_sensor) {
-    LOG(ERROR) << "Calling unimplemented pointcloud insertion!";
+    printf("Calling unimplemented pointcloud insertion!");
   }
   virtual void insertPointcloudIntoMapWithWeightsImpl(
       const Transformation& sensor_to_world,
       const pcl::PointCloud<pcl::PointXYZ>::Ptr& pointcloud,
       const std::vector<double>& weights) {
-    LOG(ERROR) << "Calling unimplemented disparity insertion!";
+    printf("Calling unimplemented disparity insertion!");
   }
 
   // Generate Q matrix from parameters.

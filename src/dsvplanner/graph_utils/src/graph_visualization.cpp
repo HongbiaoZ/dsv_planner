@@ -11,25 +11,30 @@ HongbiaoZhu (hongbiaz@andrew.cmu.edu)
 #include "graph_visualization.h"
 
 bool GraphMarkers::readParameters()
-{
-  if (!nh_.getParam("sub_local_graph_topic_", sub_local_graph_topic_))
+{ 
+  nh_->declare_parameter("sub_local_graph_topic", "locl_graph1");
+  nh_->declare_parameter("pub_local_graph_marker_topic", "local_graph_markers1");
+  nh_->declare_parameter("sub_global_graph_topic", "global_graph1");
+  nh_->declare_parameter("pub_global_graph_marker_topic", "global_graph_markers1");
+  
+  if (!nh_->get_parameter("sub_local_graph_topic", sub_local_graph_topic_))
   {
-    ROS_ERROR("Cannot read parameter: sub_local_graph_topic_");
+    RCLCPP_ERROR(nh_->get_logger(), "Cannot read parameter: sub_local_graph_topic_");
     return false;
   }
-  if (!nh_.getParam("pub_local_graph_marker_topic_", pub_local_graph_marker_topic_))
+  if (!nh_->get_parameter("pub_local_graph_marker_topic", pub_local_graph_marker_topic_))
   {
-    ROS_ERROR("Cannot read parameter: pub_local_graph_marker_topic_");
+    RCLCPP_ERROR(nh_->get_logger(), "Cannot read parameter: pub_local_graph_marker_topic_");
     return false;
   }
-  if (!nh_.getParam("sub_global_graph_topic_", sub_global_graph_topic_))
+  if (!nh_->get_parameter("sub_global_graph_topic", sub_global_graph_topic_))
   {
-    ROS_ERROR("Cannot read parameter: sub_global_graph_topic_");
+    RCLCPP_ERROR(nh_->get_logger(), "Cannot read parameter: sub_global_graph_topic_");
     return false;
   }
-  if (!nh_.getParam("pub_global_graph_marker_topic_", pub_global_graph_marker_topic_))
+  if (!nh_->get_parameter("pub_global_graph_marker_topic", pub_global_graph_marker_topic_))
   {
-    ROS_ERROR("Cannot read parameter: pub_global_graph_marker_topic_");
+    RCLCPP_ERROR(nh_->get_logger(), "Cannot read parameter: pub_global_graph_marker_topic_");
     return false;
   }
   return true;
@@ -38,54 +43,54 @@ bool GraphMarkers::readParameters()
 void GraphMarkers::initializeMarkers()
 {
   local_graph_vertex_marker_.ns = "graph vertex";
-  local_graph_vertex_marker_.action = visualization_msgs::Marker::ADD;
+  local_graph_vertex_marker_.action = visualization_msgs::msg::Marker::ADD;
   local_graph_vertex_marker_.pose.orientation.w = 1.0;
   local_graph_vertex_marker_.id = 1;
-  local_graph_vertex_marker_.type = visualization_msgs::Marker::POINTS;
+  local_graph_vertex_marker_.type = visualization_msgs::msg::Marker::POINTS;
   local_graph_vertex_marker_.scale.x = 0.2;
   local_graph_vertex_marker_.color.a = 1.0;
   local_graph_vertex_marker_.color.g = 0.0;
   local_graph_vertex_marker_.color.r = 1.0;
 
   local_graph_edge_marker_.ns = "graph edge";
-  local_graph_edge_marker_.action = visualization_msgs::Marker::ADD;
+  local_graph_edge_marker_.action = visualization_msgs::msg::Marker::ADD;
   local_graph_edge_marker_.pose.orientation.w = 1.0;
   local_graph_edge_marker_.id = 1;
-  local_graph_edge_marker_.type = visualization_msgs::Marker::LINE_LIST;
+  local_graph_edge_marker_.type = visualization_msgs::msg::Marker::LINE_LIST;
   local_graph_edge_marker_.scale.x = 0.03;
   local_graph_edge_marker_.color.a = 0.9;
   local_graph_edge_marker_.color.g = 1.0;
   local_graph_edge_marker_.color.r = 1.0;
 
   global_graph_vertex_marker_.ns = "graph vertex";
-  global_graph_vertex_marker_.action = visualization_msgs::Marker::ADD;
+  global_graph_vertex_marker_.action = visualization_msgs::msg::Marker::ADD;
   global_graph_vertex_marker_.pose.orientation.w = 1.0;
   global_graph_vertex_marker_.id = 1;
-  global_graph_vertex_marker_.type = visualization_msgs::Marker::POINTS;
+  global_graph_vertex_marker_.type = visualization_msgs::msg::Marker::POINTS;
   global_graph_vertex_marker_.scale.x = 0.2;
   global_graph_vertex_marker_.color.a = 0.5;
   global_graph_vertex_marker_.color.g = 1.0;
   global_graph_vertex_marker_.color.r = 0.5;
 
   global_graph_edge_marker_.ns = "graph edge";
-  global_graph_edge_marker_.action = visualization_msgs::Marker::ADD;
+  global_graph_edge_marker_.action = visualization_msgs::msg::Marker::ADD;
   global_graph_edge_marker_.pose.orientation.w = 1.0;
   global_graph_edge_marker_.id = 1;
-  global_graph_edge_marker_.type = visualization_msgs::Marker::LINE_LIST;
+  global_graph_edge_marker_.type = visualization_msgs::msg::Marker::LINE_LIST;
   global_graph_edge_marker_.scale.x = 0.03;
   global_graph_edge_marker_.color.a = 0.9;
   global_graph_edge_marker_.color.g = 1.0;
   global_graph_edge_marker_.color.r = 0.0;
 }
 
-void GraphMarkers::topologicalLocalGraphCallback(const graph_utils::TopologicalGraph::ConstPtr& graph_msg)
+void GraphMarkers::topologicalLocalGraphCallback(const graph_utils::msg::TopologicalGraph::SharedPtr graph_msg)
 {
   // Store this message -- periodically process it in PublishMarker()
   topological_local_graph_ = *graph_msg;
   new_local_graph_received_ = true;
 }
 
-void GraphMarkers::topologicalGlobalGraphCallback(const graph_utils::TopologicalGraph::ConstPtr& graph_msg)
+void GraphMarkers::topologicalGlobalGraphCallback(const graph_utils::msg::TopologicalGraph::SharedPtr graph_msg)
 {
   topological_global_graph_ = *graph_msg;
   new_global_graph_received_ = true;
@@ -151,9 +156,9 @@ void GraphMarkers::publishMarkers()
   // and publish it
   generateMarkers();
 
-  // Publish the markers
-  local_graph_marker_pub_.publish(local_graph_vertex_marker_);
-  local_graph_marker_pub_.publish(local_graph_edge_marker_);
+  // // Publish the markers
+  local_graph_marker_pub_->publish(local_graph_vertex_marker_);
+  local_graph_marker_pub_->publish(local_graph_edge_marker_);
 
   // Don't redraw until new graph received
   new_local_graph_received_ = false;
@@ -163,9 +168,9 @@ void GraphMarkers::publishGlobalMarkers()
 {
   generateGlobalMarkers();
 
-  // Publish the markers
-  global_graph_marker_pub_.publish(global_graph_vertex_marker_);
-  global_graph_marker_pub_.publish(global_graph_edge_marker_);
+  // // Publish the markers
+  global_graph_marker_pub_->publish(global_graph_vertex_marker_);
+  global_graph_marker_pub_->publish(global_graph_edge_marker_);
 
   // Don't redraw until new graph received
   new_global_graph_received_ = false;
@@ -175,21 +180,20 @@ bool GraphMarkers::execute()
 {
   // At the specified execute frequency (see launch file),
   // generate and publish the marker
-  ros::Rate rate(100);
-  bool status = ros::ok();
-  while (status)
+  rclcpp::WallRate loopRate(100);
+  while (rclcpp::ok())
   {
-    ros::spinOnce();
+    rclcpp::spin_some(nh_);
     if (new_local_graph_received_)
     {
       publishMarkers();
     }
 
     if (new_global_graph_received_)
+    {
       publishGlobalMarkers();
-
-    status = ros::ok();
-    rate.sleep();
+    }
+    loopRate.sleep();
   }
   return true;
 }
@@ -201,23 +205,25 @@ bool GraphMarkers::initialize()
     return false;
 
   // Initialize subscribers
-  local_graph_sub_ = nh_.subscribe(sub_local_graph_topic_, 1, &GraphMarkers::topologicalLocalGraphCallback, this);
-  global_graph_sub_ = nh_.subscribe(sub_global_graph_topic_, 1, &GraphMarkers::topologicalGlobalGraphCallback, this);
+  local_graph_sub_ = nh_->create_subscription<graph_utils::msg::TopologicalGraph>(sub_local_graph_topic_, 1, 
+  std::bind(&GraphMarkers::topologicalLocalGraphCallback, this, std::placeholders::_1));
+  global_graph_sub_ = nh_->create_subscription<graph_utils::msg::TopologicalGraph>(sub_global_graph_topic_, 1, 
+  std::bind(&GraphMarkers::topologicalGlobalGraphCallback, this, std::placeholders::_1));
 
   // Initialize publishers
-  local_graph_marker_pub_ = nh_.advertise<visualization_msgs::Marker>(pub_local_graph_marker_topic_, 10);
-  global_graph_marker_pub_ = nh_.advertise<visualization_msgs::Marker>(pub_global_graph_marker_topic_, 10);
+  local_graph_marker_pub_ = nh_->create_publisher<visualization_msgs::msg::Marker>(pub_local_graph_marker_topic_, 10);
+  global_graph_marker_pub_ = nh_->create_publisher<visualization_msgs::msg::Marker>(pub_global_graph_marker_topic_, 10);
 
   // Initialize markers
   initializeMarkers();
 
-  ROS_INFO("Successfully launched GraphVisualization node");
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched GraphVisualization node!");
 
   return true;
 }
 
-GraphMarkers::GraphMarkers(const ros::NodeHandle& nh)
+GraphMarkers::GraphMarkers(rclcpp::Node::SharedPtr& node_handle)
 {
-  nh_ = nh;
+  nh_ = node_handle;
   initialize();
 }

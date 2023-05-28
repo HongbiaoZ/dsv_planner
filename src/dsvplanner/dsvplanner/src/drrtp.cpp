@@ -8,26 +8,29 @@ Created by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 
 #include <eigen3/Eigen/Dense>
 
-#include <visualization_msgs/Marker.h>
-
 #include <dsvplanner/drrtp.h>
 
 using namespace Eigen;
 
-dsvplanner_ns::drrtPlanner::drrtPlanner(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private)
-  : nh_(nh), nh_private_(nh_private)
+dsvplanner_ns::drrtPlanner::drrtPlanner(rclcpp::Node::SharedPtr& node_handle)
+  : nh_(node_handle)
 {
-  manager_ = new volumetric_mapping::OctomapManager(nh_, nh_private_);
-  grid_ = new OccupancyGrid(nh_, nh_private_);
-  dual_state_graph_ = new DualStateGraph(nh_, nh_private_, manager_, grid_);
-  dual_state_frontier_ = new DualStateFrontier(nh_, nh_private_, manager_, grid_);
-  drrt_ = new Drrt(manager_, dual_state_graph_, dual_state_frontier_, grid_);
+  manager_ = new volumetric_mapping::OctomapManager(nh_);
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched octomap node");
+  grid_ = new OccupancyGrid(nh_);
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched grid node");
+  dual_state_graph_ = new DualStateGraph(nh_, manager_, grid_);
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched graph node");
+  dual_state_frontier_ = new DualStateFrontier(nh_, manager_, grid_);
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched frontier node");
+  drrt_ = new Drrt(nh_, manager_, dual_state_graph_, dual_state_frontier_, grid_);
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched drrt node");
 
   init();
   drrt_->setParams(params_);
   drrt_->init();
 
-  ROS_INFO("Successfully launched DSVP node");
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched DSVP node");
 }
 
 dsvplanner_ns::drrtPlanner::~drrtPlanner()
@@ -54,21 +57,21 @@ dsvplanner_ns::drrtPlanner::~drrtPlanner()
   }
 }
 
-void dsvplanner_ns::drrtPlanner::odomCallback(const nav_msgs::Odometry& pose)
+void dsvplanner_ns::drrtPlanner::odomCallback(const nav_msgs::msg::Odometry::SharedPtr pose)
 {
-  drrt_->setRootWithOdom(pose);
+  drrt_->setRootWithOdom(*pose);
   // Planner is now ready to plan.
   drrt_->plannerReady_ = true;
 }
 
-void dsvplanner_ns::drrtPlanner::boundaryCallback(const geometry_msgs::PolygonStamped& boundary)
+void dsvplanner_ns::drrtPlanner::boundaryCallback(const geometry_msgs::msg::PolygonStamped::SharedPtr boundary)
 {
-  drrt_->setBoundary(boundary);
-  dual_state_frontier_->setBoundary(boundary);
+  drrt_->setBoundary(*boundary);
+  dual_state_frontier_->setBoundary(*boundary);
 }
 
-bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_srv::Request& req,
-                                                        dsvplanner::dsvplanner_srv::Response& res)
+bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::Dsvplanner::Request::SharedPtr req, 
+                                                              dsvplanner::srv::Dsvplanner::Response::SharedPtr res)
 {
   plan_start_ = std::chrono::steady_clock::now();
   // drrt_->gotoxy(0, 10);  // Go to the specific line on the screen
@@ -100,7 +103,7 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
 
   // Iterate the tree construction method.
   int loopCount = 0;
-  while (ros::ok() && drrt_->remainingFrontier_ && drrt_->getNodeCounter() < params_.kCuttoffIterations &&
+  while (rclcpp::ok() && drrt_->remainingFrontier_ && drrt_->getNodeCounter() < params_.kCuttoffIterations &&
          !(drrt_->normal_local_iteration_ && (drrt_->getNodeCounter() >= params_.kVertexSize && drrt_->gainFound())))
   {
     if (loopCount > drrt_->loopCount_ * (drrt_->getNodeCounter() + 1))
@@ -129,19 +132,19 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
   dual_state_frontier_->setPlannerStatus(drrt_->global_plan_pre_);
 
   // Update planner state of next iteration
-  geometry_msgs::Point robot_position;
+  geometry_msgs::msg::Point robot_position;
   robot_position.x = drrt_->root_[0];
   robot_position.y = drrt_->root_[1];
   robot_position.z = drrt_->root_[2];
   if (!drrt_->nextNodeFound_ && drrt_->global_plan_pre_ && drrt_->gainFound() <= 0)
   {
     drrt_->return_home_ = true;
-    geometry_msgs::Point home_position;
+    geometry_msgs::msg::Point home_position;
     home_position.x = 0;
     home_position.y = 0;
     home_position.z = 0;
-    res.goal.push_back(home_position);
-    res.mode.data = 2;  // mode 2 means returning home
+    res->goal.push_back(home_position);
+    res->mode.data = 2;  // mode 2 means returning home
 
     dual_state_frontier_->cleanAllUselessFrontiers();
     return true;
@@ -166,7 +169,7 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
       double(time_span.count()) * std::chrono::steady_clock::period::num / std::chrono::steady_clock::period::den;
 
   // Extract next goal.
-  geometry_msgs::Point next_goal_position;
+  geometry_msgs::msg::Point next_goal_position;
   if (drrt_->nextNodeFound_)
   {
     dual_state_graph_->best_vertex_id_ = drrt_->NextBestNodeIdx_;
@@ -186,13 +189,13 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
     next_goal_position = dual_state_graph_->getBestLocalVertexPosition();
   }
   dual_state_graph_->setCurrentPlannerStatus(drrt_->global_plan_pre_);
-  res.goal.push_back(next_goal_position);
-  res.mode.data = 1;  // mode 1 means exploration
+  res->goal.push_back(next_goal_position);
+  res->mode.data = 1;  // mode 1 means exploration
 
-  geometry_msgs::PointStamped next_goal_point;
+  geometry_msgs::msg::PointStamped next_goal_point;
   next_goal_point.header.frame_id = "map";
   next_goal_point.point = next_goal_position;
-  params_.nextGoalPub_.publish(next_goal_point);
+  params_.nextGoalPub_->publish(next_goal_point);
 
   plan_over_ = std::chrono::steady_clock::now();
   time_span = plan_over_ - plan_start_;
@@ -204,8 +207,8 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(dsvplanner::dsvplanner_s
   return true;
 }
 
-bool dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback(dsvplanner::clean_frontier_srv::Request& req,
-                                                              dsvplanner::clean_frontier_srv::Response& res)
+bool dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback(const dsvplanner::srv::CleanFrontier::Request::SharedPtr req,
+                                                                    dsvplanner::srv::CleanFrontier::Response::SharedPtr res)
 {
   if (drrt_->nextNodeFound_)
   {
@@ -216,7 +219,7 @@ bool dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback(dsvplanner::clean_
   {
     dual_state_graph_->clearLocalGraph();
   }
-  res.success = true;
+  res->success = true;
 
   return true;
 }
@@ -235,63 +238,121 @@ void dsvplanner_ns::drrtPlanner::cleanLastSelectedGlobalFrontier()
 
 bool dsvplanner_ns::drrtPlanner::setParams()
 {
-  nh_private_.getParam("/rm/kSensorPitch", params_.sensorPitch);
-  nh_private_.getParam("/rm/kSensorHorizontal", params_.sensorHorizontalView);
-  nh_private_.getParam("/rm/kSensorVertical", params_.sensorVerticalView);
-  nh_private_.getParam("/rm/kVehicleHeight", params_.kVehicleHeight);
-  nh_private_.getParam("/rm/kBoundX", params_.boundingBox[0]);
-  nh_private_.getParam("/rm/kBoundY", params_.boundingBox[1]);
-  nh_private_.getParam("/rm/kBoundZ", params_.boundingBox[2]);
-  nh_private_.getParam("/drrt/gain/kFree", params_.kGainFree);
-  nh_private_.getParam("/drrt/gain/kOccupied", params_.kGainOccupied);
-  nh_private_.getParam("/drrt/gain/kUnknown", params_.kGainUnknown);
-  nh_private_.getParam("/drrt/gain/kMinEffectiveGain", params_.kMinEffectiveGain);
-  nh_private_.getParam("/drrt/gain/kRange", params_.kGainRange);
-  nh_private_.getParam("/drrt/gain/kRangeZMinus", params_.kGainRangeZMinus);
-  nh_private_.getParam("/drrt/gain/kRangeZPlus", params_.kGainRangeZPlus);
-  nh_private_.getParam("/drrt/gain/kZero", params_.kZeroGain);
-  nh_private_.getParam("/drrt/tree/kExtensionRange", params_.kExtensionRange);
-  nh_private_.getParam("/drrt/tree/kMinExtensionRange", params_.kMinextensionRange);
-  nh_private_.getParam("/drrt/tree/kMaxExtensionAlongZ", params_.kMaxExtensionAlongZ);
-  nh_private_.getParam("/rrt/tree/kExactRoot", params_.kExactRoot);
-  nh_private_.getParam("/drrt/tree/kCuttoffIterations", params_.kCuttoffIterations);
-  nh_private_.getParam("/drrt/tree/kGlobalExtraIterations", params_.kGlobalExtraIterations);
-  nh_private_.getParam("/drrt/tree/kRemainingNodeScaleSize", params_.kRemainingNodeScaleSize);
-  nh_private_.getParam("/drrt/tree/kRemainingBranchScaleSize", params_.kRemainingBranchScaleSize);
-  nh_private_.getParam("/drrt/tree/kNewNodeScaleSize", params_.kNewNodeScaleSize);
-  nh_private_.getParam("/drrt/tree/kNewBranchScaleSize", params_.kNewBranchScaleSize);
-  nh_private_.getParam("/drrt/tfFrame", params_.explorationFrame);
-  nh_private_.getParam("/drrt/vertexSize", params_.kVertexSize);
-  nh_private_.getParam("/drrt/keepTryingNum", params_.kKeepTryingNum);
-  nh_private_.getParam("/drrt/kLoopCountThres", params_.kLoopCountThres);
-  nh_private_.getParam("/lb/kMinXLocal", params_.kMinXLocalBound);
-  nh_private_.getParam("/lb/kMinYLocal", params_.kMinYLocalBound);
-  nh_private_.getParam("/lb/kMinZLocal", params_.kMinZLocalBound);
-  nh_private_.getParam("/lb/kMaxXLocal", params_.kMaxXLocalBound);
-  nh_private_.getParam("/lb/kMaxYLocal", params_.kMaxYLocalBound);
-  nh_private_.getParam("/lb/kMaxZLocal", params_.kMaxZLocalBound);
-  nh_private_.getParam("/gb/kMinXGlobal", params_.kMinXGlobalBound);
-  nh_private_.getParam("/gb/kMinYGlobal", params_.kMinYGlobalBound);
-  nh_private_.getParam("/gb/kMinZGlobal", params_.kMinZGlobalBound);
-  nh_private_.getParam("/gb/kMaxXGlobal", params_.kMaxXGlobalBound);
-  nh_private_.getParam("/gb/kMaxYGlobal", params_.kMaxYGlobalBound);
-  nh_private_.getParam("/gb/kMaxZGlobal", params_.kMaxZGlobalBound);
-  nh_private_.getParam("/elevation/kTerrainVoxelSize", params_.kTerrainVoxelSize);
-  nh_private_.getParam("/elevation/kTerrainVoxelWidth", params_.kTerrainVoxelWidth);
-  nh_private_.getParam("/elevation/kTerrainVoxelHalfWidth", params_.kTerrainVoxelHalfWidth);
-  nh_private_.getParam("/planner/odomSubTopic", odomSubTopic);
-  nh_private_.getParam("/planner/boundarySubTopic", boundarySubTopic);
-  nh_private_.getParam("/planner/newTreePathPubTopic", newTreePathPubTopic);
-  nh_private_.getParam("/planner/remainingTreePathPubTopic", remainingTreePathPubTopic);
-  nh_private_.getParam("/planner/boundaryPubTopic", boundaryPubTopic);
-  nh_private_.getParam("/planner/globalSelectedFrontierPubTopic", globalSelectedFrontierPubTopic);
-  nh_private_.getParam("/planner/localSelectedFrontierPubTopic", localSelectedFrontierPubTopic);
-  nh_private_.getParam("/planner/plantimePubTopic", plantimePubTopic);
-  nh_private_.getParam("/planner/nextGoalPubTopic", nextGoalPubTopic);
-  nh_private_.getParam("/planner/randomSampledPointsPubTopic", randomSampledPointsPubTopic);
-  nh_private_.getParam("/planner/shutDownTopic", shutDownTopic);
-  nh_private_.getParam("/planner/plannerServiceName", plannerServiceName);
-  nh_private_.getParam("/planner/cleanFrontierServiceName", cleanFrontierServiceName);
+  nh_->declare_parameter("rm/kSensorPitch", params_.sensorPitch);
+  nh_->declare_parameter("rm/kSensorHorizontal", params_.sensorHorizontalView);
+  nh_->declare_parameter("rm/kSensorVertical", params_.sensorVerticalView);
+  nh_->declare_parameter("rm/kVehicleHeight", params_.kVehicleHeight);
+  nh_->declare_parameter("rm/kBoundX", params_.boundingBox[0]);
+  nh_->declare_parameter("rm/kBoundY", params_.boundingBox[1]);
+  nh_->declare_parameter("rm/kBoundZ", params_.boundingBox[2]);
+  nh_->declare_parameter("drrt/gain/kFree", params_.kGainFree);
+  nh_->declare_parameter("drrt/gain/kOccupied", params_.kGainOccupied);
+  nh_->declare_parameter("drrt/gain/kUnknown", params_.kGainUnknown);
+  nh_->declare_parameter("drrt/gain/kMinEffectiveGain", params_.kMinEffectiveGain);
+  nh_->declare_parameter("drrt/gain/kRange", params_.kGainRange);
+  nh_->declare_parameter("drrt/gain/kRangeZMinus", params_.kGainRangeZMinus);
+  nh_->declare_parameter("drrt/gain/kRangeZPlus", params_.kGainRangeZPlus);
+  nh_->declare_parameter("drrt/gain/kZero", params_.kZeroGain);
+  nh_->declare_parameter("drrt/tree/kExtensionRange", params_.kExtensionRange);
+  nh_->declare_parameter("drrt/tree/kMinExtensionRange", params_.kMinextensionRange);
+  nh_->declare_parameter("drrt/tree/kMaxExtensionAlongZ", params_.kMaxExtensionAlongZ);
+  nh_->declare_parameter("drrt/tree/kExactRoot", params_.kExactRoot);
+  nh_->declare_parameter("drrt/tree/kCuttoffIterations", params_.kCuttoffIterations);
+  nh_->declare_parameter("drrt/tree/kGlobalExtraIterations", params_.kGlobalExtraIterations);
+  nh_->declare_parameter("drrt/tree/kRemainingNodeScaleSize", params_.kRemainingNodeScaleSize);
+  nh_->declare_parameter("drrt/tree/kRemainingBranchScaleSize", params_.kRemainingBranchScaleSize);
+  nh_->declare_parameter("drrt/tree/kNewNodeScaleSize", params_.kNewNodeScaleSize);
+  nh_->declare_parameter("drrt/tree/kNewBranchScaleSize", params_.kNewBranchScaleSize);
+  nh_->declare_parameter("drrt/tfFrame", params_.explorationFrame);
+  nh_->declare_parameter("drrt/vertexSize", params_.kVertexSize);
+  nh_->declare_parameter("drrt/keepTryingNum", params_.kKeepTryingNum);
+  nh_->declare_parameter("drrt/kLoopCountThres", params_.kLoopCountThres);
+  nh_->declare_parameter("lb/kMinXLocal", params_.kMinXLocalBound);
+  nh_->declare_parameter("lb/kMinYLocal", params_.kMinYLocalBound);
+  nh_->declare_parameter("lb/kMinZLocal", params_.kMinZLocalBound);
+  nh_->declare_parameter("lb/kMaxXLocal", params_.kMaxXLocalBound);
+  nh_->declare_parameter("lb/kMaxYLocal", params_.kMaxYLocalBound);
+  nh_->declare_parameter("lb/kMaxZLocal", params_.kMaxZLocalBound);
+  nh_->declare_parameter("gb/kMinXGlobal", params_.kMinXGlobalBound);
+  nh_->declare_parameter("gb/kMinYGlobal", params_.kMinYGlobalBound);
+  nh_->declare_parameter("gb/kMinZGlobal", params_.kMinZGlobalBound);
+  nh_->declare_parameter("gb/kMaxXGlobal", params_.kMaxXGlobalBound);
+  nh_->declare_parameter("gb/kMaxYGlobal", params_.kMaxYGlobalBound);
+  nh_->declare_parameter("gb/kMaxZGlobal", params_.kMaxZGlobalBound);
+  nh_->declare_parameter("elevation/kTerrainVoxelSize", params_.kTerrainVoxelSize);
+  nh_->declare_parameter("elevation/kTerrainVoxelWidth", params_.kTerrainVoxelWidth);
+  nh_->declare_parameter("elevation/kTerrainVoxelHalfWidth", params_.kTerrainVoxelHalfWidth);
+  nh_->declare_parameter("planner/odomSubTopic", odomSubTopic);
+  nh_->declare_parameter("planner/boundarySubTopic", boundarySubTopic);
+  nh_->declare_parameter("planner/newTreePathPubTopic", newTreePathPubTopic);
+  nh_->declare_parameter("planner/remainingTreePathPubTopic", remainingTreePathPubTopic);
+  nh_->declare_parameter("planner/boundaryPubTopic", boundaryPubTopic);
+  nh_->declare_parameter("planner/globalSelectedFrontierPubTopic", globalSelectedFrontierPubTopic);
+  nh_->declare_parameter("planner/localSelectedFrontierPubTopic", localSelectedFrontierPubTopic);
+  nh_->declare_parameter("planner/plantimePubTopic", plantimePubTopic);
+  nh_->declare_parameter("planner/nextGoalPubTopic", nextGoalPubTopic);
+  nh_->declare_parameter("planner/randomSampledPointsPubTopic", randomSampledPointsPubTopic);
+  nh_->declare_parameter("planner/shutDownTopic", shutDownTopic);
+  nh_->declare_parameter("planner/plannerServiceName", plannerServiceName);
+  nh_->declare_parameter("planner/cleanFrontierServiceName", cleanFrontierServiceName);
+
+  nh_->get_parameter("rm/kSensorPitch", params_.sensorPitch);
+  nh_->get_parameter("rm/kSensorHorizontal", params_.sensorHorizontalView);
+  nh_->get_parameter("rm/kSensorVertical", params_.sensorVerticalView);
+  nh_->get_parameter("rm/kVehicleHeight", params_.kVehicleHeight);
+  nh_->get_parameter("rm/kBoundX", params_.boundingBox[0]);
+  nh_->get_parameter("rm/kBoundY", params_.boundingBox[1]);
+  nh_->get_parameter("rm/kBoundZ", params_.boundingBox[2]);
+  nh_->get_parameter("drrt/gain/kFree", params_.kGainFree);
+  nh_->get_parameter("drrt/gain/kOccupied", params_.kGainOccupied);
+  nh_->get_parameter("drrt/gain/kUnknown", params_.kGainUnknown);
+  nh_->get_parameter("drrt/gain/kMinEffectiveGain", params_.kMinEffectiveGain);
+  nh_->get_parameter("drrt/gain/kRange", params_.kGainRange);
+  nh_->get_parameter("drrt/gain/kRangeZMinus", params_.kGainRangeZMinus);
+  nh_->get_parameter("drrt/gain/kRangeZPlus", params_.kGainRangeZPlus);
+  nh_->get_parameter("drrt/gain/kZero", params_.kZeroGain);
+  nh_->get_parameter("drrt/tree/kExtensionRange", params_.kExtensionRange);
+  nh_->get_parameter("drrt/tree/kMinExtensionRange", params_.kMinextensionRange);
+  nh_->get_parameter("drrt/tree/kMaxExtensionAlongZ", params_.kMaxExtensionAlongZ);
+  nh_->get_parameter("/rrt/tree/kExactRoot", params_.kExactRoot);
+  nh_->get_parameter("drrt/tree/kCuttoffIterations", params_.kCuttoffIterations);
+  nh_->get_parameter("drrt/tree/kGlobalExtraIterations", params_.kGlobalExtraIterations);
+  nh_->get_parameter("drrt/tree/kRemainingNodeScaleSize", params_.kRemainingNodeScaleSize);
+  nh_->get_parameter("drrt/tree/kRemainingBranchScaleSize", params_.kRemainingBranchScaleSize);
+  nh_->get_parameter("drrt/tree/kNewNodeScaleSize", params_.kNewNodeScaleSize);
+  nh_->get_parameter("drrt/tree/kNewBranchScaleSize", params_.kNewBranchScaleSize);
+  nh_->get_parameter("drrt/tfFrame", params_.explorationFrame);
+  nh_->get_parameter("drrt/vertexSize", params_.kVertexSize);
+  nh_->get_parameter("drrt/keepTryingNum", params_.kKeepTryingNum);
+  nh_->get_parameter("drrt/kLoopCountThres", params_.kLoopCountThres);
+  nh_->get_parameter("lb/kMinXLocal", params_.kMinXLocalBound);
+  nh_->get_parameter("lb/kMinYLocal", params_.kMinYLocalBound);
+  nh_->get_parameter("lb/kMinZLocal", params_.kMinZLocalBound);
+  nh_->get_parameter("lb/kMaxXLocal", params_.kMaxXLocalBound);
+  nh_->get_parameter("lb/kMaxYLocal", params_.kMaxYLocalBound);
+  nh_->get_parameter("lb/kMaxZLocal", params_.kMaxZLocalBound);
+  nh_->get_parameter("gb/kMinXGlobal", params_.kMinXGlobalBound);
+  nh_->get_parameter("gb/kMinYGlobal", params_.kMinYGlobalBound);
+  nh_->get_parameter("gb/kMinZGlobal", params_.kMinZGlobalBound);
+  nh_->get_parameter("gb/kMaxXGlobal", params_.kMaxXGlobalBound);
+  nh_->get_parameter("gb/kMaxYGlobal", params_.kMaxYGlobalBound);
+  nh_->get_parameter("gb/kMaxZGlobal", params_.kMaxZGlobalBound);
+  nh_->get_parameter("elevation/kTerrainVoxelSize", params_.kTerrainVoxelSize);
+  nh_->get_parameter("elevation/kTerrainVoxelWidth", params_.kTerrainVoxelWidth);
+  nh_->get_parameter("elevation/kTerrainVoxelHalfWidth", params_.kTerrainVoxelHalfWidth);
+  nh_->get_parameter("planner/odomSubTopic", odomSubTopic);
+  nh_->get_parameter("planner/boundarySubTopic", boundarySubTopic);
+  nh_->get_parameter("planner/newTreePathPubTopic", newTreePathPubTopic);
+  nh_->get_parameter("planner/remainingTreePathPubTopic", remainingTreePathPubTopic);
+  nh_->get_parameter("planner/boundaryPubTopic", boundaryPubTopic);
+  nh_->get_parameter("planner/globalSelectedFrontierPubTopic", globalSelectedFrontierPubTopic);
+  nh_->get_parameter("planner/localSelectedFrontierPubTopic", localSelectedFrontierPubTopic);
+  nh_->get_parameter("planner/plantimePubTopic", plantimePubTopic);
+  nh_->get_parameter("planner/nextGoalPubTopic", nextGoalPubTopic);
+  nh_->get_parameter("planner/randomSampledPointsPubTopic", randomSampledPointsPubTopic);
+  nh_->get_parameter("planner/shutDownTopic", shutDownTopic);
+  nh_->get_parameter("planner/plannerServiceName", plannerServiceName);
+  nh_->get_parameter("planner/cleanFrontierServiceName", cleanFrontierServiceName);
 
   return true;
 }
@@ -300,25 +361,26 @@ bool dsvplanner_ns::drrtPlanner::init()
 {
   if (!setParams())
   {
-    ROS_ERROR("Set parameters fail. Cannot start planning!");
+    RCLCPP_ERROR(nh_->get_logger(), "Set parameters fail. Cannot start planning!");
   }
 
-  odomSub_ = nh_.subscribe(odomSubTopic, 10, &dsvplanner_ns::drrtPlanner::odomCallback, this);
-  boundarySub_ = nh_.subscribe(boundarySubTopic, 10, &dsvplanner_ns::drrtPlanner::boundaryCallback, this);
+  odomSub_ = nh_->create_subscription<nav_msgs::msg::Odometry>(odomSubTopic, 1, 
+  std::bind(&dsvplanner_ns::drrtPlanner::odomCallback, this, std::placeholders::_1));
 
-  params_.newTreePathPub_ = nh_.advertise<visualization_msgs::Marker>(newTreePathPubTopic, 1000);
-  params_.remainingTreePathPub_ = nh_.advertise<visualization_msgs::Marker>(remainingTreePathPubTopic, 1000);
-  params_.boundaryPub_ = nh_.advertise<visualization_msgs::Marker>(boundaryPubTopic, 1000);
-  params_.globalSelectedFrontierPub_ = nh_.advertise<sensor_msgs::PointCloud2>(globalSelectedFrontierPubTopic, 1000);
-  params_.localSelectedFrontierPub_ = nh_.advertise<sensor_msgs::PointCloud2>(localSelectedFrontierPubTopic, 1000);
-  params_.randomSampledPointsPub_ = nh_.advertise<sensor_msgs::PointCloud2>(randomSampledPointsPubTopic, 1000);
-  params_.plantimePub_ = nh_.advertise<std_msgs::Float32>(plantimePubTopic, 1000);
-  params_.nextGoalPub_ = nh_.advertise<geometry_msgs::PointStamped>(nextGoalPubTopic, 1000);
-  params_.shutdownSignalPub = nh_.advertise<std_msgs::Bool>(shutDownTopic, 1000);
+  boundarySub_ = nh_->create_subscription<geometry_msgs::msg::PolygonStamped>(boundarySubTopic, 1, 
+  std::bind(&dsvplanner_ns::drrtPlanner::boundaryCallback, this, std::placeholders::_1));
 
-  plannerService_ = nh_.advertiseService(plannerServiceName, &dsvplanner_ns::drrtPlanner::plannerServiceCallback, this);
-  cleanFrontierService_ =
-      nh_.advertiseService(cleanFrontierServiceName, &dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback, this);
+  params_.newTreePathPub_ = nh_->create_publisher<visualization_msgs::msg::Marker>(newTreePathPubTopic, 1000);
+  params_.remainingTreePathPub_ = nh_->create_publisher<visualization_msgs::msg::Marker>(remainingTreePathPubTopic, 1000);
+  params_.boundaryPub_ = nh_->create_publisher<visualization_msgs::msg::Marker>(boundaryPubTopic, 1000);
+  params_.globalSelectedFrontierPub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>(globalSelectedFrontierPubTopic, 1000);
+  params_.localSelectedFrontierPub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>(localSelectedFrontierPubTopic, 1000);
+  params_.randomSampledPointsPub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>(randomSampledPointsPubTopic, 1000);
+  params_.plantimePub_ = nh_->create_publisher<std_msgs::msg::Float32>(plantimePubTopic, 1000);
+  params_.nextGoalPub_ = nh_->create_publisher<geometry_msgs::msg::PointStamped>(nextGoalPubTopic, 1000);
+  params_.shutdownSignalPub = nh_->create_publisher<std_msgs::msg::Bool>(shutDownTopic, 1);
 
+  plannerService_ = nh_->create_service<dsvplanner::srv::Dsvplanner>(plannerServiceName, std::bind(&dsvplanner_ns::drrtPlanner::plannerServiceCallback, this, std::placeholders::_1, std::placeholders::_2));
+  cleanFrontierService_ = nh_->create_service<dsvplanner::srv::CleanFrontier>(cleanFrontierServiceName, std::bind(&dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback, this, std::placeholders::_1, std::placeholders::_2));
   return true;
 }

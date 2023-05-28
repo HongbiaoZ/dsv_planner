@@ -15,15 +15,12 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include <sstream>
 #include <vector>
 
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/PolygonStamped.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <nav_msgs/Odometry.h>
-#include <ros/package.h>
-#include <ros/ros.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Float32.h>
-#include <std_msgs/Float32MultiArray.h>
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/point_stamped.hpp>
+#include <visualization_msgs/msg/marker.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/float32.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
 
 #define SQ(x) ((x) * (x))
 #define SQRT2 0.70711
@@ -33,23 +30,23 @@ namespace dsvplanner_ns
 {
 struct Params
 {
-  ros::Publisher newTreePathPub_;
-  ros::Publisher remainingTreePathPub_;
-  ros::Publisher boundaryPub_;
-  ros::Publisher globalSelectedFrontierPub_;
-  ros::Publisher localSelectedFrontierPub_;
-  ros::Publisher nextGoalPub_;
-  ros::Publisher plantimePub_;
-  ros::Publisher randomSampledPointsPub_;
-  ros::Publisher shutdownSignalPub;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr newTreePathPub_;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr remainingTreePathPub_;
+  rclcpp::Publisher<visualization_msgs::msg::Marker>::SharedPtr boundaryPub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr globalSelectedFrontierPub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr localSelectedFrontierPub_;
+  rclcpp::Publisher<geometry_msgs::msg::PointStamped>::SharedPtr nextGoalPub_;
+  rclcpp::Publisher<std_msgs::msg::Float32>::SharedPtr plantimePub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr randomSampledPointsPub_;
+  rclcpp::Publisher<std_msgs::msg::Bool>::SharedPtr shutdownSignalPub;
 
   double sensorPitch;
   double sensorHorizontalView;
   double sensorVerticalView;
   double kVehicleHeight;
-  Eigen::Vector3d boundingBox;
-  Eigen::Vector3d localBoundary;
-  Eigen::Vector3d globalBoundary;
+  Vector3d boundingBox;
+  Vector3d localBoundary;
+  Vector3d globalBoundary;
 
   double kGainFree;
   double kGainOccupied;

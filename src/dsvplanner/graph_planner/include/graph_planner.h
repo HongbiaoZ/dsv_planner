@@ -12,17 +12,15 @@ Modified and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #define GRAPH_PLANNER_H
 #include <string>
 
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/PointStamped.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <nav_msgs/Odometry.h>
-#include <nav_msgs/Path.h>
-#include <ros/ros.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <std_msgs/Bool.h>
-#include <std_msgs/Float32.h>
-#include <std_msgs/Int32.h>
-#include <visualization_msgs/Marker.h>
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/point_stamped.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include <nav_msgs/msg/path.hpp>
+#include <sensor_msgs//msg/point_cloud2.hpp>
+#include <std_msgs/msg/bool.hpp>
+#include <std_msgs/msg/float32.hpp>
+#include <std_msgs/msg/int32.hpp>
 
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -30,11 +28,11 @@ Modified and maintained by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 #include <pcl/point_types.h>
 #include <pcl_conversions/pcl_conversions.h>
 
-#include "graph_planner/GraphPlannerCommand.h"
-#include "graph_planner/GraphPlannerStatus.h"
-#include "graph_utils/Edge.h"
-#include "graph_utils/TopologicalGraph.h"
-#include "graph_utils/Vertex.h"
+#include "graph_planner/msg/graph_planner_command.hpp"
+#include "graph_planner/msg/graph_planner_status.hpp"
+#include "graph_utils/msg/edge.hpp"
+#include "graph_utils/msg/topological_graph.hpp"
+#include "graph_utils/msg/vertex.hpp"
 
 namespace graph_planner_ns
 {
@@ -53,18 +51,18 @@ class graph_planner_ns::GraphPlanner
 {
 private:
   // ROS Nodehandler
-  ros::NodeHandle nh_;
+  rclcpp::Node::SharedPtr nh_;
 
   // ROS subscribers
-  ros::Subscriber odometry_sub_;
-  ros::Subscriber terrain_sub_;
-  ros::Subscriber graph_sub_;
-  ros::Subscriber graph_planner_command_sub_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odometry_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr terrain_sub_;
+  rclcpp::Subscription<graph_utils::msg::TopologicalGraph>::SharedPtr graph_sub_;
+  rclcpp::Subscription<graph_planner::msg::GraphPlannerCommand>::SharedPtr graph_planner_command_sub_;
 
   // ROS publishers
-  ros::Publisher waypoint_pub_;
-  ros::Publisher graph_planner_status_pub_;
-  ros::Publisher graph_planner_path_pub_;
+  rclcpp::Publisher<geometry_msgs::msg::PointStamped>::SharedPtr waypoint_pub_;
+  rclcpp::Publisher<graph_planner::msg::GraphPlannerStatus>::SharedPtr graph_planner_status_pub_;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr graph_planner_path_pub_;
 
   // String constants
   std::string world_frame_id_;
@@ -95,16 +93,16 @@ private:
   GraphPlannerState state_;
 
   // Variables
-  graph_planner::GraphPlannerCommand graph_planner_command_;  // received command
-  graph_utils::TopologicalGraph planned_graph_;               // the received graph that can be palnned path in
-  geometry_msgs::PointStamped waypoint_;                      // goal waypoint being published by
+  graph_planner::msg::GraphPlannerCommand graph_planner_command_;  // received command
+  graph_utils::msg::TopologicalGraph planned_graph_;               // the received graph that can be palnned path in
+  geometry_msgs::msg::PointStamped waypoint_;                      // goal waypoint being published by
                                                               // this node (if in mode IN_CONTROL)
-  geometry_msgs::Point robot_pos_;                            // current robot position
+  geometry_msgs::msg::Point robot_pos_;                            // current robot position
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_point_ =
       pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>());
   pcl::PointCloud<pcl::PointXYZI>::Ptr terrain_point_crop_ =
       pcl::PointCloud<pcl::PointXYZI>::Ptr(new pcl::PointCloud<pcl::PointXYZI>());
-  std::vector<geometry_msgs::Point> planned_path_;  // only used for debugging --
+  std::vector<geometry_msgs::msg::Point> planned_path_;  // only used for debugging --
                                                     // the waypoint_ is what is
                                                     // actually
                                                     // output
@@ -118,19 +116,19 @@ private:
   int previous_vertex_id_;                    // the id of the previous planned goal vertex
 
   // Callbacks
-  void odometryCallback(const nav_msgs::Odometry::ConstPtr& odometry_msg);
-  void graphCallback(const graph_utils::TopologicalGraph::ConstPtr& graph_msg);
-  void commandCallback(const graph_planner::GraphPlannerCommand::ConstPtr& msg);
-  void terrainCallback(const sensor_msgs::PointCloud2::ConstPtr& terrain_msg);
+  void odometryCallback(const nav_msgs::msg::Odometry::SharedPtr odometry_msg);
+  void graphCallback(const graph_utils::msg::TopologicalGraph::SharedPtr graph_msg);
+  void commandCallback(const graph_planner::msg::GraphPlannerCommand::SharedPtr msg);
+  void terrainCallback(const sensor_msgs::msg::PointCloud2::SharedPtr terrain_msg);
   // Other functions
   void publishPath();
   void alterAndPublishWaypoint();
   void publishInProgress(bool in_progress);
   bool readParameters();
   bool goToVertex(int current_vertex_idx, int goal_vertex_idx);
-  bool goToPoint(geometry_msgs::Point point);
-  bool collisionCheckByTerrain(geometry_msgs::Point robot_position, int end_vertex_idx);
-  geometry_msgs::Point projectWayPoint(geometry_msgs::Point next_vertex_pos, geometry_msgs::Point robot_pos);
+  bool goToPoint(geometry_msgs::msg::Point point);
+  bool collisionCheckByTerrain(geometry_msgs::msg::Point robot_position, int end_vertex_idx);
+  geometry_msgs::msg::Point projectWayPoint(geometry_msgs::msg::Point next_vertex_pos, geometry_msgs::msg::Point robot_pos);
 
   // Execute function variants
   void executeGoToOrigin();    // for returning home
@@ -138,7 +136,7 @@ private:
   void executeCommand();
 
 public:
-  explicit GraphPlanner(const ros::NodeHandle& nh);
+  explicit GraphPlanner(rclcpp::Node::SharedPtr& node_handle);
 
   virtual bool initialize();
   virtual bool execute();

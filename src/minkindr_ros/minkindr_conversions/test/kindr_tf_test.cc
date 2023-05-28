@@ -17,15 +17,15 @@ TEST(KindrTfTest, transformPointKindrToTf) {
   Eigen::Vector3d position(Eigen::Vector3d::Random());
   kindr::minimal::QuatTransformation kindr_transform(rotation, position);
 
-  tf::Transform tf_transform;
+  tf2::Transform tf_transform;
   transformKindrToTF(kindr_transform, &tf_transform);
 
   Eigen::Vector3d kindr_point(Eigen::Vector3d::Random());
-  tf::Vector3 tf_point;
+  tf2::Vector3 tf_point;
 
   vectorKindrToTF(kindr_point, &tf_point);
 
-  tf::Vector3 tf_output = tf_transform * tf_point;
+  tf2::Vector3 tf_output = tf_transform * tf_point;
   Eigen::Vector3d kindr_output = kindr_transform * kindr_point;
 
   EXPECT_NEAR(kindr_output.x(), tf_output.x(), kTestTolerance);
@@ -39,7 +39,7 @@ TEST(KindrTfTest, transformKindrToTFToKindr) {
   Eigen::Vector3d position(Eigen::Vector3d::Random());
   kindr::minimal::QuatTransformation kindr_transform(rotation, position);
 
-  tf::Transform tf_transform;
+  tf2::Transform tf_transform;
   transformKindrToTF(kindr_transform, &tf_transform);
   kindr::minimal::QuatTransformation output_transform;
   transformTFToKindr(tf_transform, &output_transform);
@@ -53,7 +53,7 @@ TEST(KindrTfTest, quaternionKindrToTFToKindr) {
   Eigen::Quaterniond rotation(Eigen::Vector4d::Random());
   rotation.normalize();
 
-  tf::Quaternion tf_quaternion;
+  tf2::Quaternion tf_quaternion;
   quaternionKindrToTF(rotation, &tf_quaternion);
   Eigen::Quaterniond output_rotation;
   quaternionTFToKindr(tf_quaternion, &output_rotation);
@@ -64,7 +64,7 @@ TEST(KindrTfTest, quaternionKindrToTFToKindr) {
 TEST(KindrTfTest, vectorKindrToTFToKindr) {
   Eigen::Vector3d position(Eigen::Vector3d::Random());
 
-  tf::Vector3 tf_vector;
+  tf2::Vector3 tf_vector;
   vectorKindrToTF(position, &tf_vector);
   Eigen::Vector3d output_position;
   vectorTFToKindr(tf_vector, &output_position);

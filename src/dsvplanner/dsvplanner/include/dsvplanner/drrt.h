@@ -15,7 +15,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include "dsvplanner/dual_state_graph.h"
 #include "dsvplanner/grid.h"
 #include "kdtree/kdtree.h"
-#include "octomap_world/octomap_manager.h"
+// #include "octomap_world/octomap_manager.h"
 
 using namespace Eigen;
 namespace dsvplanner_ns
@@ -23,7 +23,7 @@ namespace dsvplanner_ns
 class Drrt
 {
 public:
-  Drrt(volumetric_mapping::OctomapManager* manager, DualStateGraph* graph, DualStateFrontier* frontier,
+  Drrt(rclcpp::Node::SharedPtr& node_handle, volumetric_mapping::OctomapManager* manager, DualStateGraph* graph, DualStateFrontier* frontier,
        OccupancyGrid* grid);
   ~Drrt();
 
@@ -46,14 +46,14 @@ public:
                          // while 2
                          // or 3 times when there is no local frontier
   pcl::PointXYZ selectedGlobalFrontier_;
-  geometry_msgs::Polygon boundary_polygon_;
+  geometry_msgs::msg::Polygon boundary_polygon_;
   StateVec root_;
 
   void init();
   void clear();
   void setParams(Params params);
-  void setRootWithOdom(const nav_msgs::Odometry& pose);
-  void setBoundary(const geometry_msgs::PolygonStamped& boundary);
+  void setRootWithOdom(const nav_msgs::msg::Odometry& pose);
+  void setBoundary(const geometry_msgs::msg::PolygonStamped& boundary);
   void setTerrainVoxelElev();
   void getThreeLocalFrontierPoint();
   void getNextNodeToClosestGlobalFrontier();
@@ -92,7 +92,7 @@ protected:
   double maxX_;
   double maxY_;
   double maxZ_;
-  Eigen::Vector3d frontier1_direction_, frontier2_direction_, frontier3_direction_;
+  StateVec frontier1_direction_, frontier2_direction_, frontier3_direction_;
   pcl::PointCloud<pcl::PointXYZ>::Ptr localThreeFrontier_ =
       pcl::PointCloud<pcl::PointXYZ>::Ptr(new pcl::PointCloud<pcl::PointXYZ>());
   pcl::PointCloud<pcl::PointXYZ>::Ptr globalThreeFrontier_ =
@@ -108,6 +108,8 @@ protected:
   DualStateGraph* dual_state_graph_;
   DualStateFrontier* dual_state_frontier_;
   OccupancyGrid* grid_;
+
+  rclcpp::Node::SharedPtr nh_;
 };
 }
 

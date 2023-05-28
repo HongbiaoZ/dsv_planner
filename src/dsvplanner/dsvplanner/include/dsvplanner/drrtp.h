@@ -10,28 +10,29 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #ifndef DRRTP_H_
 #define DRRTP_H_
 
-#include "dsvplanner/clean_frontier_srv.h"
 #include "dsvplanner/drrt.h"
 #include "dsvplanner/drrt_base.h"
-#include "dsvplanner/dsvplanner_srv.h"
+#include "dsvplanner/srv/dsvplanner.hpp"
+#include "dsvplanner/srv/clean_frontier.hpp"
 #include "dsvplanner/dual_state_frontier.h"
 #include "dsvplanner/dual_state_graph.h"
 #include "dsvplanner/grid.h"
-#include "octomap_world/octomap_manager.h"
+// #include "octomap_world/octomap_manager.h"
+
+#include <visualization_msgs/msg/marker.hpp>
 
 namespace dsvplanner_ns
 {
 class drrtPlanner
 {
 public:
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_private_;
+  rclcpp::Node::SharedPtr nh_;
 
-  ros::Subscriber odomSub_;
-  ros::Subscriber boundarySub_;
+  rclcpp::Subscription<nav_msgs::msg::Odometry>::SharedPtr odomSub_;
+  rclcpp::Subscription<geometry_msgs::msg::PolygonStamped>::SharedPtr boundarySub_;
 
-  ros::ServiceServer plannerService_;
-  ros::ServiceServer cleanFrontierService_;
+  rclcpp::Service<dsvplanner::srv::Dsvplanner>::SharedPtr plannerService_;
+  rclcpp::Service<dsvplanner::srv::CleanFrontier>::SharedPtr cleanFrontierService_;
 
   Params params_;
   volumetric_mapping::OctomapManager* manager_;
@@ -43,14 +44,15 @@ public:
   bool init();
   bool setParams();
   // bool setPublisherPointer();
-  void odomCallback(const nav_msgs::Odometry& pose);
-  void boundaryCallback(const geometry_msgs::PolygonStamped& boundary);
-  bool plannerServiceCallback(dsvplanner::dsvplanner_srv::Request& req, dsvplanner::dsvplanner_srv::Response& res);
-  bool cleanFrontierServiceCallback(dsvplanner::clean_frontier_srv::Request& req,
-                                    dsvplanner::clean_frontier_srv::Response& res);
+  void odomCallback(const nav_msgs::msg::Odometry::SharedPtr pose);
+  void boundaryCallback(const geometry_msgs::msg::PolygonStamped::SharedPtr boundary);
+  bool plannerServiceCallback(const dsvplanner::srv::Dsvplanner::Request::SharedPtr req, 
+                                    dsvplanner::srv::Dsvplanner::Response::SharedPtr res);
+  bool cleanFrontierServiceCallback(const dsvplanner::srv::CleanFrontier::Request::SharedPtr req,
+                                          dsvplanner::srv::CleanFrontier::Response::SharedPtr res);
   void cleanLastSelectedGlobalFrontier();
 
-  drrtPlanner(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
+  drrtPlanner(rclcpp::Node::SharedPtr& node_handle);
   ~drrtPlanner();
 
 private:

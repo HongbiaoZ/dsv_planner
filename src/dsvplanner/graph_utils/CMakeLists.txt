@@ -1,47 +1,32 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(graph_utils)
 
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  rospy
-  std_msgs
-  message_generation
-  geometry_msgs
-  nav_msgs
-  misc_utils
-)
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(visualization_msgs REQUIRED)
+find_package(misc_utils REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(PCL REQUIRED COMPONENTS common io)
 
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
 
-## Generate messages in the 'msg' folder
- add_message_files(
-   FILES
-   TopologicalGraph.msg
-   Vertex.msg
-   Edge.msg
- )
-
 ## Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs
-   geometry_msgs
- )
-
-###################################
-## catkin specific configuration ##
-###################################
-
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES graph_utils
-  CATKIN_DEPENDS roscpp rospy std_msgs geometry_msgs message_runtime nav_msgs misc_utils
-#  DEPENDS system_lib
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/Edge.msg"
+  "msg/Vertex.msg"
+  "msg/TopologicalGraph.msg"
+  DEPENDENCIES std_msgs geometry_msgs 
 )
+
+ament_export_dependencies(rosidl_default_runtime)
 
 ###########
 ## Build ##
@@ -51,7 +36,8 @@ catkin_package(
 ## Your package locations should be listed before other locations
 include_directories(
  include
-  ${catkin_INCLUDE_DIRS}
+ ${ament_INCLUDE_DIRS}
+ ${PCL_INCLUDE_DIRS}
 )
 
 ###########################
@@ -59,9 +45,22 @@ include_directories(
 ###########################
 
 # graph_utils -- provide functions for graph handle
-add_library(graph_utils src/graph_utils.cpp)
-add_dependencies(graph_utils ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(graph_utils ${catkin_LIBRARIES})
+add_library(${PROJECT_NAME}_lib src/graph_utils.cpp)
+target_link_libraries(${PROJECT_NAME}_lib ${PCL_LIBRARIES})
+target_include_directories(${PROJECT_NAME}_lib PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+        $<INSTALL_INTERFACE:include>
+) 
+ament_target_dependencies(${PROJECT_NAME}_lib
+  rclcpp
+  misc_utils
+)
+ament_export_targets(${PROJECT_NAME}_lib HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+  rclcpp
+  misc_utils
+)
+rosidl_target_interfaces(${PROJECT_NAME}_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
 ##############################
 ## Declare a C++ executable ##
@@ -69,9 +68,39 @@ target_link_libraries(graph_utils ${catkin_LIBRARIES})
 
 # graph_visulization -- generates rviz markers based on the output of graph
 add_executable(graph_visualization src/graph_visualization.cpp src/graph_visualization_node.cpp)
-add_dependencies(graph_visualization ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(graph_visualization ${catkin_LIBRARIES})
+ament_target_dependencies(graph_visualization
+    rclcpp
+    std_msgs
+    geometry_msgs
+    visualization_msgs
+    misc_utils
+)
+rosidl_target_interfaces(graph_visualization ${PROJECT_NAME} "rosidl_typesupport_cpp")
 
+install(
+    DIRECTORY include/
+    DESTINATION include
+)
+
+install(
+  DIRECTORY
+  launch
+  config
+  DESTINATION share/${PROJECT_NAME}
+)
+install(TARGETS ${PROJECT_NAME}_lib # 告诉ros2有这么个目标（可执行文件或者库）
+        EXPORT ${PROJECT_NAME}_lib
+        DESTINATION lib/${PROJECT_NAME}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include
+)
+
+install(TARGETS graph_visualization
+  DESTINATION lib/${PROJECT_NAME})
+
+ament_package()
 
 
 

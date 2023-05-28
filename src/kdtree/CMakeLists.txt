@@ -1,28 +1,36 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(kdtree)
 
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
-find_package(catkin REQUIRED)
-
-###################################
-## catkin specific configuration ##
-###################################
-
-catkin_package(
-  INCLUDE_DIRS include ${catkin_INCLUDE_DIRS}
-  LIBRARIES ${PROJECT_NAME}
-)
+find_package(ament_cmake REQUIRED)
 
 ###########
 ## Build ##
 ###########
 
-include_directories(include ${catkin_INCLUDE_DIRS})
+include_directories(include ${ament_INCLUDE_DIRS})
 
 #############
 # LIBRARIES #
 #############
-add_library(${PROJECT_NAME} src/kdtree.c)
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME} ${catkin_LIBRARIES})
+add_library(${PROJECT_NAME} SHARED src/kdtree.c)
+
+ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)
+
+install(
+    DIRECTORY include/
+    DESTINATION include
+)
+
+install(TARGETS ${PROJECT_NAME} # 告诉ros2有这么个目标（可执行文件或者库）
+        EXPORT ${PROJECT_NAME}
+        DESTINATION lib/${PROJECT_NAME}
+        ARCHIVE DESTINATION lib
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        INCLUDES DESTINATION include
+)
+
+ament_package()

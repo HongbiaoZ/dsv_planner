@@ -30,15 +30,10 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "octomap_world/octomap_manager.h"
 
 int main(int argc, char** argv) {
-  ros::init(argc, argv, "octomap_manager");
-  google::InitGoogleLogging(argv[0]);
-  google::ParseCommandLineFlags(&argc, &argv, false);
-  google::InstallFailureSignalHandler();
-  ros::NodeHandle nh;
-  ros::NodeHandle nh_private("~");
+  rclcpp::init(argc, argv);
+  rclcpp::Node::SharedPtr node_handle = rclcpp::Node::make_shared("octomap_manager");
+  volumetric_mapping::OctomapManager manager(node_handle);
 
-  volumetric_mapping::OctomapManager manager(nh, nh_private);
-
-  ros::spin();
+  rclcpp::spin(node_handle);
   return 0;
 }

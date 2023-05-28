@@ -3,56 +3,57 @@
 
 #include <Eigen/Core>
 #include <Eigen/Geometry>
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/Pose.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/Quaternion.h>
-#include <geometry_msgs/Transform.h>
-#include <geometry_msgs/Vector3.h>
+#include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/pose.hpp>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/quaternion.hpp>
+#include <geometry_msgs/msg/transform.hpp>
+#include <geometry_msgs/msg/vector3.hpp>
+#include <builtin_interfaces/msg/time.hpp>
 #include <kindr/minimal/quat-transformation.h>
 
 namespace tf {
 
 // Convert a kindr::minimal::QuatTransformation to a 6 DoF geometry msgs pose.
 void poseKindrToMsg(const kindr::minimal::QuatTransformation& kindr,
-                    geometry_msgs::Pose* msg);
-void poseMsgToKindr(const geometry_msgs::Pose& msg,
+                    geometry_msgs::msg::Pose* msg);
+void poseMsgToKindr(const geometry_msgs::msg::Pose& msg,
                     kindr::minimal::QuatTransformation* kindr);
 void poseStampedKindrToMsg(const kindr::minimal::QuatTransformation& kindr,
-                    const ros::Time& time,
+                    const builtin_interfaces::msg::Time& time,
                     const std::string& reference_frame,
-                    geometry_msgs::PoseStamped* msg);
+                    geometry_msgs::msg::PoseStamped* msg);
 // Uses current time.
 void poseStampedKindrToMsg(const kindr::minimal::QuatTransformation& kindr,
                     const std::string& reference_frame,
-                    geometry_msgs::PoseStamped* msg);
+                    geometry_msgs::msg::PoseStamped* msg);
 
-// Convert a kindr::minimal::QuatTransformation to a geometry_msgs::Transform.
+// Convert a kindr::minimal::QuatTransformation to a geometry_msgs::msg::Transform.
 void transformKindrToMsg(const kindr::minimal::QuatTransformation& kindr,
-                         geometry_msgs::Transform* msg);
-void transformMsgToKindr(const geometry_msgs::Transform& msg,
+                         geometry_msgs::msg::Transform* msg);
+void transformMsgToKindr(const geometry_msgs::msg::Transform& msg,
                          kindr::minimal::QuatTransformation* kindr);
 
 // A wrapper for the relevant functions in eigen_conversions.
 void quaternionKindrToMsg(const kindr::minimal::RotationQuaternion& kindr,
-                          geometry_msgs::Quaternion* msg);
-void quaternionMsgToKindr(const geometry_msgs::Quaternion& msg,
+                          geometry_msgs::msg::Quaternion* msg);
+void quaternionMsgToKindr(const geometry_msgs::msg::Quaternion& msg,
                           kindr::minimal::RotationQuaternion* kindr);
 
 // Also the Eigen implementation version of this.
 void quaternionKindrToMsg(const Eigen::Quaterniond& kindr,
-                          geometry_msgs::Quaternion* msg);
-void quaternionMsgToKindr(const geometry_msgs::Quaternion& msg,
+                          geometry_msgs::msg::Quaternion* msg);
+void quaternionMsgToKindr(const geometry_msgs::msg::Quaternion& msg,
                           Eigen::Quaterniond* kindr);
 
 // A wrapper for the relevant functions in eigen_conversions.
-void pointKindrToMsg(const Eigen::Vector3d& kindr, geometry_msgs::Point* msg);
-void pointMsgToKindr(const geometry_msgs::Point& msg, Eigen::Vector3d* kindr);
+void pointKindrToMsg(const Eigen::Vector3d& kindr, geometry_msgs::msg::Point* msg);
+void pointMsgToKindr(const geometry_msgs::msg::Point& msg, Eigen::Vector3d* kindr);
 
 void vectorKindrToMsg(const Eigen::Vector3d& kindr,
-                      geometry_msgs::Vector3* msg);
+                      geometry_msgs::msg::Vector3* msg);
 
-void vectorMsgToKindr(const geometry_msgs::Vector3& msg,
+void vectorMsgToKindr(const geometry_msgs::msg::Vector3& msg,
                       Eigen::Vector3d* kindr);
 
 }  // namespace tf

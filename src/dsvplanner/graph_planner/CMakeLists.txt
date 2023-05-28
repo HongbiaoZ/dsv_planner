@@ -1,44 +1,31 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(graph_planner)
 
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
-find_package(catkin REQUIRED COMPONENTS
-  roscpp
-  std_msgs
-  geometry_msgs
-  nav_msgs
-  graph_utils
-  misc_utils
-  visualization_msgs
-  message_generation
-)
+find_package(ament_cmake REQUIRED)
+find_package(rclcpp REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(misc_utils REQUIRED)
+find_package(graph_utils REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+find_package(PCL REQUIRED COMPONENTS common io filters)
 
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
 
 ## Generate messages in the 'msg' folder
-add_message_files(
-  FILES
-  GraphPlannerCommand.msg
-  GraphPlannerStatus.msg
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "msg/GraphPlannerCommand.msg"
+  "msg/GraphPlannerStatus.msg"
+  DEPENDENCIES geometry_msgs
 )
-# Generate added messages and services with any dependencies listed here
- generate_messages(
-   DEPENDENCIES
-   std_msgs
-   geometry_msgs
-)
-
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-#  INCLUDE_DIRS include
-  CATKIN_DEPENDS roscpp std_msgs graph_utils misc_utils visualization_msgs
-#  DEPENDS system_lib
-)
+ament_export_dependencies(rosidl_default_runtime)
 
 ###########
 ## Build ##
@@ -47,13 +34,34 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
- include
-  ${catkin_INCLUDE_DIRS}
+  include
+  ${ament_INCLUDE_DIRS}
+  ${PCL_INCLUDE_DIRS}
 )
 
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-add_executable(${PROJECT_NAME} src/graph_planner.cpp src/graph_planner_node.cpp)
-add_dependencies(${PROJECT_NAME} ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(${PROJECT_NAME}  ${catkin_LIBRARIES})
+add_executable(${PROJECT_NAME}_exe src/graph_planner.cpp src/graph_planner_node.cpp)
+target_link_libraries(${PROJECT_NAME}_exe ${PCL_LIBRARIES})
+ament_target_dependencies(${PROJECT_NAME}_exe
+    rclcpp
+    std_msgs
+    geometry_msgs
+    nav_msgs
+    sensor_msgs
+    misc_utils
+    graph_utils
+)
+rosidl_target_interfaces(${PROJECT_NAME}_exe ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
+install(
+  DIRECTORY
+  launch
+  config
+  DESTINATION share/${PROJECT_NAME}
+)
+install(TARGETS ${PROJECT_NAME}_exe 
+  DESTINATION lib/${PROJECT_NAME})
+
+ament_package()

@@ -1,32 +1,21 @@
 #include "minkindr_conversions/kindr_tf.h"
 
-#include <tf_conversions/tf_eigen.h>
 #include <glog/logging.h>
 
 namespace tf {
 
-void poseKindrToTF(const kindr::minimal::QuatTransformation& kindr,
-                   tf::Pose* tf_type) {
-  transformKindrToTF(kindr, tf_type);
-}
-
-void poseTFToKindr(const tf::Pose& tf_type,
-                   kindr::minimal::QuatTransformation* kindr) {
-  transformTFToKindr(tf_type, kindr);
-}
-
 void transformKindrToTF(const kindr::minimal::QuatTransformation& kindr,
-                        tf::Transform* tf_type) {
+                        tf2::Transform* tf_type) {
   CHECK_NOTNULL(tf_type);
-  tf::Vector3 origin;
-  tf::Quaternion rotation;
+  tf2::Vector3 origin;
+  tf2::Quaternion rotation;
   vectorKindrToTF(kindr.getPosition(), &origin);
   quaternionKindrToTF(kindr.getRotation(), &rotation);
   tf_type->setOrigin(origin);
   tf_type->setRotation(rotation);
 }
 
-void transformTFToKindr(const tf::Transform& tf_type,
+void transformTFToKindr(const tf2::Transform& tf_type,
                         kindr::minimal::QuatTransformation* kindr) {
   CHECK_NOTNULL(kindr);
   Eigen::Vector3d position;
@@ -45,39 +34,68 @@ void transformTFToKindr(const tf::Transform& tf_type,
 
 // A wrapper for the relevant functions in eigen_conversions.
 void quaternionKindrToTF(const kindr::minimal::RotationQuaternion& kindr,
-                         tf::Quaternion* tf_type) {
+                         tf2::Quaternion* tf_type) {
   CHECK_NOTNULL(tf_type);
-  quaternionEigenToTF(kindr.toImplementation(), *tf_type);
+  tf2::Quaternion quat;
+  quat.setX(kindr.toImplementation().x());
+  quat.setY(kindr.toImplementation().y());
+  quat.setZ(kindr.toImplementation().z());
+  quat.setW(kindr.toImplementation().w());
+  *tf_type = quat;
+  // quaternionEigenToTF(kindr.toImplementation(), *tf_type);
 }
 
-void quaternionTFToKindr(const tf::Quaternion& tf_type,
+void quaternionTFToKindr(const tf2::Quaternion& tf_type,
                          kindr::minimal::RotationQuaternion* kindr) {
   CHECK_NOTNULL(kindr);
   Eigen::Quaterniond quat;
-  quaternionTFToEigen(tf_type, quat);
+  quat.x() = tf_type.getX();
+  quat.y() = tf_type.getY();
+  quat.z() = tf_type.getZ();
+  quat.w() = tf_type.getW();
+  // quaternionTFToEigen(tf_type, quat);
   *kindr = kindr::minimal::RotationQuaternion(quat);
 }
 
 void quaternionKindrToTF(const Eigen::Quaterniond& kindr,
-                         tf::Quaternion* tf_type) {
+                         tf2::Quaternion* tf_type) {
   CHECK_NOTNULL(tf_type);
-  quaternionEigenToTF(kindr, *tf_type);
+  tf2::Quaternion quat;
+  quat.setX(kindr.x());
+  quat.setY(kindr.y());
+  quat.setZ(kindr.z());
+  quat.setW(kindr.w());
+  *tf_type = quat;
+  // quaternionEigenToTF(kindr, *tf_type);
 }
 
-void quaternionTFToKindr(const tf::Quaternion& tf_type,
+void quaternionTFToKindr(const tf2::Quaternion& tf_type,
                          Eigen::Quaterniond* kindr) {
   CHECK_NOTNULL(kindr);
-  quaternionTFToEigen(tf_type, *kindr);
+  Eigen::Quaterniond quat;
+  quat.x() = tf_type.getX();
+  quat.y() = tf_type.getY();
+  quat.z() = tf_type.getZ();
+  quat.w() = tf_type.getW();
+  *kindr = quat;
+  // quaternionTFToEigen(tf_type, *kindr);
 }
 
-void vectorKindrToTF(const Eigen::Vector3d& kindr, tf::Vector3* tf_type) {
+void vectorKindrToTF(const Eigen::Vector3d& kindr, tf2::Vector3* tf_type) {
   CHECK_NOTNULL(tf_type);
-  vectorEigenToTF(kindr, *tf_type);
+  tf2::Vector3 vec;
+  vec.setX(kindr.x());
+  vec.setY(kindr.y());
+  vec.setZ(kindr.z());
+  *tf_type = vec;
+  // vectorEigenToTF(kindr, *tf_type);
 }
 
-void vectorTFToKindr(const tf::Vector3& tf_type, Eigen::Vector3d* kindr) {
+void vectorTFToKindr(const tf2::Vector3& tf_type, Eigen::Vector3d* kindr) {
   CHECK_NOTNULL(kindr);
-  vectorTFToEigen(tf_type, *kindr);
+  Eigen::Vector3d vec(tf_type.getX(), tf_type.getY(), tf_type.getZ());
+  *kindr = vec;
+  // vectorTFToEigen(tf_type, *kindr);
 }
 
 }  // namespace tf

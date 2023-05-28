@@ -7,12 +7,12 @@ Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 **************************************************************************/
 
 #include "graph_visualization.h"
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "graph_visualization");
-  ros::NodeHandle node_handle("~");
+  rclcpp::init(argc, argv);
+  rclcpp::Node::SharedPtr node_handle = rclcpp::Node::make_shared("graph_visualization");
 
   GraphMarkers graph_markers(node_handle);
   graph_markers.execute();

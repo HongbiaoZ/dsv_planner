@@ -3,7 +3,7 @@ drrt/gain/kFree: 0.0
 drrt/gain/kOccupied: 0.0
 drrt/gain/kUnknown: 1.0
 drrt/gain/kMinEffectiveGain: 10
-drrt/gain/kRange: 5
+drrt/gain/kRange: 5.0
 drrt/gain/kRangeZMinus: 0.4
 drrt/gain/kRangeZPlus: 0.4
 drrt/gain/kZero: 0.0

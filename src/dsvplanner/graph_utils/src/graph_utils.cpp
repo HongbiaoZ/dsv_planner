@@ -16,7 +16,7 @@ namespace graph_utils_ns
 // Function for getting the shortest path on a graph between two vertexes
 // Input: graph, index of the start vertex and index of the goal vertex
 // Output: a sequence of vertex ids as the path
-void ShortestPathBtwVertex(vector<int>& path, const graph_utils::TopologicalGraph& graph, int start_index,
+void ShortestPathBtwVertex(vector<int>& path, const graph_utils::msg::TopologicalGraph& graph, int start_index,
                            int goal_index)
 {
   if (start_index == goal_index)
@@ -103,7 +103,7 @@ void ShortestPathBtwVertex(vector<int>& path, const graph_utils::TopologicalGrap
 }
 
 /// Compute path length, where path represented by sequence of vertex indices
-float PathLength(const vector<int>& path, const graph_utils::TopologicalGraph& graph)
+float PathLength(const vector<int>& path, const graph_utils::msg::TopologicalGraph& graph)
 {
   float cost = 0;
   if (path.size() == 0)
@@ -136,7 +136,7 @@ float PathLength(const vector<int>& path, const graph_utils::TopologicalGraph& g
 }
 
 /// Find the vertex idx in graph that is closest (Euclidean distance) to pnt
-int GetClosestVertexIdxToPoint(const graph_utils::TopologicalGraph& graph, const geometry_msgs::Point& pnt)
+int GetClosestVertexIdxToPoint(const graph_utils::msg::TopologicalGraph& graph, const geometry_msgs::msg::Point& pnt)
 {
   double best_idx = -1;
   double best_distance = INFINITY;
@@ -162,8 +162,8 @@ int GetClosestVertexIdxToPoint(const graph_utils::TopologicalGraph& graph, const
 /// Euclidean distance only relevant if path wraps back on itself (shouldn't
 /// happen if it's a "shortest path")
 /// Assumes path is not empty
-int GetFirstVertexBeyondThreshold(const geometry_msgs::Point& start_location, const std::vector<int>& path,
-                                  const graph_utils::TopologicalGraph& graph, const float distance_threshold)
+int GetFirstVertexBeyondThreshold(const geometry_msgs::msg::Point& start_location, const std::vector<int>& path,
+                                  const graph_utils::msg::TopologicalGraph& graph, const float distance_threshold)
 {
   if (path.size() == 1)
   {
@@ -201,14 +201,14 @@ int GetFirstVertexBeyondThreshold(const geometry_msgs::Point& start_location, co
   return path.back();
 }
 
-bool PathCircleDetect(std::vector<int>& path, const graph_utils::TopologicalGraph& graph, int next_vertex_index,
-                      geometry_msgs::Point rob_pos)
+bool PathCircleDetect(std::vector<int>& path, const graph_utils::msg::TopologicalGraph& graph, int next_vertex_index,
+                      geometry_msgs::msg::Point rob_pos)
 {
   double accumulated_angle_difference = 0;
   double angle1 = 0;
   double angle2 = 0;
   double angle_difference = 0;
-  geometry_msgs::Point pointA, pointB, pointC;
+  geometry_msgs::msg::Point pointA, pointB, pointC;
   std::vector<int>::iterator it = std::find(path.begin(), path.end(), next_vertex_index);
   if (it != path.end())
   {

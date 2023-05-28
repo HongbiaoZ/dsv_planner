@@ -8,14 +8,13 @@ Chao Cao (ccao1@andrew.cmu.edu)
 #ifndef MISC_UTILS_MISC_UTILS_H
 #define MISC_UTILS_MISC_UTILS_H
 
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/Polygon.h>
-#include <nav_msgs/Odometry.h>
+#include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/polygon.hpp>
+#include <nav_msgs/msg/odometry.hpp>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
 #include <limits>
-#include <tf/transform_broadcaster.h>
-#include <tf/transform_datatypes.h>
+#include <tf2/LinearMath/Matrix3x3.h>
 
 #include <math.h>
 
@@ -33,17 +32,17 @@ void PointToPoint(const FromPointType& from_point, ToPointType& to_point)
   to_point.y = from_point.y;
   to_point.z = from_point.z;
 }
-geometry_msgs::Point PCL2GeoMsgPnt(const PCLPointType& pnt);
-PCLPointType GeoMsgPnt2PCL(const geometry_msgs::Point& pnt);
-geometry_msgs::Point GeoMsgPoint(double x, double y, double z);
+geometry_msgs::msg::Point PCL2GeoMsgPnt(const PCLPointType& pnt);
+PCLPointType GeoMsgPnt2PCL(const geometry_msgs::msg::Point& pnt);
+geometry_msgs::msg::Point GeoMsgPoint(double x, double y, double z);
 PCLPointType PCLPoint(float x, float y, float z);
 void LeftRotatePoint(PCLPointType& pnt);
 void RightRotatePoint(PCLPointType& pnt);
-void LeftRotatePoint(geometry_msgs::Point& pnt);
-void RightRotatePoint(geometry_msgs::Point& pnt);
+void LeftRotatePoint(geometry_msgs::msg::Point& pnt);
+void RightRotatePoint(geometry_msgs::msg::Point& pnt);
 template <class CloudType>
-void KeyposeToMap(CloudType& cloud, const nav_msgs::Odometry::ConstPtr& keypose);
-double PointXYDist(const geometry_msgs::Point& pnt1, const geometry_msgs::Point& pnt2);
+void KeyposeToMap(CloudType& cloud, const nav_msgs::msg::Odometry::SharedPtr keypose);
+double PointXYDist(const geometry_msgs::msg::Point& pnt1, const geometry_msgs::msg::Point& pnt2);
 double PointXYDist(const PCLPointType& pnt1, const PCLPointType& pnt2);
 template <class P1, class P2>
 double PointXYDist(const P1& pnt1, const P2& pnt2)
@@ -55,26 +54,26 @@ double PointXYZDist(const P1& pnt1, const P2& pnt2)
 {
   return sqrt(pow((pnt1.x - pnt2.x), 2) + pow((pnt1.y - pnt2.y), 2) + pow((pnt1.z - pnt2.z), 2));
 }
-double PointAngle(const geometry_msgs::Point& pnt, const geometry_msgs::Point& robot_pos);
-double PointAngle(const PCLPointType& pnt, const geometry_msgs::Point& robot_pos);
-bool LineSegIntersect(const geometry_msgs::Point& p1, const geometry_msgs::Point& q1, const geometry_msgs::Point& p2,
-                      const geometry_msgs::Point& q2);
-bool LineSegIntersectWithTolerance(const geometry_msgs::Point& p1, const geometry_msgs::Point& q1,
-                                   const geometry_msgs::Point& p2, const geometry_msgs::Point& q2,
+double PointAngle(const geometry_msgs::msg::Point& pnt, const geometry_msgs::msg::Point& robot_pos);
+double PointAngle(const PCLPointType& pnt, const geometry_msgs::msg::Point& robot_pos);
+bool LineSegIntersect(const geometry_msgs::msg::Point& p1, const geometry_msgs::msg::Point& q1, const geometry_msgs::msg::Point& p2,
+                      const geometry_msgs::msg::Point& q2);
+bool LineSegIntersectWithTolerance(const geometry_msgs::msg::Point& p1, const geometry_msgs::msg::Point& q1,
+                                   const geometry_msgs::msg::Point& p2, const geometry_msgs::msg::Point& q2,
                                    const double tolerance);
-int ThreePointOrientation(const geometry_msgs::Point& p, const geometry_msgs::Point& q, const geometry_msgs::Point& r);
-bool PointOnLineSeg(const geometry_msgs::Point& p, const geometry_msgs::Point& q, const geometry_msgs::Point& r);
+int ThreePointOrientation(const geometry_msgs::msg::Point& p, const geometry_msgs::msg::Point& q, const geometry_msgs::msg::Point& r);
+bool PointOnLineSeg(const geometry_msgs::msg::Point& p, const geometry_msgs::msg::Point& q, const geometry_msgs::msg::Point& r);
 double AngleOverlap(double s1, double e1, double s2, double e2);
 double AngleDiff(double source_angle, double target_angle);
-bool PointInPolygon(const geometry_msgs::Point& point, const geometry_msgs::Polygon& polygon);
-double LineSegDistance2D(const geometry_msgs::Point& point, const geometry_msgs::Point& line_segment_start,
-                         const geometry_msgs::Point& line_segment_end);
-double DistancePoint2DToPolygon(const geometry_msgs::Point& point, const geometry_msgs::Polygon& polygon);
+bool PointInPolygon(const geometry_msgs::msg::Point& point, const geometry_msgs::msg::Polygon& polygon);
+double LineSegDistance2D(const geometry_msgs::msg::Point& point, const geometry_msgs::msg::Point& line_segment_start,
+                         const geometry_msgs::msg::Point& line_segment_end);
+double DistancePoint2DToPolygon(const geometry_msgs::msg::Point& point, const geometry_msgs::msg::Polygon& polygon);
 template <class PCLPointType>
-void LinInterpPoints(const geometry_msgs::Point& p1, const geometry_msgs::Point& p2, double resolution,
+void LinInterpPoints(const geometry_msgs::msg::Point& p1, const geometry_msgs::msg::Point& p2, double resolution,
                      typename pcl::PointCloud<PCLPointType>::Ptr& cloud)
 {
-  double point_dist = PointXYZDist<geometry_msgs::Point, geometry_msgs::Point>(p1, p2);
+  double point_dist = PointXYZDist<geometry_msgs::msg::Point, geometry_msgs::msg::Point>(p1, p2);
   if (point_dist < 0.01)
     return;
   PCLPointType point1;

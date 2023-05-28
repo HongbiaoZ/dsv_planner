@@ -40,7 +40,7 @@ namespace volumetric_mapping {
 
 void WorldBase::insertDisparityImage(
     const Transformation& sensor_to_world,
-    const stereo_msgs::DisparityImageConstPtr& disparity,
+    const stereo_msgs::msg::DisparityImage::SharedPtr disparity,
     const Eigen::Matrix4d& Q_full, const Eigen::Vector2d& full_image_size) {
   cv_bridge::CvImageConstPtr cv_img_ptr =
       cv_bridge::toCvShare(disparity->image, disparity);
@@ -123,8 +123,8 @@ Eigen::Matrix4d WorldBase::getQForCameras(
 }
 
 Eigen::Matrix4d WorldBase::getQForROSCameras(
-    const sensor_msgs::CameraInfo& left_camera,
-    const sensor_msgs::CameraInfo& right_camera) const {
+    const sensor_msgs::msg::CameraInfo& left_camera,
+    const sensor_msgs::msg::CameraInfo& right_camera) const {
   // Unfortunately updateQ is protected in StereoCameraModel.
   image_geometry::StereoCameraModel stereo_model;
   stereo_model.fromCameraInfo(left_camera, right_camera);
@@ -181,7 +181,7 @@ Eigen::Matrix4d WorldBase::generateQ(double Tx, double left_cx, double left_cy,
 
 void WorldBase::insertPointcloud(
     const Transformation& T_G_sensor,
-    const sensor_msgs::PointCloud2::ConstPtr& pointcloud_sensor) {
+    const sensor_msgs::msg::PointCloud2::SharedPtr pointcloud_sensor) {
   pcl::PointCloud<pcl::PointXYZ>::Ptr pointcloud_sensor_pcl(
       new pcl::PointCloud<pcl::PointXYZ>);
   pcl::fromROSMsg(*pointcloud_sensor, *pointcloud_sensor_pcl);

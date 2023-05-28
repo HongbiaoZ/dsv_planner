@@ -29,12 +29,11 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "octomap_world/octomap_world.h"
 
-#include <glog/logging.h>
 #include <octomap_msgs/conversions.h>
-#include <octomap_ros/conversions.h>
+#include <octomap_ros/conversions.hpp>
 #include <pcl/conversions.h>
 #include <pcl/filters/filter.h>
-#include <pcl_ros/transforms.h>
+#include <pcl_ros/transforms.hpp>
 
 namespace volumetric_mapping
 {
@@ -79,7 +78,7 @@ void OctomapWorld::setOctomapParameters(const OctomapParameters& params)
   {
     if (octree_->getResolution() != params.resolution)
     {
-      LOG(WARNING) << "Octomap resolution has changed! Resetting tree!";
+      printf("Octomap resolution has changed! Resetting tree!");
       octree_.reset(new octomap::OcTree(params.resolution));
     }
   }
@@ -749,17 +748,17 @@ void OctomapWorld::setLogOddsBoundingBox(const StateVec& position, const StateVe
   octree_->updateInnerOccupancy();
 }
 
-bool OctomapWorld::getOctomapBinaryMsg(octomap_msgs::Octomap* msg) const
+bool OctomapWorld::getOctomapBinaryMsg(octomap_msgs::msg::Octomap* msg) const
 {
   return octomap_msgs::binaryMapToMsg(*octree_, *msg);
 }
 
-bool OctomapWorld::getOctomapFullMsg(octomap_msgs::Octomap* msg) const
+bool OctomapWorld::getOctomapFullMsg(octomap_msgs::msg::Octomap* msg) const
 {
   return octomap_msgs::fullMapToMsg(*octree_, *msg);
 }
 
-void OctomapWorld::setOctomapFromMsg(const octomap_msgs::Octomap& msg)
+void OctomapWorld::setOctomapFromMsg(const octomap_msgs::msg::Octomap& msg)
 {
   if (msg.binary)
   {
@@ -771,12 +770,12 @@ void OctomapWorld::setOctomapFromMsg(const octomap_msgs::Octomap& msg)
   }
 }
 
-void OctomapWorld::setOctomapFromBinaryMsg(const octomap_msgs::Octomap& msg)
+void OctomapWorld::setOctomapFromBinaryMsg(const octomap_msgs::msg::Octomap& msg)
 {
   octree_.reset(dynamic_cast<octomap::OcTree*>(octomap_msgs::binaryMsgToMap(msg)));
 }
 
-void OctomapWorld::setOctomapFromFullMsg(const octomap_msgs::Octomap& msg)
+void OctomapWorld::setOctomapFromFullMsg(const octomap_msgs::msg::Octomap& msg)
 {
   octree_.reset(dynamic_cast<octomap::OcTree*>(octomap_msgs::fullMsgToMap(msg)));
 }
@@ -823,8 +822,8 @@ bool OctomapWorld::isSpeckleNode(const octomap::OcTreeKey& key) const
   return true;
 }
 
-void OctomapWorld::generateMarkerArray(const std::string& tf_frame, visualization_msgs::MarkerArray* occupied_nodes,
-                                       visualization_msgs::MarkerArray* free_nodes)
+void OctomapWorld::generateMarkerArray(const std::string& tf_frame, visualization_msgs::msg::MarkerArray* occupied_nodes,
+                                       visualization_msgs::msg::MarkerArray* free_nodes)
 {
   CHECK_NOTNULL(occupied_nodes);
   CHECK_NOTNULL(free_nodes);
@@ -859,7 +858,7 @@ void OctomapWorld::generateMarkerArray(const std::string& tf_frame, visualizatio
     occupied_nodes->markers[i].header.frame_id = tf_frame;
     occupied_nodes->markers[i].ns = "map";
     occupied_nodes->markers[i].id = i;
-    occupied_nodes->markers[i].type = visualization_msgs::Marker::CUBE_LIST;
+    occupied_nodes->markers[i].type = visualization_msgs::msg::Marker::CUBE_LIST;
     occupied_nodes->markers[i].scale.x = size;
     occupied_nodes->markers[i].scale.y = size;
     occupied_nodes->markers[i].scale.z = size;
@@ -869,7 +868,7 @@ void OctomapWorld::generateMarkerArray(const std::string& tf_frame, visualizatio
 
   for (octomap::OcTree::leaf_iterator it = octree_->begin_leafs(), end = octree_->end_leafs(); it != end; ++it)
   {
-    geometry_msgs::Point cube_center;
+    geometry_msgs::msg::Point cube_center;
     cube_center.x = it.getX();
     cube_center.y = it.getY();
     cube_center.z = it.getZ();
@@ -898,20 +897,20 @@ void OctomapWorld::generateMarkerArray(const std::string& tf_frame, visualizatio
   {
     if (occupied_nodes->markers[i].points.size() > 0)
     {
-      occupied_nodes->markers[i].action = visualization_msgs::Marker::ADD;
+      occupied_nodes->markers[i].action = visualization_msgs::msg::Marker::ADD;
     }
     else
     {
-      occupied_nodes->markers[i].action = visualization_msgs::Marker::DELETE;
+      occupied_nodes->markers[i].action = visualization_msgs::msg::Marker::DELETE;
     }
 
     if (free_nodes->markers[i].points.size() > 0)
     {
-      free_nodes->markers[i].action = visualization_msgs::Marker::ADD;
+      free_nodes->markers[i].action = visualization_msgs::msg::Marker::ADD;
     }
     else
     {
-      free_nodes->markers[i].action = visualization_msgs::Marker::DELETE;
+      free_nodes->markers[i].action = visualization_msgs::msg::Marker::DELETE;
     }
   }
 }
@@ -921,10 +920,10 @@ double OctomapWorld::colorizeMapByHeight(double z, double min_z, double max_z) c
   return (1.0 - std::min(std::max((z - min_z) / (max_z - min_z), 0.0), 1.0));
 }
 
-std_msgs::ColorRGBA OctomapWorld::percentToColor(double h) const
+std_msgs::msg::ColorRGBA OctomapWorld::percentToColor(double h) const
 {
   // Helen's note: direct copy from OctomapProvider.
-  std_msgs::ColorRGBA color;
+  std_msgs::msg::ColorRGBA color;
   color.a = 1.0;
   // blend over HSV-values (more colors)
 

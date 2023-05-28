@@ -33,9 +33,9 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 
 #include <octomap/octomap.h>
-#include <octomap_msgs/Octomap.h>
-#include <std_msgs/ColorRGBA.h>
-#include <visualization_msgs/MarkerArray.h>
+#include <octomap_msgs/msg/octomap.hpp>
+#include <std_msgs/msg/color_rgba.hpp>
+#include <visualization_msgs/msg/marker_array.hpp>
 #include <volumetric_map_base/world_base.h>
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -186,18 +186,18 @@ class OctomapWorld : public WorldBase {
       size_t* collision_index);
 
   // Serialization and deserialization from ROS messages.
-  bool getOctomapBinaryMsg(octomap_msgs::Octomap* msg) const;
-  bool getOctomapFullMsg(octomap_msgs::Octomap* msg) const;
+  bool getOctomapBinaryMsg(octomap_msgs::msg::Octomap* msg) const;
+  bool getOctomapFullMsg(octomap_msgs::msg::Octomap* msg) const;
   // Clears the current octomap and replaces it with one from the message.
-  void setOctomapFromMsg(const octomap_msgs::Octomap& msg);
+  void setOctomapFromMsg(const octomap_msgs::msg::Octomap& msg);
   // Loading and writing to disk.
   bool loadOctomapFromFile(const std::string& filename);
   bool writeOctomapToFile(const std::string& filename);
 
   // Helpers for publishing.
   void generateMarkerArray(const std::string& tf_frame,
-                           visualization_msgs::MarkerArray* occupied_nodes,
-                           visualization_msgs::MarkerArray* free_nodes);
+                           visualization_msgs::msg::MarkerArray* occupied_nodes,
+                           visualization_msgs::msg::MarkerArray* free_nodes);
 
   // Change detection -- when this is called, this resets the change detection
   // tracking within the map. So 2 consecutive calls will produce first the
@@ -248,15 +248,15 @@ class OctomapWorld : public WorldBase {
                        octomap::KeySet* occupied_cells);
   bool isValidPoint(const cv::Vec3f& point) const;
 
-  void setOctomapFromBinaryMsg(const octomap_msgs::Octomap& msg);
-  void setOctomapFromFullMsg(const octomap_msgs::Octomap& msg);
+  void setOctomapFromBinaryMsg(const octomap_msgs::msg::Octomap& msg);
+  void setOctomapFromFullMsg(const octomap_msgs::msg::Octomap& msg);
 
   double colorizeMapByHeight(double z, double min_z, double max_z) const;
 
   // Collision checking methods.
   bool checkSinglePoseCollision(const StateVec& robot_position) const;
 
-  std_msgs::ColorRGBA percentToColor(double h) const;
+  std_msgs::msg::ColorRGBA percentToColor(double h) const;
 
   OctomapParameters params_;
 

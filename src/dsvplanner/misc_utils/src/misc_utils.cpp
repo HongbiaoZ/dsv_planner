@@ -6,18 +6,18 @@
 
 namespace misc_utils_ns
 {
-/// Function for converting a PointType to a geometry_msgs::Point
+/// Function for converting a PointType to a geometry_msgs::msg::Point
 /// \param pnt A PointType
-/// \return A geometry_msgs::Point
-geometry_msgs::Point PCL2GeoMsgPnt(const PCLPointType& pnt)
+/// \return A geometry_msgs::msg::Point
+geometry_msgs::msg::Point PCL2GeoMsgPnt(const PCLPointType& pnt)
 {
   return GeoMsgPoint(pnt.x, pnt.y, pnt.z);
 }
 
-/// Function for converting a geometry_msgs::Point to a PointType
-/// \param pnt A geometry_msgs::Point
+/// Function for converting a geometry_msgs::msg::Point to a PointType
+/// \param pnt A geometry_msgs::msg::Point
 /// \return A PointType
-PCLPointType GeoMsgPnt2PCL(const geometry_msgs::Point& pnt)
+PCLPointType GeoMsgPnt2PCL(const geometry_msgs::msg::Point& pnt)
 {
   PCLPointType point_o;
   point_o.x = (float)pnt.x;
@@ -26,9 +26,9 @@ PCLPointType GeoMsgPnt2PCL(const geometry_msgs::Point& pnt)
   return point_o;
 }
 
-geometry_msgs::Point GeoMsgPoint(double x, double y, double z)
+geometry_msgs::msg::Point GeoMsgPoint(double x, double y, double z)
 {
-  geometry_msgs::Point p;
+  geometry_msgs::msg::Point p;
   p.x = x;
   p.y = y;
   p.z = z;
@@ -60,7 +60,7 @@ void RightRotatePoint(PCLPointType& pnt)
   pnt.z = tmp_x;
 }
 
-void LeftRotatePoint(geometry_msgs::Point& pnt)
+void LeftRotatePoint(geometry_msgs::msg::Point& pnt)
 {
   double tmp_z = pnt.z;
   pnt.z = pnt.y;
@@ -68,7 +68,7 @@ void LeftRotatePoint(geometry_msgs::Point& pnt)
   pnt.x = tmp_z;
 }
 
-void RightRotatePoint(geometry_msgs::Point& pnt)
+void RightRotatePoint(geometry_msgs::msg::Point& pnt)
 {
   double tmp_x = pnt.x;
   pnt.x = pnt.y;
@@ -77,15 +77,15 @@ void RightRotatePoint(geometry_msgs::Point& pnt)
 }
 
 template <class CloudType>
-void KeyposeToMap(CloudType& cloud, const nav_msgs::Odometry::ConstPtr& keypose)
+void KeyposeToMap(CloudType& cloud, const nav_msgs::msg::Odometry::SharedPtr keypose)
 {
   float tx = (float)keypose->pose.pose.position.x;
   float ty = (float)keypose->pose.pose.position.y;
   float tz = (float)keypose->pose.pose.position.z;
 
-  tf::Quaternion tf_q(keypose->pose.pose.orientation.x, keypose->pose.pose.orientation.y,
+  tf2::Quaternion tf_q(keypose->pose.pose.orientation.x, keypose->pose.pose.orientation.y,
                       keypose->pose.pose.orientation.z, keypose->pose.pose.orientation.w);
-  tf::Matrix3x3 tf_m(tf_q);
+  tf2::Matrix3x3 tf_m(tf_q);
   double roll, pitch, yaw;
   tf_m.getRPY(roll, pitch, yaw);
 
@@ -126,11 +126,11 @@ void KeyposeToMap(CloudType& cloud, const nav_msgs::Odometry::ConstPtr& keypose)
   }
 }
 
-/// Function to compute the distance between two geometry_msgs::Point
+/// Function to compute the distance between two geometry_msgs::msg::Point
 /// \param pnt1 The first point
 /// \param pnt2 The second point
 /// \return Distance between the two points
-double PointXYDist(const geometry_msgs::Point& pnt1, const geometry_msgs::Point& pnt2)
+double PointXYDist(const geometry_msgs::msg::Point& pnt1, const geometry_msgs::msg::Point& pnt2)
 {
   return sqrt(pow((pnt1.x - pnt2.x), 2) + pow((pnt1.y - pnt2.y), 2));
 }
@@ -144,11 +144,11 @@ double PointXYDist(const PCLPointType& pnt1, const PCLPointType& pnt2)
   return sqrt(pow((pnt1.x - pnt2.x), 2) + pow((pnt1.y - pnt2.y), 2));
 }
 
-/// Function to compute the direction (angle) of a geometry_msgs::Point
+/// Function to compute the direction (angle) of a geometry_msgs::msg::Point
 /// \param pnt Input point
 /// \param robot_pos Robot position
 /// \return Direction (angle)
-double PointAngle(const geometry_msgs::Point& pnt, const geometry_msgs::Point& robot_pos)
+double PointAngle(const geometry_msgs::msg::Point& pnt, const geometry_msgs::msg::Point& robot_pos)
 {
   return atan2((pnt.y - robot_pos.y), (pnt.x - robot_pos.x));
 }
@@ -157,7 +157,7 @@ double PointAngle(const geometry_msgs::Point& pnt, const geometry_msgs::Point& r
 /// \param pnt Intput point
 /// \param robot_pos Robot position
 /// \return Direction (angle)
-double PointAngle(const PCLPointType& pnt, const geometry_msgs::Point& robot_pos)
+double PointAngle(const PCLPointType& pnt, const geometry_msgs::msg::Point& robot_pos)
 {
   return atan2((pnt.y - robot_pos.y), (pnt.x - robot_pos.x));
 }
@@ -261,7 +261,7 @@ double AngleDiff(double source_angle, double target_angle)
 /// \param q Point to be examined
 /// \param r End point of line segment pr
 /// \return If q is on pr
-bool PointOnLineSeg(const geometry_msgs::Point& p, const geometry_msgs::Point& q, const geometry_msgs::Point& r)
+bool PointOnLineSeg(const geometry_msgs::msg::Point& p, const geometry_msgs::msg::Point& q, const geometry_msgs::msg::Point& r)
 {
   if (q.x <= std::max(p.x, r.x) && q.x >= std::min(p.x, r.x) && q.y <= std::max(p.y, r.y) && q.y >= std::min(p.y, r.y))
   {
@@ -278,7 +278,7 @@ bool PointOnLineSeg(const geometry_msgs::Point& p, const geometry_msgs::Point& q
 /// \param q The second point
 /// \param r The third point
 /// \return 0 --> p, q and r are colinear, 1 --> Clockwise, 2 --> Counterclockwise
-int ThreePointOrientation(const geometry_msgs::Point& p, const geometry_msgs::Point& q, const geometry_msgs::Point& r)
+int ThreePointOrientation(const geometry_msgs::msg::Point& p, const geometry_msgs::msg::Point& q, const geometry_msgs::msg::Point& r)
 {
   // See https://www.geeksforgeeks.org/orientation-3-ordered-points/
   // for details of below formula.
@@ -296,8 +296,8 @@ int ThreePointOrientation(const geometry_msgs::Point& p, const geometry_msgs::Po
 /// \param p2 end point of 'p2q2'
 /// \param q2 end point of 'p2q2'
 /// \return true if line segment 'p1q1' and 'p2q2' intersect, false otherwise
-bool LineSegIntersect(const geometry_msgs::Point& p1, const geometry_msgs::Point& q1, const geometry_msgs::Point& p2,
-                      const geometry_msgs::Point& q2)
+bool LineSegIntersect(const geometry_msgs::msg::Point& p1, const geometry_msgs::msg::Point& q1, const geometry_msgs::msg::Point& p2,
+                      const geometry_msgs::msg::Point& q2)
 {
   // Find the four orientations needed for general and
   // special cases
@@ -339,15 +339,15 @@ bool LineSegIntersect(const geometry_msgs::Point& p1, const geometry_msgs::Point
 /// \param q2 end point of 'p2q2'
 /// \param tolerance distance to be added at both ends of both lines
 /// \return true if line segment 'p1q1' and 'p2q2' intersect, false otherwise
-bool LineSegIntersectWithTolerance(const geometry_msgs::Point& p1, const geometry_msgs::Point& q1,
-                                   const geometry_msgs::Point& p2, const geometry_msgs::Point& q2,
+bool LineSegIntersectWithTolerance(const geometry_msgs::msg::Point& p1, const geometry_msgs::msg::Point& q1,
+                                   const geometry_msgs::msg::Point& p2, const geometry_msgs::msg::Point& q2,
                                    const double tolerance)
 {
   // Make a copy
-  geometry_msgs::Point p1_extend = p1;
-  geometry_msgs::Point q1_extend = q1;
-  geometry_msgs::Point p2_extend = p2;
-  geometry_msgs::Point q2_extend = q2;
+  geometry_msgs::msg::Point p1_extend = p1;
+  geometry_msgs::msg::Point q1_extend = q1;
+  geometry_msgs::msg::Point p2_extend = p2;
+  geometry_msgs::msg::Point q2_extend = q2;
 
   // Extend line segment 1
   double dist1 = PointXYDist(p1, q1);
@@ -379,13 +379,13 @@ bool LineSegIntersectWithTolerance(const geometry_msgs::Point& p1, const geometr
 /// \param p point
 /// \param polygon polygon
 /// \return true if the point is inside the polygon
-bool PointInPolygon(const geometry_msgs::Point& point, const geometry_msgs::Polygon& polygon)
+bool PointInPolygon(const geometry_msgs::msg::Point& point, const geometry_msgs::msg::Polygon& polygon)
 {
   int polygon_pnt_num = polygon.points.size();
   if (polygon_pnt_num < 3)
     return false;
 
-  geometry_msgs::Point inf_point;
+  geometry_msgs::msg::Point inf_point;
   inf_point.x = std::numeric_limits<float>::max();
   inf_point.y = point.y;
   int count = 0;
@@ -395,9 +395,9 @@ bool PointInPolygon(const geometry_msgs::Point& point, const geometry_msgs::Poly
     int next_idx = (cur_idx + 1) % polygon_pnt_num;
     // Check if the line segment from 'point' to 'inf_point' intersects
     // with the line segment from 'polygon[cur_idx]' to 'polygon[next_idx]'
-    geometry_msgs::Point polygon_cur_pnt =
+    geometry_msgs::msg::Point polygon_cur_pnt =
         GeoMsgPoint(polygon.points[cur_idx].x, polygon.points[cur_idx].y, polygon.points[cur_idx].z);
-    geometry_msgs::Point polygon_next_pnt =
+    geometry_msgs::msg::Point polygon_next_pnt =
         GeoMsgPoint(polygon.points[next_idx].x, polygon.points[next_idx].y, polygon.points[next_idx].z);
     if (LineSegIntersect(polygon_cur_pnt, polygon_next_pnt, point, inf_point))
     {
@@ -423,8 +423,8 @@ bool PointInPolygon(const geometry_msgs::Point& point, const geometry_msgs::Poly
 /// \param line_segment_start
 /// \param line_segment_end
 /// \return distance
-double LineSegDistance2D(const geometry_msgs::Point& point, const geometry_msgs::Point& line_segment_start,
-                         const geometry_msgs::Point& line_segment_end)
+double LineSegDistance2D(const geometry_msgs::msg::Point& point, const geometry_msgs::msg::Point& line_segment_start,
+                         const geometry_msgs::msg::Point& line_segment_end)
 {
   // code adapted from http://geomalgorithms.com/a02-_lines.html
 
@@ -449,7 +449,7 @@ double LineSegDistance2D(const geometry_msgs::Point& point, const geometry_msgs:
 
   // otherwise project point and get distance (seems inefficient?)
   double b = c1 / c2;
-  geometry_msgs::Point point_projected;
+  geometry_msgs::msg::Point point_projected;
   point_projected.x = line_segment_start.x + b * v_x;
   point_projected.y = line_segment_start.y + b * v_y;
   return PointXYDist(point, point_projected);
@@ -459,14 +459,14 @@ double LineSegDistance2D(const geometry_msgs::Point& point, const geometry_msgs:
 /// \param p point
 /// \param polygon polygon
 /// \return distance
-double DistancePoint2DToPolygon(const geometry_msgs::Point& point, const geometry_msgs::Polygon& polygon)
+double DistancePoint2DToPolygon(const geometry_msgs::msg::Point& point, const geometry_msgs::msg::Polygon& polygon)
 {
   int polygon_pnt_num = polygon.points.size();
   if (polygon_pnt_num < 1)
     return 0;
   if (polygon_pnt_num == 1)
   {
-    geometry_msgs::Point poly_point = GeoMsgPoint(polygon.points[0].x, polygon.points[0].y, 0);
+    geometry_msgs::msg::Point poly_point = GeoMsgPoint(polygon.points[0].x, polygon.points[0].y, 0);
     return PointXYDist(point, poly_point);
   }
 
@@ -479,8 +479,8 @@ double DistancePoint2DToPolygon(const geometry_msgs::Point& point, const geometr
     int next_idx = (cur_idx + 1) % polygon_pnt_num;
 
     // get point to line segment distance
-    geometry_msgs::Point polygon_cur_pnt = GeoMsgPoint(polygon.points[cur_idx].x, polygon.points[cur_idx].y, 0);
-    geometry_msgs::Point polygon_next_pnt = GeoMsgPoint(polygon.points[next_idx].x, polygon.points[next_idx].y, 0);
+    geometry_msgs::msg::Point polygon_cur_pnt = GeoMsgPoint(polygon.points[cur_idx].x, polygon.points[cur_idx].y, 0);
+    geometry_msgs::msg::Point polygon_next_pnt = GeoMsgPoint(polygon.points[next_idx].x, polygon.points[next_idx].y, 0);
     double distance = LineSegDistance2D(point, polygon_cur_pnt, polygon_next_pnt);
     if (distance < distance_return)
     {
@@ -504,8 +504,8 @@ double RadianToDegree(double radian)
 }
 
 template void misc_utils_ns::KeyposeToMap<pcl::PointCloud<pcl::PointXYZI>::Ptr>(
-    pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, const nav_msgs::Odometry::ConstPtr& keypose);
+    pcl::PointCloud<pcl::PointXYZI>::Ptr& cloud, const nav_msgs::msg::Odometry::SharedPtr keypose);
 template void misc_utils_ns::KeyposeToMap<pcl::PointCloud<pcl::PointXYZINormal>::Ptr>(
-    pcl::PointCloud<pcl::PointXYZINormal>::Ptr& cloud, const nav_msgs::Odometry::ConstPtr& keypose);
+    pcl::PointCloud<pcl::PointXYZINormal>::Ptr& cloud, const nav_msgs::msg::Odometry::SharedPtr keypose);
 template void misc_utils_ns::KeyposeToMap<pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr>(
-    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr& cloud, const nav_msgs::Odometry::ConstPtr& keypose);
+    pcl::PointCloud<pcl::PointXYZRGBNormal>::Ptr& cloud, const nav_msgs::msg::Odometry::SharedPtr keypose);

@@ -1,7 +1,0 @@
-<launch>
-    <node pkg="graph_planner" type="graph_planner" name="graph_planner" output="screen" respawn="true">
-        <rosparam command="load" file="$(find graph_planner)/config/matterport.yaml" />
-    </node>
-    <include file="$(find graph_utils)/launch/graph_visualization.launch"/>
-
-</launch>

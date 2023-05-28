@@ -11,15 +11,17 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 
 #include "dsvplanner/grid.h"
 #include "octomap_world/octomap_manager.h"
-#include <geometry_msgs/Point.h>
-#include <geometry_msgs/PointStamped.h>
+
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/point.hpp>
+#include <geometry_msgs/msg/point_stamped.hpp>
+#include <geometry_msgs/msg/polygon.hpp>
+#include <geometry_msgs/msg/polygon_stamped.hpp>
 #include <message_filters/subscriber.h>
-#include <message_filters/sync_policies/approximate_time.h>
-#include <message_filters/synchronizer.h>
-#include <nav_msgs/Odometry.h>
-#include <nav_msgs/Path.h>
-#include <ros/ros.h>
-#include <std_msgs/Float32MultiArray.h>
+#include <message_filters/time_synchronizer.h>
+#include <nav_msgs/msg/odometry.hpp>
+#include <nav_msgs/msg/path.hpp>
+#include <std_msgs/msg/float32_multi_array.hpp>
 namespace dsvplanner_ns
 {
 typedef Eigen::Vector3d StateVec;
@@ -28,21 +30,22 @@ class DualStateFrontier
   typedef std::shared_ptr<DualStateFrontier> Ptr;
 
 public:
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_private_;
+  rclcpp::Node::SharedPtr nh_;
 
   // ROS subscribers
-  ros::Subscriber graph_points_sub_;
-  message_filters::Subscriber<nav_msgs::Odometry> odom_sub_;
-  message_filters::Subscriber<sensor_msgs::PointCloud2> terrain_point_cloud_sub_;
-  typedef message_filters::sync_policies::ApproximateTime<nav_msgs::Odometry, sensor_msgs::PointCloud2> syncPolicy;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr graph_points_sub_;
+
+  message_filters::Subscriber<nav_msgs::msg::Odometry> odom_sub_;
+  message_filters::Subscriber<sensor_msgs::msg::PointCloud2> terrain_point_cloud_sub_;
+  typedef message_filters::sync_policies::ApproximateTime<nav_msgs::msg::Odometry, sensor_msgs::msg::PointCloud2> syncPolicy;
   typedef message_filters::Synchronizer<syncPolicy> Sync;
-  boost::shared_ptr<Sync> sync_;
+  std::shared_ptr<Sync> sync_;
+
   // ROS publishers
-  ros::Publisher unknown_points_pub_;
-  ros::Publisher global_frontier_points_pub_;
-  ros::Publisher local_frontier_points_pub_;
-  ros::Publisher terrain_elev_cloud_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr unknown_points_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr global_frontier_points_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr local_frontier_points_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr terrain_elev_cloud_pub_;
 
   // String constants
   std::string world_frame_id_;
@@ -81,13 +84,13 @@ public:
   // Variables
 
   // general
-  ros::Timer executeTimer_;
+  rclcpp::TimerBase::SharedPtr executeTimer_;
   std::vector<double> terrain_voxel_elev_;
   std::vector<int> terrain_voxel_points_num_;
   std::vector<double> terrain_voxel_min_elev_;
   std::vector<double> terrain_voxel_max_elev_;
   StateVec robot_position_;
-  geometry_msgs::Polygon boundary_polygon_;
+  geometry_msgs::msg::Polygon boundary_polygon_;
 
   bool planner_status_;  // false means exploration and true means relocation
   bool boundaryLoaded_;
@@ -130,7 +133,7 @@ public:
   void localFrontierUpdate(StateVec& center);
   void cleanAllUselessFrontiers();
   void setPlannerStatus(bool status);
-  void setBoundary(const geometry_msgs::PolygonStamped& boundary);
+  void setBoundary(const geometry_msgs::msg::PolygonStamped& boundary);
   bool frontierDetect(octomap::point3d point) const;
   bool inSensorRangeofGraphPoints(StateVec point);
   bool inSensorRangeofRobot(StateVec point);
@@ -145,16 +148,15 @@ public:
   std::vector<double> getTerrainVoxelElev();
 
   // Callback Functions
-  void terrainCloudAndOdomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg,
-                                   const sensor_msgs::PointCloud2::ConstPtr& terrain_msg);
-  void graphPointsCallback(const sensor_msgs::PointCloud2& graph_msg);
+  void terrainCloudAndOdomCallback(const nav_msgs::msg::Odometry::ConstSharedPtr odom_msg,
+                                   const sensor_msgs::msg::PointCloud2::ConstSharedPtr terrain_msg);
+  void graphPointsCallback(const sensor_msgs::msg::PointCloud2::SharedPtr graph_msg);
 
 public:
-  DualStateFrontier(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private,
-                    volumetric_mapping::OctomapManager* manager, OccupancyGrid* grid);
+  DualStateFrontier(rclcpp::Node::SharedPtr& node_handle, volumetric_mapping::OctomapManager* manager, OccupancyGrid* grid);
   bool readParameters();
   bool initialize();
-  void execute(const ros::TimerEvent& e);
+  void execute();
   ~DualStateFrontier();
 };
 }

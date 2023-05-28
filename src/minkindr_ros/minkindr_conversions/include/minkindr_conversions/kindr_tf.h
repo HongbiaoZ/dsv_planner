@@ -4,36 +4,31 @@
 #include <Eigen/Core>
 #include <Eigen/Geometry>
 #include <kindr/minimal/quat-transformation.h>
-#include <tf/transform_datatypes.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2_eigen/tf2_eigen.h>
 
 namespace tf {
 
-// Convert a kindr::minimal::QuatTransformation to a 6 DoF geometry msgs pose.
-void poseKindrToTF(const kindr::minimal::QuatTransformation& kindr,
-                   tf::Pose* tf_type);
-void poseTFToKindr(const tf::Pose& tf_type,
-                   kindr::minimal::QuatTransformation* kindr);
-
-// Convert a kindr::minimal::QuatTransformation to a geometry_msgs::Transform.
+// Convert a kindr::minimal::QuatTransformation to a geometry_msgs::msg::Transform.
 void transformKindrToTF(const kindr::minimal::QuatTransformation& kindr,
-                        tf::Transform* tf_type);
-void transformTFToKindr(const tf::Transform& tf_type,
+                        tf2::Transform* tf_type);
+void transformTFToKindr(const tf2::Transform& tf_type,
                         kindr::minimal::QuatTransformation* kindr);
 
 // A wrapper for the relevant functions in eigen_conversions.
 void quaternionKindrToTF(const kindr::minimal::RotationQuaternion& kindr,
-                         tf::Quaternion* tf_type);
-void quaternionTFToKindr(const tf::Quaternion& tf_type,
+                         tf2::Quaternion* tf_type);
+void quaternionTFToKindr(const tf2::Quaternion& tf_type,
                          kindr::minimal::RotationQuaternion* kindr);
 // Also the Eigen implementation version of this.
 void quaternionKindrToTF(const Eigen::Quaterniond& kindr,
-                         tf::Quaternion* tf_type);
-void quaternionTFToKindr(const tf::Quaternion& tf_type,
+                         tf2::Quaternion* tf_type);
+void quaternionTFToKindr(const tf2::Quaternion& tf_type,
                          Eigen::Quaterniond* kindr);
 
 // A wrapper for the relevant functions in eigen_conversions.
-void vectorKindrToTF(const Eigen::Vector3d& kindr, tf::Vector3* tf_type);
-void vectorTFToKindr(const tf::Vector3& tf_type, Eigen::Vector3d* kindr);
+void vectorKindrToTF(const Eigen::Vector3d& kindr, tf2::Vector3* tf_type);
+void vectorTFToKindr(const tf2::Vector3& tf_type, Eigen::Vector3d* kindr);
 
 }  // namespace tf
 

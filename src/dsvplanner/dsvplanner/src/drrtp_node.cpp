@@ -7,17 +7,16 @@ Created by Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 */
 
 #include <eigen3/Eigen/Dense>
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 #include <dsvplanner/drrtp.h>
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "nbvPlanner");
-  ros::NodeHandle nh;
-  ros::NodeHandle nh_private("~");
+  rclcpp::init(argc, argv);
+  rclcpp::Node::SharedPtr node_handle = rclcpp::Node::make_shared("dsvPlanner");
 
-  dsvplanner_ns::drrtPlanner planner(nh, nh_private);
+  dsvplanner_ns::drrtPlanner planner(node_handle);
 
-  ros::spin();
+  rclcpp::spin(node_handle);
   return 0;
 }

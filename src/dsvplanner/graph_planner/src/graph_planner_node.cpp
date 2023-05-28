@@ -7,12 +7,12 @@ Hongbiao Zhu (hongbiaz@andrew.cmu.edu)
 **************************************************************************/
 
 #include "graph_planner.h"
-#include <ros/ros.h>
+#include <rclcpp/rclcpp.hpp>
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "graph_planner");
-  ros::NodeHandle node_handle("~");
+  rclcpp::init(argc, argv);
+  rclcpp::Node::SharedPtr node_handle = rclcpp::Node::make_shared("graph_planner");
 
   graph_planner_ns::GraphPlanner graph_planner(node_handle);
   graph_planner.execute();

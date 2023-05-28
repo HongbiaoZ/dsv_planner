@@ -11,14 +11,12 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include "dsvplanner/dual_state_frontier.h"
 
 #include <misc_utils/misc_utils.h>
-#include <tf/transform_broadcaster.h>
-#include <tf/transform_datatypes.h>
 
 namespace dsvplanner_ns
 {
-DualStateFrontier::DualStateFrontier(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private,
-                                     volumetric_mapping::OctomapManager* manager, OccupancyGrid* grid)
-  : nh_(nh), nh_private_(nh_private)
+DualStateFrontier::DualStateFrontier(rclcpp::Node::SharedPtr& node_handle, volumetric_mapping::OctomapManager* manager, 
+                                     OccupancyGrid* grid)
+  : nh_(node_handle)
 {
   manager_ = manager;
   grid_ = grid;
@@ -31,38 +29,71 @@ DualStateFrontier::~DualStateFrontier()
 
 bool DualStateFrontier::readParameters()
 {
-  nh_private_.getParam("/frontier/world_frame_id", world_frame_id_);
-  nh_private_.getParam("/planner/odomSubTopic", sub_odom_topic_);
-  nh_private_.getParam("/planner/terrainCloudSubTopic", sub_terrain_point_cloud_topic_);
-  nh_private_.getParam("/frontier/sub_graph_points_topic", sub_graph_points_topic_);
-  nh_private_.getParam("/frontier/pub_unknown_points_topic", pub_unknown_points_topic_);
-  nh_private_.getParam("/frontier/pub_global_frontier_points_topic", pub_global_frontier_points_topic_);
-  nh_private_.getParam("/frontier/pub_local_frontier_points_topic", pub_local_frontier_points_topic_);
-  nh_private_.getParam("/frontier/kExecuteFrequency", kExecuteFrequency_);
-  nh_private_.getParam("/frontier/kFrontierResolution", kFrontierResolution);
-  nh_private_.getParam("/frontier/kFrontierFilterSize", kFrontierFilterSize);
-  nh_private_.getParam("/frontier/kSearchRadius", kSearchRadius);
-  nh_private_.getParam("/frontier/kSearchBoundingX", search_bounding[0]);
-  nh_private_.getParam("/frontier/kSearchBoundingY", search_bounding[1]);
-  nh_private_.getParam("/frontier/kSearchBoundingZ", search_bounding[2]);
-  nh_private_.getParam("/frontier/kEffectiveUnknownNumAroundFrontier", kEffectiveUnknownNumAroundFrontier);
-  nh_private_.getParam("/frontier/kFrontierNeighbourSearchRadius", kFrontierNeighbourSearchRadius);
-  nh_private_.getParam("/frontier/kEliminateFrontiersAroundRobots", kEliminateFrontiersAroundRobots);
-  nh_private_.getParam("/gb/kMaxXGlobal", kGlobalMaxX);
-  nh_private_.getParam("/gb/kMaxYGlobal", kGlobalMaxY);
-  nh_private_.getParam("/gb/kMaxZGlobal", kGlobalMaxZ);
-  nh_private_.getParam("/gb/kMinXGlobal", kGlobalMinX);
-  nh_private_.getParam("/gb/kMinYGlobal", kGlobalMinY);
-  nh_private_.getParam("/gb/kMinZGlobal", kGlobalMinZ);
-  nh_private_.getParam("/rm/kBoundX", robot_bounding[0]);
-  nh_private_.getParam("/rm/kBoundY", robot_bounding[1]);
-  nh_private_.getParam("/rm/kBoundZ", robot_bounding[2]);
-  nh_private_.getParam("/rm/kSensorVertical", kSensorVerticalView);
-  nh_private_.getParam("/rm/kSensorHorizontal", kSensorHorizontalView);
-  nh_private_.getParam("/rm/kVehicleHeight", kVehicleHeight);
-  nh_private_.getParam("/elevation/kTerrainVoxelSize", kTerrainVoxelSize);
-  nh_private_.getParam("/elevation/kTerrainVoxelHalfWidth", kTerrainVoxelHalfWidth);
-  nh_private_.getParam("/elevation/kTerrainVoxelWidth", kTerrainVoxelWidth);
+  nh_->declare_parameter("planner/odomSubTopic", sub_odom_topic_);
+  nh_->declare_parameter("planner/terrainCloudSubTopic", sub_terrain_point_cloud_topic_);
+  nh_->declare_parameter("frontier/world_frame_id", world_frame_id_);
+  nh_->declare_parameter("frontier/sub_graph_points_topic", sub_graph_points_topic_);
+  nh_->declare_parameter("frontier/pub_unknown_points_topic", pub_unknown_points_topic_);
+  nh_->declare_parameter("frontier/pub_global_frontier_points_topic", pub_global_frontier_points_topic_);
+  nh_->declare_parameter("frontier/pub_local_frontier_points_topic", pub_local_frontier_points_topic_);
+  nh_->declare_parameter("frontier/kExecuteFrequency", kExecuteFrequency_);
+  nh_->declare_parameter("frontier/kFrontierResolution", kFrontierResolution);
+  nh_->declare_parameter("frontier/kFrontierFilterSize", kFrontierFilterSize);
+  nh_->declare_parameter("frontier/kSearchRadius", kSearchRadius);
+  nh_->declare_parameter("frontier/kSearchBoundingX", search_bounding[0]);
+  nh_->declare_parameter("frontier/kSearchBoundingY", search_bounding[1]);
+  nh_->declare_parameter("frontier/kSearchBoundingZ", search_bounding[2]);
+  nh_->declare_parameter("frontier/kEffectiveUnknownNumAroundFrontier", kEffectiveUnknownNumAroundFrontier);
+  nh_->declare_parameter("frontier/kFrontierNeighbourSearchRadius", kFrontierNeighbourSearchRadius);
+  nh_->declare_parameter("frontier/kEliminateFrontiersAroundRobots", kEliminateFrontiersAroundRobots);
+  nh_->declare_parameter("gb/kMaxXGlobal", kGlobalMaxX);
+  nh_->declare_parameter("gb/kMaxYGlobal", kGlobalMaxY);
+  nh_->declare_parameter("gb/kMaxZGlobal", kGlobalMaxZ);
+  nh_->declare_parameter("gb/kMinXGlobal", kGlobalMinX);
+  nh_->declare_parameter("gb/kMinYGlobal", kGlobalMinY);
+  nh_->declare_parameter("gb/kMinZGlobal", kGlobalMinZ);
+  nh_->declare_parameter("rm/kBoundX", robot_bounding[0]);
+  nh_->declare_parameter("rm/kBoundY", robot_bounding[1]);
+  nh_->declare_parameter("rm/kBoundZ", robot_bounding[2]);
+  nh_->declare_parameter("rm/kSensorVertical", kSensorVerticalView);
+  nh_->declare_parameter("rm/kSensorHorizontal", kSensorHorizontalView);
+  nh_->declare_parameter("rm/kVehicleHeight", kVehicleHeight);
+  nh_->declare_parameter("elevation/kTerrainVoxelSize", kTerrainVoxelSize);
+  nh_->declare_parameter("elevation/kTerrainVoxelHalfWidth", kTerrainVoxelHalfWidth);
+  nh_->declare_parameter("elevation/kTerrainVoxelWidth", kTerrainVoxelWidth);
+
+  nh_->get_parameter("planner/odomSubTopic", sub_odom_topic_);
+  nh_->get_parameter("planner/terrainCloudSubTopic", sub_terrain_point_cloud_topic_);
+  nh_->get_parameter("frontier/world_frame_id", world_frame_id_);
+  nh_->get_parameter("frontier/sub_graph_points_topic", sub_graph_points_topic_);
+  nh_->get_parameter("frontier/pub_unknown_points_topic", pub_unknown_points_topic_);
+  nh_->get_parameter("frontier/pub_global_frontier_points_topic", pub_global_frontier_points_topic_);
+  nh_->get_parameter("frontier/pub_local_frontier_points_topic", pub_local_frontier_points_topic_);
+  nh_->get_parameter("frontier/kExecuteFrequency", kExecuteFrequency_);
+  nh_->get_parameter("frontier/kFrontierResolution", kFrontierResolution);
+  nh_->get_parameter("frontier/kFrontierFilterSize", kFrontierFilterSize);
+  nh_->get_parameter("frontier/kSearchRadius", kSearchRadius);
+  nh_->get_parameter("frontier/kSearchBoundingX", search_bounding[0]);
+  nh_->get_parameter("frontier/kSearchBoundingY", search_bounding[1]);
+  nh_->get_parameter("frontier/kSearchBoundingZ", search_bounding[2]);
+  nh_->get_parameter("frontier/kEffectiveUnknownNumAroundFrontier", kEffectiveUnknownNumAroundFrontier);
+  nh_->get_parameter("frontier/kFrontierNeighbourSearchRadius", kFrontierNeighbourSearchRadius);
+  nh_->get_parameter("frontier/kEliminateFrontiersAroundRobots", kEliminateFrontiersAroundRobots);
+  nh_->get_parameter("gb/kMaxXGlobal", kGlobalMaxX);
+  nh_->get_parameter("gb/kMaxYGlobal", kGlobalMaxY);
+  nh_->get_parameter("gb/kMaxZGlobal", kGlobalMaxZ);
+  nh_->get_parameter("gb/kMinXGlobal", kGlobalMinX);
+  nh_->get_parameter("gb/kMinYGlobal", kGlobalMinY);
+  nh_->get_parameter("gb/kMinZGlobal", kGlobalMinZ);
+  nh_->get_parameter("rm/kBoundX", robot_bounding[0]);
+  nh_->get_parameter("rm/kBoundY", robot_bounding[1]);
+  nh_->get_parameter("rm/kBoundZ", robot_bounding[2]);
+  nh_->get_parameter("rm/kSensorVertical", kSensorVerticalView);
+  nh_->get_parameter("rm/kSensorHorizontal", kSensorHorizontalView);
+  nh_->get_parameter("rm/kVehicleHeight", kVehicleHeight);
+  nh_->get_parameter("elevation/kTerrainVoxelSize", kTerrainVoxelSize);
+  nh_->get_parameter("elevation/kTerrainVoxelHalfWidth", kTerrainVoxelHalfWidth);
+  nh_->get_parameter("elevation/kTerrainVoxelWidth", kTerrainVoxelWidth);
 
   return true;
 }
@@ -221,7 +252,7 @@ bool DualStateFrontier::FrontierInBoundry(octomap::point3d point) const
 {
   if (boundaryLoaded_)
   {
-    geometry_msgs::Point node_point;
+    geometry_msgs::msg::Point node_point;
     node_point.x = point.x();
     node_point.y = point.y();
     node_point.z = point.z();
@@ -449,20 +480,20 @@ void DualStateFrontier::getFrontiers()
 
 void DualStateFrontier::publishFrontiers()
 {
-  sensor_msgs::PointCloud2 unknown_pcl, local_frontier_pcl, global_frontier_pcl;
+  sensor_msgs::msg::PointCloud2 unknown_pcl, local_frontier_pcl, global_frontier_pcl;
   pcl::toROSMsg(*unknown_points_, unknown_pcl);
   pcl::toROSMsg(*global_frontier_, global_frontier_pcl);
   pcl::toROSMsg(*local_frontier_, local_frontier_pcl);
   unknown_pcl.header.frame_id = world_frame_id_;
   global_frontier_pcl.header.frame_id = world_frame_id_;
   local_frontier_pcl.header.frame_id = world_frame_id_;
-  unknown_points_pub_.publish(unknown_pcl);
-  global_frontier_points_pub_.publish(global_frontier_pcl);
-  local_frontier_points_pub_.publish(local_frontier_pcl);
+  unknown_points_pub_->publish(unknown_pcl);
+  global_frontier_points_pub_->publish(global_frontier_pcl);
+  local_frontier_points_pub_->publish(local_frontier_pcl);
 }
 
-void DualStateFrontier::terrainCloudAndOdomCallback(const nav_msgs::Odometry::ConstPtr& odom_msg,
-                                                    const sensor_msgs::PointCloud2::ConstPtr& terrain_msg)
+void DualStateFrontier::terrainCloudAndOdomCallback(const nav_msgs::msg::Odometry::ConstSharedPtr odom_msg,
+                                                    const sensor_msgs::msg::PointCloud2::ConstSharedPtr terrain_msg)
 {
   robot_position_[0] = odom_msg->pose.pose.position.x;
   robot_position_[1] = odom_msg->pose.pose.position.y;
@@ -487,11 +518,11 @@ void DualStateFrontier::terrainCloudAndOdomCallback(const nav_msgs::Odometry::Co
   updateTerrainElevationForKnown();
   updateTerrainElevationForUnknow();
 
-  sensor_msgs::PointCloud2 elevVoxel2;
+  sensor_msgs::msg::PointCloud2 elevVoxel2;
   pcl::toROSMsg(*terrain_elev_cloud_, elevVoxel2);
-  elevVoxel2.header.stamp = ros::Time::now();
+  elevVoxel2.header.stamp = nh_->now();
   elevVoxel2.header.frame_id = "map";
-  terrain_elev_cloud_pub_.publish(elevVoxel2);
+  terrain_elev_cloud_pub_->publish(elevVoxel2);
 }
 
 void DualStateFrontier::updateTerrainMinElevation()
@@ -607,10 +638,10 @@ void DualStateFrontier::updateTerrainElevationForUnknow()
   }
 }
 
-void DualStateFrontier::graphPointsCallback(const sensor_msgs::PointCloud2& graph_msg)
+void DualStateFrontier::graphPointsCallback(const sensor_msgs::msg::PointCloud2::SharedPtr graph_msg)
 {
   graphPoints_->clear();
-  pcl::fromROSMsg(graph_msg, *graphPoints_);
+  pcl::fromROSMsg(*graph_msg, *graphPoints_);
 }
 
 double DualStateFrontier::getZvalue(double x_position, double y_position)
@@ -642,7 +673,7 @@ void DualStateFrontier::setPlannerStatus(bool status)
   planner_status_ = status;
 }
 
-void DualStateFrontier::setBoundary(const geometry_msgs::PolygonStamped& boundary)
+void DualStateFrontier::setBoundary(const geometry_msgs::msg::PolygonStamped& boundary)
 {
   boundary_polygon_ = boundary.polygon;
   boundaryLoaded_ = true;
@@ -655,20 +686,22 @@ bool DualStateFrontier::initialize()
     return false;
 
   // Initialize subscriber
-  graph_points_sub_ = nh_.subscribe(sub_graph_points_topic_, 1, &DualStateFrontier::graphPointsCallback, this);
-  odom_sub_.subscribe(nh_, sub_odom_topic_, 1);
-  terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_, 1);
-  sync_.reset(new Sync(syncPolicy(10), odom_sub_, terrain_point_cloud_sub_));
-  sync_->registerCallback(boost::bind(&DualStateFrontier::terrainCloudAndOdomCallback, this, _1, _2));
+  graph_points_sub_ = nh_->create_subscription<sensor_msgs::msg::PointCloud2>(sub_graph_points_topic_, 1, 
+  std::bind(&DualStateFrontier::graphPointsCallback, this, std::placeholders::_1));
 
-  unknown_points_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(pub_unknown_points_topic_, 1);
-  global_frontier_points_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(pub_global_frontier_points_topic_, 1);
-  local_frontier_points_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(pub_local_frontier_points_topic_, 1);
-  terrain_elev_cloud_pub_ = nh_.advertise<sensor_msgs::PointCloud2>("/elevation_map", 1);
+  odom_sub_.subscribe(nh_, sub_odom_topic_);
+  terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_);
+  sync_.reset(new Sync(syncPolicy(100), odom_sub_, terrain_point_cloud_sub_));
+  sync_->registerCallback(std::bind(&DualStateFrontier::terrainCloudAndOdomCallback, this, std::placeholders::_1, std::placeholders::_2));
+
+  unknown_points_pub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>(pub_unknown_points_topic_, 1);
+  global_frontier_points_pub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>(pub_global_frontier_points_topic_, 1);
+  local_frontier_points_pub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>(pub_local_frontier_points_topic_, 1);
+  terrain_elev_cloud_pub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>("/elevation_map", 1);
 
   if (kExecuteFrequency_ > 0.0)
   {
-    executeTimer_ = nh_private_.createTimer(ros::Duration(1.0 / kExecuteFrequency_), &DualStateFrontier::execute, this);
+    executeTimer_ = nh_->create_wall_timer(0.1s, std::bind(&DualStateFrontier::execute, this));
   }
   for (int i = 0; i < kTerrainVoxelWidth * kTerrainVoxelWidth; i++)
   {
@@ -680,12 +713,12 @@ bool DualStateFrontier::initialize()
 
   boundaryLoaded_ = false;
 
-  ROS_INFO("Successfully launched DualStateFrontier node");
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched DualStateFrontier node");
 
   return true;
 }
 
-void DualStateFrontier::execute(const ros::TimerEvent& e)
+void DualStateFrontier::execute()
 {
   getFrontiers();
 }

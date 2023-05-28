@@ -30,20 +30,26 @@ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef OCTOMAP_WORLD_OCTOMAP_MANAGER_H_
 #define OCTOMAP_WORLD_OCTOMAP_MANAGER_H_
 
-#include <glog/logging.h>
-#include <gflags/gflags.h>
+#include <chrono>
+
+#include <octomap_msgs/srv/get_octomap.hpp>
+#include <std_srvs/srv/empty.hpp>
+#include <tf2_ros/transform_listener.h>
+#include "tf2/exceptions.h"
+#include <tf2_ros/buffer.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <octomap_msgs/msg/octomap.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <volumetric_msgs/srv/load_map.hpp>
+#include <volumetric_msgs/srv/save_map.hpp>
+#include <volumetric_msgs/srv/set_box_occupancy.hpp>
+#include <volumetric_msgs/srv/set_display_bounds.hpp>
+#include <pcl_conversions/pcl_conversions.h>
 
 #include "octomap_world/octomap_world.h"
 
-#include <octomap_msgs/GetOctomap.h>
-#include <std_srvs/Empty.h>
-#include <tf/transform_listener.h>
-#include <volumetric_msgs/LoadMap.h>
-#include <volumetric_msgs/SaveMap.h>
-#include <volumetric_msgs/SetBoxOccupancy.h>
-#include <volumetric_msgs/SetDisplayBounds.h>
 
-#include <pcl_conversions/pcl_conversions.h>
+using namespace std::chrono_literals;
 
 namespace volumetric_mapping {
 
@@ -54,41 +60,37 @@ class OctomapManager : public OctomapWorld {
   typedef std::shared_ptr<OctomapManager> Ptr;
 
   // By default, loads octomap parameters from the ROS parameter server.
-  OctomapManager(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private);
+  OctomapManager(rclcpp::Node::SharedPtr& node_handle);
 
   void publishAll();
-  void publishAllEvent(const ros::TimerEvent& e);
+  void publishAllEvent();
 
   // Data insertion callbacks with TF frame resolution through the listener.
   void insertPointcloudWithTf(
-      const sensor_msgs::PointCloud2::ConstPtr& pointcloud);
+      const sensor_msgs::msg::PointCloud2::SharedPtr pointcloud);
 
   // Input Octomap callback.
-  void octomapCallback(const octomap_msgs::Octomap& msg);
+  void octomapCallback(const octomap_msgs::msg::Octomap::SharedPtr msg);
 
   // Service callbacks.
-  bool resetMapCallback(std_srvs::Empty::Request& request,
-                        std_srvs::Empty::Response& response);
-  bool publishAllCallback(std_srvs::Empty::Request& request,
-                          std_srvs::Empty::Response& response);
-  bool getOctomapCallback(octomap_msgs::GetOctomap::Request& request,
-                          octomap_msgs::GetOctomap::Response& response);
+  bool resetMapCallback(const std_srvs::srv::Empty::Request::SharedPtr, std_srvs::srv::Empty::Response::SharedPtr);
+  bool publishAllCallback(const std_srvs::srv::Empty::Request::SharedPtr, std_srvs::srv::Empty::Response::SharedPtr);
+  bool getOctomapCallback(const octomap_msgs::srv::GetOctomap::Request::SharedPtr request,
+                          octomap_msgs::srv::GetOctomap::Response::SharedPtr);
 
-  bool loadOctomapCallback(volumetric_msgs::LoadMap::Request& request,
-                           volumetric_msgs::LoadMap::Response& response);
-  bool saveOctomapCallback(volumetric_msgs::SaveMap::Request& request,
-                           volumetric_msgs::SaveMap::Response& response);
-  bool savePointCloudCallback(volumetric_msgs::SaveMap::Request& request,
-                              volumetric_msgs::SaveMap::Response& response);
+  bool loadOctomapCallback(const volumetric_msgs::srv::LoadMap::Request::SharedPtr request,
+                           volumetric_msgs::srv::LoadMap::Response::SharedPtr);
+  bool saveOctomapCallback(volumetric_msgs::srv::SaveMap::Request::SharedPtr request,
+                           volumetric_msgs::srv::SaveMap::Response::SharedPtr);
+  bool savePointCloudCallback(volumetric_msgs::srv::SaveMap::Request::SharedPtr request,
+                              volumetric_msgs::srv::SaveMap::Response::SharedPtr);
 
   bool setBoxOccupancyCallback(
-      volumetric_msgs::SetBoxOccupancy::Request& request,
-      volumetric_msgs::SetBoxOccupancy::Response& response);
+      volumetric_msgs::srv::SetBoxOccupancy::Request::SharedPtr request,
+      volumetric_msgs::srv::SetBoxOccupancy::Response::SharedPtr);
   bool setDisplayBoundsCallback(
-      volumetric_msgs::SetDisplayBounds::Request& request,
-      volumetric_msgs::SetDisplayBounds::Response& response);
-
-  void transformCallback(const geometry_msgs::TransformStamped& transform_msg);
+      volumetric_msgs::srv::SetDisplayBounds::Request::SharedPtr request,
+      volumetric_msgs::srv::SetDisplayBounds::Response::SharedPtr);
 
  private:
   // Sets up subscriptions based on ROS node parameters.
@@ -97,22 +99,17 @@ class OctomapManager : public OctomapWorld {
   void advertiseServices();
   void advertisePublishers();
 
-  bool setQFromParams(std::vector<double>* Q_vec);
   bool lookupTransform(const std::string& from_frame,
-                       const std::string& to_frame, const ros::Time& timestamp,
+                       const std::string& to_frame, const rclcpp::Time& timestamp,
                        Transformation* transform);
   bool lookupTransformTf(const std::string& from_frame,
                          const std::string& to_frame,
-                         const ros::Time& timestamp, Transformation* transform);
-  bool lookupTransformQueue(const std::string& from_frame,
-                            const std::string& to_frame,
-                            const ros::Time& timestamp,
-                            Transformation* transform);
+                         const rclcpp::Time& timestamp, Transformation* transform);
 
-  ros::NodeHandle nh_;
-  ros::NodeHandle nh_private_;
+  rclcpp::Node::SharedPtr nh_;
 
-  tf::TransformListener tf_listener_;
+  std::unique_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
 
   // Global/map coordinate frame. Will always look up TF transforms to this
   // frame.
@@ -122,52 +119,46 @@ class OctomapManager : public OctomapWorld {
   // parameters and transform topics (false).
   bool use_tf_transforms_;
   int64_t timestamp_tolerance_ns_;
-  // B is the body frame of the robot, C is the camera/sensor frame creating
-  // the pointclouds, and D is the 'dynamic' frame; i.e., incoming messages
-  // are assumed to be T_G_D.
-  Transformation T_B_C_;
-  Transformation T_B_D_;
+
   //Topic name of velodyne points
   std::string velodyne_cloud_topic_;
 
   bool latch_topics_;
   // Subscriptions for input sensor data.
-  ros::Subscriber pointcloud_sub_;
-  ros::Subscriber octomap_sub_;
-
-  // Only used if use_tf_transforms_ set to false.
-  ros::Subscriber transform_sub_;
+  rclcpp::Subscription<sensor_msgs::msg::PointCloud2>::SharedPtr pointcloud_sub_;
+  rclcpp::Subscription<octomap_msgs::msg::Octomap>::SharedPtr octomap_sub_;
 
   // Publish full state of octomap.
-  ros::Publisher binary_map_pub_;
-  ros::Publisher full_map_pub_;
+  rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr binary_map_pub_;
+  rclcpp::Publisher<octomap_msgs::msg::Octomap>::SharedPtr full_map_pub_;
 
   // Publish voxel centroids as pcl.
-  ros::Publisher nearest_obstacle_pub_;
-  ros::Publisher pcl_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr nearest_obstacle_pub_;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pcl_pub_;
 
   // Publish markers for visualization.
-  ros::Publisher occupied_nodes_pub_;
-  ros::Publisher free_nodes_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr occupied_nodes_pub_;
+  rclcpp::Publisher<visualization_msgs::msg::MarkerArray>::SharedPtr free_nodes_pub_;
+
 
   // Services!
-  ros::ServiceServer reset_map_service_;
-  ros::ServiceServer publish_all_service_;
-  ros::ServiceServer get_map_service_;
-  ros::ServiceServer save_octree_service_;
-  ros::ServiceServer load_octree_service_;
-  ros::ServiceServer save_point_cloud_service_;
-  ros::ServiceServer set_box_occupancy_service_;
-  ros::ServiceServer set_display_bounds_service_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr reset_map_service_;
+  rclcpp::Service<std_srvs::srv::Empty>::SharedPtr publish_all_service_;
+  rclcpp::Service<octomap_msgs::srv::GetOctomap>::SharedPtr get_map_service_;
+  rclcpp::Service<volumetric_msgs::srv::SaveMap>::SharedPtr save_octree_service_;
+  rclcpp::Service<volumetric_msgs::srv::LoadMap>::SharedPtr load_octree_service_;
+  rclcpp::Service<volumetric_msgs::srv::SaveMap>::SharedPtr save_point_cloud_service_;
+  rclcpp::Service<volumetric_msgs::srv::SetBoxOccupancy>::SharedPtr set_box_occupancy_service_;
+  rclcpp::Service<volumetric_msgs::srv::SetDisplayBounds>::SharedPtr set_display_bounds_service_;
 
   // Only calculate Q matrix for disparity once.
   bool Q_initialized_;
   Eigen::Matrix4d Q_;
   double map_publish_frequency_;
-  ros::Timer map_publish_timer_;
+  rclcpp::TimerBase::SharedPtr map_publish_timer_;
 
   // Transform queue, used only when use_tf_transforms is false.
-  std::deque<geometry_msgs::TransformStamped> transform_queue_;
+  std::deque<geometry_msgs::msg::TransformStamped> transform_queue_;
 
 };
 

@@ -1,37 +1,27 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(volumetric_msgs)
 
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
-find_package(catkin REQUIRED COMPONENTS
-    geometry_msgs
-    std_msgs
-    message_generation
-)
-find_package(cmake_modules REQUIRED)
+find_package(ament_cmake REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
 
 ################################################
 ## Declare ROS messages, services and actions ##
 ################################################
 
-add_service_files(
-  FILES
-  LoadMap.srv
-  SaveMap.srv
-  SetBoxOccupancy.srv
-  SetDisplayBounds.srv
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/LoadMap.srv"
+  "srv/SaveMap.srv"
+  "srv/SetBoxOccupancy.srv"
+  "srv/SetDisplayBounds.srv"
+  DEPENDENCIES geometry_msgs
 )
 
-generate_messages(
-  DEPENDENCIES
-  geometry_msgs
-  std_msgs
-)
+ament_export_dependencies(rosidl_default_runtime)
 
-###################################
-## catkin specific configuration ##
-###################################
-catkin_package(
-  CATKIN_DEPENDS message_runtime geometry_msgs std_msgs
-)
+ament_package()
 
+# ament_auto_package ()

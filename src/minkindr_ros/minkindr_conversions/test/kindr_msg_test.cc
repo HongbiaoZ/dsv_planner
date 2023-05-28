@@ -15,7 +15,7 @@ TEST(KindrMsgTest, poseKindrToMsgToKindr) {
   Eigen::Vector3d position(Eigen::Vector3d::Random());
   kindr::minimal::QuatTransformation kindr_transform(rotation, position);
 
-  geometry_msgs::Pose msg;
+  geometry_msgs::msg::Pose msg;
   poseKindrToMsg(kindr_transform, &msg);
   kindr::minimal::QuatTransformation output_transform;
   poseMsgToKindr(msg, &output_transform);
@@ -31,7 +31,7 @@ TEST(KindrMsgTest, transformKindrToMsgToKindr) {
   Eigen::Vector3d position(Eigen::Vector3d::Random());
   kindr::minimal::QuatTransformation kindr_transform(rotation, position);
 
-  geometry_msgs::Transform msg;
+  geometry_msgs::msg::Transform msg;
   transformKindrToMsg(kindr_transform, &msg);
   kindr::minimal::QuatTransformation output_transform;
   transformMsgToKindr(msg, &output_transform);
@@ -45,7 +45,7 @@ TEST(KindrMsgTest, quaternionKindrToMsgToKindr) {
   Eigen::Quaterniond rotation(Eigen::Vector4d::Random());
   rotation.normalize();
 
-  geometry_msgs::Quaternion msg;
+  geometry_msgs::msg::Quaternion msg;
   quaternionKindrToMsg(rotation, &msg);
   Eigen::Quaterniond output_rotation;
   quaternionMsgToKindr(msg, &output_rotation);
@@ -56,7 +56,7 @@ TEST(KindrMsgTest, quaternionKindrToMsgToKindr) {
 TEST(KindrMsgTest, vectorKindrToMsgToKindr) {
   Eigen::Vector3d position(Eigen::Vector3d::Random());
 
-  geometry_msgs::Vector3 msg;
+  geometry_msgs::msg::Vector3 msg;
   vectorKindrToMsg(position, &msg);
   Eigen::Vector3d output_position;
   vectorMsgToKindr(msg, &output_position);

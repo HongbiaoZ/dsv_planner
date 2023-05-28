@@ -12,48 +12,74 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include <graph_utils.h>
 #include <misc_utils/misc_utils.h>
 
-#include <tf/transform_broadcaster.h>
-#include <tf/transform_datatypes.h>
 namespace dsvplanner_ns
 {
 bool DualStateGraph::readParameters()
 {
-  nh_private_.getParam("/graph/world_frame_id", world_frame_id_);
-  nh_private_.getParam("/graph/pub_local_graph_topic", pub_local_graph_topic_);
-  nh_private_.getParam("/graph/pub_global_graph_topic", pub_global_graph_topic_);
-  nh_private_.getParam("/graph/pub_global_points_topic", pub_global_points_topic_);
-  nh_private_.getParam("/graph/sub_keypose_topic", sub_keypose_topic_);
-  nh_private_.getParam("/graph/sub_path_topic", sub_path_topic_);
-  nh_private_.getParam("/graph/sub_graph_planner_status_topic", sub_graph_planner_status_topic_);
-  nh_private_.getParam("/graph/kCropPathWithTerrain", kCropPathWithTerrain);
-  nh_private_.getParam("/graph/kConnectVertexDistMax", kConnectVertexDistMax);
-  nh_private_.getParam("/graph/kDistBadEdge", kDistBadEdge);
-  nh_private_.getParam("/graph/kDegressiveCoeff", kDegressiveCoeff);
-  nh_private_.getParam("/graph/kDirectionCoeff", kDirectionCoeff);
-  nh_private_.getParam("/graph/kExistingPathRatioThresholdGlobal", kExistingPathRatioThresholdGlobal);
-  nh_private_.getParam("/graph/kExistingPathRatioThreshold", kExistingPathRatioThreshold);
-  nh_private_.getParam("/graph/kLongEdgePenaltyMultiplier", kLongEdgePenaltyMultiplier);
-  nh_private_.getParam("/graph/kMaxLongEdgeDist", kMaxLongEdgeDist);
-  nh_private_.getParam("/graph/kMaxVertexAngleAlongZ", kMaxVertexAngleAlongZ);
-  nh_private_.getParam("/graph/kMaxVertexDiffAlongZ", kMaxVertexDiffAlongZ);
-  nh_private_.getParam("/graph/kMaxDistToPrunedRoot", kMaxDistToPrunedRoot);
-  nh_private_.getParam("/graph/kMaxPrunedNodeDist", kMaxPrunedNodeDist);
-  nh_private_.getParam("/graph/kMinVertexDist", kMinVertexDist);
-  nh_private_.getParam("/graph/kSurroundRange", kSurroundRange);
-  nh_private_.getParam("/graph/kMinGainRange", kMinGainRange);
-  nh_private_.getParam("/graph/kMinDistanceToRobotToCheck", kMinDistanceToRobotToCheck);
-  nh_private_.getParam("/rm/kBoundX", robot_bounding[0]);
-  nh_private_.getParam("/rm/kBoundY", robot_bounding[1]);
-  nh_private_.getParam("/rm/kBoundZ", robot_bounding[2]);
+  nh_->declare_parameter("graph/world_frame_id", world_frame_id_);
+  nh_->declare_parameter("graph/pub_local_graph_topic", pub_local_graph_topic_);
+  nh_->declare_parameter("graph/pub_global_graph_topic", pub_global_graph_topic_);
+  nh_->declare_parameter("graph/pub_global_points_topic", pub_global_points_topic_);
+  nh_->declare_parameter("graph/sub_keypose_topic", sub_keypose_topic_);
+  nh_->declare_parameter("graph/sub_path_topic", sub_path_topic_);
+  nh_->declare_parameter("graph/sub_graph_planner_status_topic", sub_graph_planner_status_topic_);
+  nh_->declare_parameter("graph/kCropPathWithTerrain", kCropPathWithTerrain);
+  nh_->declare_parameter("graph/kConnectVertexDistMax", kConnectVertexDistMax);
+  nh_->declare_parameter("graph/kDistBadEdge", kDistBadEdge);
+  nh_->declare_parameter("graph/kDegressiveCoeff", kDegressiveCoeff);
+  nh_->declare_parameter("graph/kDirectionCoeff", kDirectionCoeff);
+  nh_->declare_parameter("graph/kExistingPathRatioThresholdGlobal", kExistingPathRatioThresholdGlobal);
+  nh_->declare_parameter("graph/kExistingPathRatioThreshold", kExistingPathRatioThreshold);
+  nh_->declare_parameter("graph/kLongEdgePenaltyMultiplier", kLongEdgePenaltyMultiplier);
+  nh_->declare_parameter("graph/kMaxLongEdgeDist", kMaxLongEdgeDist);
+  nh_->declare_parameter("graph/kMaxVertexAngleAlongZ", kMaxVertexAngleAlongZ);
+  nh_->declare_parameter("graph/kMaxVertexDiffAlongZ", kMaxVertexDiffAlongZ);
+  nh_->declare_parameter("graph/kMaxDistToPrunedRoot", kMaxDistToPrunedRoot);
+  nh_->declare_parameter("graph/kMaxPrunedNodeDist", kMaxPrunedNodeDist);
+  nh_->declare_parameter("graph/kMinVertexDist", kMinVertexDist);
+  nh_->declare_parameter("graph/kSurroundRange", kSurroundRange);
+  nh_->declare_parameter("graph/kMinGainRange", kMinGainRange);
+  nh_->declare_parameter("graph/kMinDistanceToRobotToCheck", kMinDistanceToRobotToCheck);
+  nh_->declare_parameter("rm/kBoundX", robot_bounding[0]);
+  nh_->declare_parameter("rm/kBoundY", robot_bounding[1]);
+  nh_->declare_parameter("rm/kBoundZ", robot_bounding[2]);
+
+  nh_->get_parameter("graph/world_frame_id", world_frame_id_);
+  nh_->get_parameter("graph/pub_local_graph_topic", pub_local_graph_topic_);
+  nh_->get_parameter("graph/pub_global_graph_topic", pub_global_graph_topic_);
+  nh_->get_parameter("graph/pub_global_points_topic", pub_global_points_topic_);
+  nh_->get_parameter("graph/sub_keypose_topic", sub_keypose_topic_);
+  nh_->get_parameter("graph/sub_path_topic", sub_path_topic_);
+  nh_->get_parameter("graph/sub_graph_planner_status_topic", sub_graph_planner_status_topic_);
+  nh_->get_parameter("graph/kCropPathWithTerrain", kCropPathWithTerrain);
+  nh_->get_parameter("graph/kConnectVertexDistMax", kConnectVertexDistMax);
+  nh_->get_parameter("graph/kDistBadEdge", kDistBadEdge);
+  nh_->get_parameter("graph/kDegressiveCoeff", kDegressiveCoeff);
+  nh_->get_parameter("graph/kDirectionCoeff", kDirectionCoeff);
+  nh_->get_parameter("graph/kExistingPathRatioThresholdGlobal", kExistingPathRatioThresholdGlobal);
+  nh_->get_parameter("graph/kExistingPathRatioThreshold", kExistingPathRatioThreshold);
+  nh_->get_parameter("graph/kLongEdgePenaltyMultiplier", kLongEdgePenaltyMultiplier);
+  nh_->get_parameter("graph/kMaxLongEdgeDist", kMaxLongEdgeDist);
+  nh_->get_parameter("graph/kMaxVertexAngleAlongZ", kMaxVertexAngleAlongZ);
+  nh_->get_parameter("graph/kMaxVertexDiffAlongZ", kMaxVertexDiffAlongZ);
+  nh_->get_parameter("graph/kMaxDistToPrunedRoot", kMaxDistToPrunedRoot);
+  nh_->get_parameter("graph/kMaxPrunedNodeDist", kMaxPrunedNodeDist);
+  nh_->get_parameter("graph/kMinVertexDist", kMinVertexDist);
+  nh_->get_parameter("graph/kSurroundRange", kSurroundRange);
+  nh_->get_parameter("graph/kMinGainRange", kMinGainRange);
+  nh_->get_parameter("graph/kMinDistanceToRobotToCheck", kMinDistanceToRobotToCheck);
+  nh_->get_parameter("rm/kBoundX", robot_bounding[0]);
+  nh_->get_parameter("rm/kBoundY", robot_bounding[1]);
+  nh_->get_parameter("rm/kBoundZ", robot_bounding[2]);
   return true;
 }
 
 void DualStateGraph::publishLocalGraph()
 {
   // Publish the current local graph
-  local_graph_.header.stamp = ros::Time::now();
+  local_graph_.header.stamp = nh_->now();
   local_graph_.header.frame_id = world_frame_id_;
-  local_graph_pub_.publish(local_graph_);
+  local_graph_pub_->publish(local_graph_);
 
   // graph_point is used to detect frontiers
   graph_point_cloud_->points.clear();
@@ -65,28 +91,28 @@ void DualStateGraph::publishLocalGraph()
     p1.z = local_graph_.vertices[i].location.z;
     graph_point_cloud_->points.push_back(p1);
   }
-  sensor_msgs::PointCloud2 graph_pc;
+  sensor_msgs::msg::PointCloud2 graph_pc;
   pcl::toROSMsg(*graph_point_cloud_, graph_pc);
   graph_pc.header.frame_id = "map";
-  graph_points_pub_.publish(graph_pc);
+  graph_points_pub_->publish(graph_pc);
 }
 
 void DualStateGraph::publishGlobalGraph()
 {
   // Publish the current global graph
-  global_graph_.header.stamp = ros::Time::now();
+  global_graph_.header.stamp = nh_->now();
   global_graph_.header.frame_id = world_frame_id_;
-  global_graph_pub_.publish(global_graph_);
+  global_graph_pub_->publish(global_graph_);
 }
 
-void DualStateGraph::addNewLocalVertexWithoutDuplicates(geometry_msgs::Pose& vertex_msg,
-                                                        graph_utils::TopologicalGraph& graph)
+void DualStateGraph::addNewLocalVertexWithoutDuplicates(geometry_msgs::msg::Pose& vertex_msg,
+                                                        graph_utils::msg::TopologicalGraph& graph)
 {
   // Same as addNewLocalVertex but only adds vertex if a similar vertex doesn't
   // already exist
 
   // Extract the point
-  geometry_msgs::Point new_vertex_location;
+  geometry_msgs::msg::Point new_vertex_location;
   new_vertex_location = vertex_msg.position;
 
   // Check if a similar vertex already exists
@@ -117,17 +143,17 @@ void DualStateGraph::addNewLocalVertexWithoutDuplicates(geometry_msgs::Pose& ver
   }
 }
 
-void DualStateGraph::addNewPrunedVertex(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph)
+void DualStateGraph::addNewPrunedVertex(geometry_msgs::msg::Pose& vertex_msg, graph_utils::msg::TopologicalGraph& graph)
 {
   // Extract the point
-  geometry_msgs::Point new_vertex_location;
+  geometry_msgs::msg::Point new_vertex_location;
   new_vertex_location = vertex_msg.position;
 
   bool already_exists = false;
   bool too_long = false;
   double distance = -1;
   int closest_vertex_idx = -1;
-  geometry_msgs::Point closest_vertex_location;
+  geometry_msgs::msg::Point closest_vertex_location;
   if (!graph.vertices.empty())
   {
     closest_vertex_idx = graph_utils_ns::GetClosestVertexIdxToPoint(graph, new_vertex_location);
@@ -165,17 +191,17 @@ void DualStateGraph::addNewPrunedVertex(geometry_msgs::Pose& vertex_msg, graph_u
   }
 }
 
-void DualStateGraph::addNewLocalVertex(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph)
+void DualStateGraph::addNewLocalVertex(geometry_msgs::msg::Pose& vertex_msg, graph_utils::msg::TopologicalGraph& graph)
 {
   // Add a new vertex to the graph associated with the input keypose
   // Return the index of the vertex
 
   // Extract the point
-  geometry_msgs::Point new_vertex_location;
+  geometry_msgs::msg::Point new_vertex_location;
   new_vertex_location = vertex_msg.position;
 
   // Create a new vertex
-  graph_utils::Vertex vertex;
+  graph_utils::msg::Vertex vertex;
   vertex.location = new_vertex_location;
   vertex.vertex_id = (int)graph.vertices.size();
   vertex.information_gain = vertex_msg.orientation.y;
@@ -212,17 +238,17 @@ void DualStateGraph::addNewLocalVertex(geometry_msgs::Pose& vertex_msg, graph_ut
   }
 }
 
-void DualStateGraph::addNewLocalVertexWithoutEdge(geometry_msgs::Pose& vertex_msg, graph_utils::TopologicalGraph& graph)
+void DualStateGraph::addNewLocalVertexWithoutEdge(geometry_msgs::msg::Pose& vertex_msg, graph_utils::msg::TopologicalGraph& graph)
 {
   // Add a new vertex to the graph associated with the input keypose
   // Return the index of the vertex
 
   // Extract the point
-  geometry_msgs::Point new_vertex_location;
+  geometry_msgs::msg::Point new_vertex_location;
   new_vertex_location = vertex_msg.position;
 
   // Create a new vertex
-  graph_utils::Vertex vertex;
+  graph_utils::msg::Vertex vertex;
   vertex.location = new_vertex_location;
   vertex.vertex_id = (int)graph.vertices.size();
   vertex.information_gain = vertex_msg.orientation.y;
@@ -233,13 +259,13 @@ void DualStateGraph::addNewLocalVertexWithoutEdge(geometry_msgs::Pose& vertex_ms
   auto& vertex_new = graph.vertices[track_localvertex_idx_];
 }
 
-void DualStateGraph::addNewGlobalVertexWithoutDuplicates(geometry_msgs::Pose& vertex_msg)
+void DualStateGraph::addNewGlobalVertexWithoutDuplicates(geometry_msgs::msg::Pose& vertex_msg)
 {
   // Same as addNewLocalVertex but only adds vertex if a similar vertex doesn't
   // already exist
 
   // Extract the point
-  geometry_msgs::Point new_vertex_location;
+  geometry_msgs::msg::Point new_vertex_location;
   new_vertex_location = vertex_msg.position;
 
   // Check if a similar vertex already exists
@@ -270,13 +296,13 @@ void DualStateGraph::addNewGlobalVertexWithoutDuplicates(geometry_msgs::Pose& ve
   }
 }
 
-void DualStateGraph::addNewGlobalVertexWithKeypose(geometry_msgs::Pose& vertex_msg)
+void DualStateGraph::addNewGlobalVertexWithKeypose(geometry_msgs::msg::Pose& vertex_msg)
 {
   // Same as addNewLocalVertex but only adds vertex if a similar vertex doesn't
   // already exist
 
   // Extract the point
-  geometry_msgs::Point new_vertex_location;
+  geometry_msgs::msg::Point new_vertex_location;
   new_vertex_location = vertex_msg.position;
 
   // Check if a similar vertex already exists
@@ -309,14 +335,14 @@ void DualStateGraph::addNewGlobalVertexWithKeypose(geometry_msgs::Pose& vertex_m
   }
 }
 
-void DualStateGraph::addNewGlobalVertex(geometry_msgs::Pose& vertex_msg)
+void DualStateGraph::addNewGlobalVertex(geometry_msgs::msg::Pose& vertex_msg)
 {
   // Extract the point
-  geometry_msgs::Point new_vertex_location;
+  geometry_msgs::msg::Point new_vertex_location;
   new_vertex_location = vertex_msg.position;
 
   // Create a new vertex
-  graph_utils::Vertex vertex;
+  graph_utils::msg::Vertex vertex;
   vertex.location = new_vertex_location;
   vertex.vertex_id = (int)global_graph_.vertices.size();
   vertex.information_gain = vertex_msg.orientation.y;
@@ -353,7 +379,7 @@ void DualStateGraph::addNewGlobalVertex(geometry_msgs::Pose& vertex_msg)
   }
 }
 
-void DualStateGraph::addEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx, graph_utils::TopologicalGraph& graph)
+void DualStateGraph::addEdgeWithoutCheck(int start_vertex_idx, int end_vertex_idx, graph_utils::msg::TopologicalGraph& graph)
 {
   // Add an edge in the graph from vertex start_vertex_idx to vertex
   // end_vertex_idx
@@ -378,8 +404,8 @@ void DualStateGraph::addEdgeWithoutCheck(int start_vertex_idx, int end_vertex_id
   // Add an edge connecting the current node and the existing node on the graph
 
   // Create two edge objects
-  graph_utils::Edge edge_to_start;
-  graph_utils::Edge edge_to_end;
+  graph_utils::msg::Edge edge_to_start;
+  graph_utils::msg::Edge edge_to_end;
 
   // Join the two edges
   edge_to_start.vertex_id_end = start_vertex_idx;
@@ -397,7 +423,7 @@ void DualStateGraph::addEdgeWithoutCheck(int start_vertex_idx, int end_vertex_id
   localEdgeSize_++;
 }
 
-void DualStateGraph::addEdge(int start_vertex_idx, int end_vertex_idx, graph_utils::TopologicalGraph& graph)
+void DualStateGraph::addEdge(int start_vertex_idx, int end_vertex_idx, graph_utils::msg::TopologicalGraph& graph)
 {
   if (start_vertex_idx == end_vertex_idx)
   {
@@ -482,8 +508,8 @@ void DualStateGraph::addGlobalEdgeWithoutCheck(int start_vertex_idx, int end_ver
   float dist_diff = misc_utils_ns::PointXYZDist(start_vertex.location, end_vertex.location);
 
   // Create two edge objects
-  graph_utils::Edge edge_to_start;
-  graph_utils::Edge edge_to_end;
+  graph_utils::msg::Edge edge_to_start;
+  graph_utils::msg::Edge edge_to_end;
 
   // Join the two edges
   edge_to_start.vertex_id_end = start_vertex_idx;
@@ -537,8 +563,6 @@ void DualStateGraph::addGlobalEdge(int start_vertex_idx, int end_vertex_idx)
     {
       // Compute path length
       dist_path = graph_utils_ns::PathLength(path, global_graph_);
-      // ROS_WARN("path exists of edge of length %f, where path exists of length
-      // %f", dist_edge, dist_path);
     }
 
     // Check if ratio is beyond threshold
@@ -564,7 +588,7 @@ void DualStateGraph::addGlobalEdge(int start_vertex_idx, int end_vertex_idx)
   }
 }
 
-bool DualStateGraph::zCollisionCheck(int start_vertex_idx, int end_vertex_idx, graph_utils::TopologicalGraph graph)
+bool DualStateGraph::zCollisionCheck(int start_vertex_idx, int end_vertex_idx, graph_utils::msg::TopologicalGraph graph)
 {
   auto& start_vertex_location = graph.vertices[start_vertex_idx].location;
   auto& end_vertex_location = graph.vertices[end_vertex_idx].location;
@@ -599,7 +623,7 @@ int DualStateGraph::getGlobalEdgeSize()
   return globalEdgeSize_;
 }
 
-void DualStateGraph::pruneGraph(geometry_msgs::Point root)
+void DualStateGraph::pruneGraph(geometry_msgs::msg::Point root)
 {
   int closest_vertex_idx_to_root;
   if (!local_graph_.vertices.empty())
@@ -685,7 +709,7 @@ void DualStateGraph::clearLocalGraph()
   gainID_.clear();
 }
 
-double DualStateGraph::getGain(geometry_msgs::Point robot_position)
+double DualStateGraph::getGain(geometry_msgs::msg::Point robot_position)
 {
   for (auto& graph_vertex : local_graph_.vertices)
   {
@@ -764,18 +788,18 @@ double DualStateGraph::getGain(geometry_msgs::Point robot_position)
       }
     }
   }
-  // ROS_INFO("Best gain is %f.\n Best vertex id is %d", best_gain_,
+  // RCLCPP_INFO(nh_->get_logger(), "Best gain is %f.\n Best vertex id is %d", best_gain_,
   // best_vertex_id_);
   return best_gain_;
 }
 
-void DualStateGraph::DTW(std::vector<int> path, geometry_msgs::Point robot_position)
+void DualStateGraph::DTW(std::vector<int> path, geometry_msgs::msg::Point robot_position)
 {
   float dist_path = 0;
   int node_num = path.size();
   dist_path = graph_utils_ns::PathLength(path, local_graph_) / node_num;
-  std::vector<geometry_msgs::Point> exp_node;
-  geometry_msgs::Point node_position;
+  std::vector<geometry_msgs::msg::Point> exp_node;
+  geometry_msgs::msg::Point node_position;
   for (int i = 0; i < node_num; i++)
   {
     node_position.x = robot_position.x + explore_direction_.x() * dist_path * (i + 1);
@@ -868,21 +892,21 @@ Eigen::Vector3d DualStateGraph::getExploreDirection()
   return exploreDirection;
 }
 
-geometry_msgs::Point DualStateGraph::getBestLocalVertexPosition()
+geometry_msgs::msg::Point DualStateGraph::getBestLocalVertexPosition()
 {
-  geometry_msgs::Point best_vertex_location = local_graph_.vertices[best_vertex_id_].location;
+  geometry_msgs::msg::Point best_vertex_location = local_graph_.vertices[best_vertex_id_].location;
   return best_vertex_location;
 }
 
-geometry_msgs::Point DualStateGraph::getBestGlobalVertexPosition()
+geometry_msgs::msg::Point DualStateGraph::getBestGlobalVertexPosition()
 {
-  geometry_msgs::Point best_vertex_location = local_graph_.vertices[best_vertex_id_].location;
+  geometry_msgs::msg::Point best_vertex_location = local_graph_.vertices[best_vertex_id_].location;
   return best_vertex_location;
 }
 
-void DualStateGraph::keyposeCallback(const nav_msgs::Odometry::ConstPtr& msg)
+void DualStateGraph::keyposeCallback(const nav_msgs::msg::Odometry::SharedPtr msg)
 {
-  geometry_msgs::Pose keypose;
+  geometry_msgs::msg::Pose keypose;
   keypose.position.x = msg->pose.pose.position.x;
   keypose.position.y = msg->pose.pose.position.y;
   keypose.position.z = msg->pose.pose.position.z;
@@ -890,7 +914,7 @@ void DualStateGraph::keyposeCallback(const nav_msgs::Odometry::ConstPtr& msg)
   addNewGlobalVertexWithKeypose(keypose);
 }
 
-void DualStateGraph::pathCallback(const nav_msgs::Path::ConstPtr& graph_path)
+void DualStateGraph::pathCallback(const nav_msgs::msg::Path::SharedPtr graph_path)
 {
   if (graph_path->poses.size() > 2)
   {
@@ -898,8 +922,8 @@ void DualStateGraph::pathCallback(const nav_msgs::Path::ConstPtr& graph_path)
     {
       int origin_vertex_id;
       int end_vertex_id;
-      geometry_msgs::Point origin_position;
-      geometry_msgs::Point end_position;
+      geometry_msgs::msg::Point origin_position;
+      geometry_msgs::msg::Point end_position;
       origin_vertex_id = graph_utils_ns::GetClosestVertexIdxToPoint(local_graph_, graph_path->poses[i].pose.position);
       end_vertex_id = graph_utils_ns::GetClosestVertexIdxToPoint(local_graph_, graph_path->poses[i + 1].pose.position);
       origin_position = local_graph_.vertices[origin_vertex_id].location;
@@ -948,12 +972,12 @@ void DualStateGraph::pathCallback(const nav_msgs::Path::ConstPtr& graph_path)
   execute();
 }
 
-void DualStateGraph::graphPlannerStatusCallback(const graph_planner::GraphPlannerStatusConstPtr& status)
+void DualStateGraph::graphPlannerStatusCallback(const graph_planner::msg::GraphPlannerStatus::SharedPtr status)
 {
-  graph_planner::GraphPlannerStatus prev_status = graph_planner_status_;
+  graph_planner::msg::GraphPlannerStatus prev_status = graph_planner_status_;
   graph_planner_status_ = *status;
   if (prev_status.status != graph_planner_status_.status &&
-      graph_planner_status_.status == graph_planner::GraphPlannerStatus::STATUS_IN_PROGRESS)
+      graph_planner_status_.status == graph_planner::msg::GraphPlannerStatus::STATUS_IN_PROGRESS)
   {
     if (planner_status_ == false)
     {
@@ -963,9 +987,9 @@ void DualStateGraph::graphPlannerStatusCallback(const graph_planner::GraphPlanne
   }
 }
 
-DualStateGraph::DualStateGraph(const ros::NodeHandle& nh, const ros::NodeHandle& nh_private,
+DualStateGraph::DualStateGraph(rclcpp::Node::SharedPtr& node_handle,
                                volumetric_mapping::OctomapManager* manager, OccupancyGrid* grid)
-  : nh_(nh), nh_private_(nh_private)
+  : nh_(node_handle)
 {
   manager_ = manager;
   grid_ = grid;
@@ -996,17 +1020,22 @@ bool DualStateGraph::initialize()
     return false;
 
   // Initialize subscriber
-  key_pose_sub_ = nh_.subscribe<nav_msgs::Odometry>(sub_keypose_topic_, 5, &DualStateGraph::keyposeCallback, this);
-  graph_planner_path_sub_ = nh_.subscribe<nav_msgs::Path>(sub_path_topic_, 1, &DualStateGraph::pathCallback, this);
-  graph_planner_status_sub_ = nh_.subscribe<graph_planner::GraphPlannerStatus>(
-      sub_graph_planner_status_topic_, 1, &DualStateGraph::graphPlannerStatusCallback, this);
+  key_pose_sub_ = nh_->create_subscription<nav_msgs::msg::Odometry>(sub_keypose_topic_, 1, 
+  std::bind(&DualStateGraph::keyposeCallback, this, std::placeholders::_1));
+
+  graph_planner_path_sub_ = nh_->create_subscription<nav_msgs::msg::Path>(sub_path_topic_, 1, 
+  std::bind(&DualStateGraph::pathCallback, this, std::placeholders::_1));
+
+  graph_planner_status_sub_ = nh_->create_subscription<graph_planner::msg::GraphPlannerStatus>(sub_graph_planner_status_topic_, 1, 
+  std::bind(&DualStateGraph::graphPlannerStatusCallback, this, std::placeholders::_1));
 
   // Initialize publishers
-  local_graph_pub_ = nh_.advertise<graph_utils::TopologicalGraph>(pub_local_graph_topic_, 2);
-  global_graph_pub_ = nh_.advertise<graph_utils::TopologicalGraph>(pub_global_graph_topic_, 2);
-  graph_points_pub_ = nh_.advertise<sensor_msgs::PointCloud2>(pub_global_points_topic_, 2);
 
-  ROS_INFO("Successfully launched DualStateGraph node");
+  local_graph_pub_ = nh_->create_publisher<graph_utils::msg::TopologicalGraph>(pub_local_graph_topic_, 2);
+  global_graph_pub_ = nh_->create_publisher<graph_utils::msg::TopologicalGraph>(pub_global_graph_topic_, 2);
+  graph_points_pub_ = nh_->create_publisher<sensor_msgs::msg::PointCloud2>(pub_global_points_topic_, 2);
+
+  RCLCPP_INFO(nh_->get_logger(), "Successfully launched DualStateGraph node");
 
   return true;
 }

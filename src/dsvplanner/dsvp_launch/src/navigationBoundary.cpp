@@ -2,14 +2,12 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <ros/ros.h>
 
-#include <geometry_msgs/PolygonStamped.h>
+#include <rclcpp/rclcpp.hpp>
+#include <geometry_msgs/msg/polygon_stamped.hpp>
 
-#include <pcl_conversions/pcl_conversions.h>
 #include <pcl/point_cloud.h>
 #include <pcl/point_types.h>
-#include <pcl/filters/voxel_grid.h>
 
 using namespace std;
 
@@ -79,16 +77,15 @@ void readBoundaryFile()
 
 int main(int argc, char** argv)
 {
-  ros::init(argc, argv, "navigationBoundary");
-  ros::NodeHandle nh;
-  ros::NodeHandle nhPrivate = ros::NodeHandle("~");
+  rclcpp::init(argc, argv);
+  rclcpp::Node::SharedPtr nh = rclcpp::Node::make_shared("navigationBoundary");
 
-  nhPrivate.getParam("boundary_file_dir", boundary_file_dir);
-  nhPrivate.getParam("sendBoundary", sendBoundary);
-  nhPrivate.getParam("sendBoundaryInterval", sendBoundaryInterval);
+  nh->get_parameter("boundary_file_dir", boundary_file_dir);
+  nh->get_parameter("sendBoundary", sendBoundary);
+  nh->get_parameter("sendBoundaryInterval", sendBoundaryInterval);
 
-  ros::Publisher pubBoundary = nh.advertise<geometry_msgs::PolygonStamped> ("/navigation_boundary", 5);
-  geometry_msgs::PolygonStamped boundaryMsgs;
+  rclcpp::Publisher<geometry_msgs::msg::PolygonStamped>::SharedPtr pubBoundary = nh->create_publisher<geometry_msgs::msg::PolygonStamped>("/navigation_boundary", 5);
+  geometry_msgs::msg::PolygonStamped boundaryMsgs;
   boundaryMsgs.header.frame_id = "map";
 
   // read boundary from file
@@ -104,20 +101,15 @@ int main(int argc, char** argv)
     }
   }
 
-  ros::Rate rate(100);
-  bool status = ros::ok();
-  while (status) {
-    ros::spinOnce();
-
+  rclcpp::WallRate loopRate(100);
+  while (rclcpp::ok()) {
     // publish boundary messages at certain frame rate
     sendBoundaryCount++;
     if (sendBoundaryCount >= 100 * sendBoundaryInterval && sendBoundary) {
-      pubBoundary.publish(boundaryMsgs);
+      pubBoundary->publish(boundaryMsgs);
       sendBoundaryCount = 0;
     }
-
-    status = ros::ok();
-    rate.sleep();
+    loopRate.sleep();
   }
 
   return 0;
