@@ -307,6 +307,9 @@ bool OctomapManager::lookupTransform(const std::string &from_frame,
   if (use_tf_transforms_) {
     return lookupTransformTf(from_frame, to_frame, timestamp, transform);
   }
+  else{
+    return false;
+  }
 }
 
 bool OctomapManager::lookupTransformTf(const std::string &from_frame,

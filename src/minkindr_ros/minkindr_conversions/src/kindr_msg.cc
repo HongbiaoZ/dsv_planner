@@ -1,6 +1,6 @@
 #include "minkindr_conversions/kindr_msg.h"
 
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 #include <glog/logging.h>
 
 namespace tf {

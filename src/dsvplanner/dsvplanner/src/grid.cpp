@@ -37,8 +37,6 @@ bool OccupancyGrid::readParameters()
   nh_->declare_parameter("grid/kDownsampleSize", kDownsampleSize);
   nh_->declare_parameter("grid/kObstacleHeightThre", kObstacleHeightThre);
   nh_->declare_parameter("grid/kFlyingObstacleHeightThre", kFlyingObstacleHeightThre);
-  nh_->declare_parameter("/rm/kBoundX", kCollisionCheckX);
-  nh_->declare_parameter("/rm/kBoundY", kCollisionCheckY);
 
   nh_->get_parameter("grid/world_frame_id", world_frame_id_);
   nh_->get_parameter("grid/odomSubTopic", sub_odom_topic_);

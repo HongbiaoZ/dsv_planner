@@ -32,6 +32,7 @@ ament_target_dependencies(${PROJECT_NAME}
     rclcpp
     geometry_msgs
     nav_msgs
+    tf2
 )
 
 ament_export_targets(${PROJECT_NAME} HAS_LIBRARY_TARGET)
@@ -39,6 +40,7 @@ ament_export_dependencies(
         rclcpp
         geometry_msgs
         nav_msgs
+        tf2
 )
 
 install(

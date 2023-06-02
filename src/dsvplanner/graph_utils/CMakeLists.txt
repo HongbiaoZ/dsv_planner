@@ -54,13 +54,17 @@ target_include_directories(${PROJECT_NAME}_lib PUBLIC
 ament_target_dependencies(${PROJECT_NAME}_lib
   rclcpp
   misc_utils
+  geometry_msgs
 )
 ament_export_targets(${PROJECT_NAME}_lib HAS_LIBRARY_TARGET)
 ament_export_dependencies(
   rclcpp
   misc_utils
 )
-rosidl_target_interfaces(${PROJECT_NAME}_lib ${PROJECT_NAME} "rosidl_typesupport_cpp")
+rosidl_get_typesupport_target(cpp_typesupport_target
+  ${PROJECT_NAME} rosidl_typesupport_cpp)
+
+target_link_libraries(${PROJECT_NAME}_lib "${cpp_typesupport_target}")
 
 ##############################
 ## Declare a C++ executable ##
@@ -75,7 +79,10 @@ ament_target_dependencies(graph_visualization
     visualization_msgs
     misc_utils
 )
-rosidl_target_interfaces(graph_visualization ${PROJECT_NAME} "rosidl_typesupport_cpp")
+rosidl_get_typesupport_target(cpp_typesupport_target
+  ${PROJECT_NAME} rosidl_typesupport_cpp)
+
+target_link_libraries(graph_visualization "${cpp_typesupport_target}")
 
 install(
     DIRECTORY include/

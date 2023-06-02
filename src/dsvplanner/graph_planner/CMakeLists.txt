@@ -10,6 +10,7 @@ find_package(std_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
+find_package(pcl_conversions REQUIRED)
 find_package(misc_utils REQUIRED)
 find_package(graph_utils REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
@@ -50,10 +51,14 @@ ament_target_dependencies(${PROJECT_NAME}_exe
     geometry_msgs
     nav_msgs
     sensor_msgs
+    pcl_conversions
     misc_utils
     graph_utils
 )
-rosidl_target_interfaces(${PROJECT_NAME}_exe ${PROJECT_NAME} "rosidl_typesupport_cpp")
+rosidl_get_typesupport_target(cpp_typesupport_target
+  ${PROJECT_NAME} rosidl_typesupport_cpp)
+
+target_link_libraries(${PROJECT_NAME}_exe "${cpp_typesupport_target}")
 
 install(
   DIRECTORY

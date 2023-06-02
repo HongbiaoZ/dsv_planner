@@ -27,7 +27,7 @@
     drrt/gain/kFree: 0.0
     drrt/gain/kOccupied: 0.0
     drrt/gain/kUnknown: 1.0
-    drrt/gain/kMinEffectiveGain: 5.0
+    drrt/gain/kMinEffectiveGain: 5
     drrt/gain/kRange: 5.0
     drrt/gain/kRangeZMinus: 0.4
     drrt/gain/kRangeZPlus: 0.4
@@ -55,7 +55,7 @@
     planner/remainingTreePathPubTopic: /remaining_tree_path
     planner/boundaryPubTopic: /planning_horizon
     planner/globalSelectedFrontierPubTopic: /globalSelectedfrontier
-    planner/localSelectedFrontierPubTopic: /threefrontier
+    planner/localSelectedFrontierPubTopic: /localSelectedfrontier
     planner/plantimePubTopic: /plan_time
     planner/nextGoalPubTopic: /next_goal
     planner/randomSampledPointsPubTopic: /sampledPoints

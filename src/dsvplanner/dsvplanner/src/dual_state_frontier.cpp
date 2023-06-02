@@ -29,8 +29,6 @@ DualStateFrontier::~DualStateFrontier()
 
 bool DualStateFrontier::readParameters()
 {
-  nh_->declare_parameter("planner/odomSubTopic", sub_odom_topic_);
-  nh_->declare_parameter("planner/terrainCloudSubTopic", sub_terrain_point_cloud_topic_);
   nh_->declare_parameter("frontier/world_frame_id", world_frame_id_);
   nh_->declare_parameter("frontier/sub_graph_points_topic", sub_graph_points_topic_);
   nh_->declare_parameter("frontier/pub_unknown_points_topic", pub_unknown_points_topic_);
@@ -46,21 +44,6 @@ bool DualStateFrontier::readParameters()
   nh_->declare_parameter("frontier/kEffectiveUnknownNumAroundFrontier", kEffectiveUnknownNumAroundFrontier);
   nh_->declare_parameter("frontier/kFrontierNeighbourSearchRadius", kFrontierNeighbourSearchRadius);
   nh_->declare_parameter("frontier/kEliminateFrontiersAroundRobots", kEliminateFrontiersAroundRobots);
-  nh_->declare_parameter("gb/kMaxXGlobal", kGlobalMaxX);
-  nh_->declare_parameter("gb/kMaxYGlobal", kGlobalMaxY);
-  nh_->declare_parameter("gb/kMaxZGlobal", kGlobalMaxZ);
-  nh_->declare_parameter("gb/kMinXGlobal", kGlobalMinX);
-  nh_->declare_parameter("gb/kMinYGlobal", kGlobalMinY);
-  nh_->declare_parameter("gb/kMinZGlobal", kGlobalMinZ);
-  nh_->declare_parameter("rm/kBoundX", robot_bounding[0]);
-  nh_->declare_parameter("rm/kBoundY", robot_bounding[1]);
-  nh_->declare_parameter("rm/kBoundZ", robot_bounding[2]);
-  nh_->declare_parameter("rm/kSensorVertical", kSensorVerticalView);
-  nh_->declare_parameter("rm/kSensorHorizontal", kSensorHorizontalView);
-  nh_->declare_parameter("rm/kVehicleHeight", kVehicleHeight);
-  nh_->declare_parameter("elevation/kTerrainVoxelSize", kTerrainVoxelSize);
-  nh_->declare_parameter("elevation/kTerrainVoxelHalfWidth", kTerrainVoxelHalfWidth);
-  nh_->declare_parameter("elevation/kTerrainVoxelWidth", kTerrainVoxelWidth);
 
   nh_->get_parameter("planner/odomSubTopic", sub_odom_topic_);
   nh_->get_parameter("planner/terrainCloudSubTopic", sub_terrain_point_cloud_topic_);

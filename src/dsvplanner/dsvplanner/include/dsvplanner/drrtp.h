@@ -17,6 +17,7 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include "dsvplanner/dual_state_frontier.h"
 #include "dsvplanner/dual_state_graph.h"
 #include "dsvplanner/grid.h"
+// #include "rmw/qos_profiles.h"
 // #include "octomap_world/octomap_manager.h"
 
 #include <visualization_msgs/msg/marker.hpp>
@@ -46,9 +47,9 @@ public:
   // bool setPublisherPointer();
   void odomCallback(const nav_msgs::msg::Odometry::SharedPtr pose);
   void boundaryCallback(const geometry_msgs::msg::PolygonStamped::SharedPtr boundary);
-  bool plannerServiceCallback(const dsvplanner::srv::Dsvplanner::Request::SharedPtr req, 
+  void plannerServiceCallback(const dsvplanner::srv::Dsvplanner::Request::SharedPtr req, 
                                     dsvplanner::srv::Dsvplanner::Response::SharedPtr res);
-  bool cleanFrontierServiceCallback(const dsvplanner::srv::CleanFrontier::Request::SharedPtr req,
+  void cleanFrontierServiceCallback(const dsvplanner::srv::CleanFrontier::Request::SharedPtr req,
                                           dsvplanner::srv::CleanFrontier::Response::SharedPtr res);
   void cleanLastSelectedGlobalFrontier();
 

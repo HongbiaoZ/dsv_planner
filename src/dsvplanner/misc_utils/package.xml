@@ -13,6 +13,8 @@
   <depend>rclcpp</depend>
   <depend>geometry_msgs</depend>
   <depend>nav_msgs</depend>
+  <depend>tf2</depend>
+
 
   <export>
     <build_type>ament_cmake</build_type>

@@ -5,7 +5,7 @@
 #include <Eigen/Geometry>
 #include <kindr/minimal/quat-transformation.h>
 #include <tf2/transform_datatypes.h>
-#include <tf2_eigen/tf2_eigen.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 
 namespace tf {
 

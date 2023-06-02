@@ -15,6 +15,11 @@ using namespace Eigen;
 dsvplanner_ns::drrtPlanner::drrtPlanner(rclcpp::Node::SharedPtr& node_handle)
   : nh_(node_handle)
 {
+  if (!setParams())
+  {
+    RCLCPP_ERROR(nh_->get_logger(), "Set parameters fail. Cannot start planning!");
+  }
+
   manager_ = new volumetric_mapping::OctomapManager(nh_);
   RCLCPP_INFO(nh_->get_logger(), "Successfully launched octomap node");
   grid_ = new OccupancyGrid(nh_);
@@ -70,7 +75,7 @@ void dsvplanner_ns::drrtPlanner::boundaryCallback(const geometry_msgs::msg::Poly
   dual_state_frontier_->setBoundary(*boundary);
 }
 
-bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::Dsvplanner::Request::SharedPtr req, 
+void dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::Dsvplanner::Request::SharedPtr req, 
                                                               dsvplanner::srv::Dsvplanner::Response::SharedPtr res)
 {
   plan_start_ = std::chrono::steady_clock::now();
@@ -79,17 +84,17 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::D
   if (!drrt_->plannerReady_)
   {
     std::cout << "No odometry. Planner is not ready!" << std::endl;
-    return true;
+    return;
   }
   if (manager_ == NULL)
   {
     std::cout << "No octomap. Planner is not ready!" << std::endl;
-    return true;
+    return;
   }
   if (manager_->getMapSize().norm() <= 0.0)
   {
     std::cout << "Octomap is empty. Planner is not set up!" << std::endl;
-    return true;
+    return;
   }
 
   // set terrain points and terrain voxel elevation
@@ -143,11 +148,11 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::D
     home_position.x = 0;
     home_position.y = 0;
     home_position.z = 0;
-    res->goal.push_back(home_position);
-    res->mode.data = 2;  // mode 2 means returning home
+    res->goal = home_position;
+    res->mode = 2;  // mode 2 means returning home
 
     dual_state_frontier_->cleanAllUselessFrontiers();
-    return true;
+    return;
   }
   else if (!drrt_->nextNodeFound_ && !drrt_->global_plan_pre_ && dual_state_graph_->getGain(robot_position) <= 0)
   {
@@ -157,7 +162,7 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::D
               << "     Switch to relocation stage "
               << "\n"
               << "     Total plan lasted " << 0 << std::endl;
-    return true;
+    return;
   }
   else
   {
@@ -189,8 +194,8 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::D
     next_goal_position = dual_state_graph_->getBestLocalVertexPosition();
   }
   dual_state_graph_->setCurrentPlannerStatus(drrt_->global_plan_pre_);
-  res->goal.push_back(next_goal_position);
-  res->mode.data = 1;  // mode 1 means exploration
+  res->goal = next_goal_position;
+  res->mode = 1;  // mode 1 means exploration
 
   geometry_msgs::msg::PointStamped next_goal_point;
   next_goal_point.header.frame_id = "map";
@@ -204,10 +209,9 @@ bool dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::D
   std::cout << "     RRT generation lasted  " << rrtGenerateTime << "\n"
             << "     Computiong gain lasted " << getGainTime << "\n"
             << "     Total plan lasted " << plantime << std::endl;
-  return true;
 }
 
-bool dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback(const dsvplanner::srv::CleanFrontier::Request::SharedPtr req,
+void dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback(const dsvplanner::srv::CleanFrontier::Request::SharedPtr req,
                                                                     dsvplanner::srv::CleanFrontier::Response::SharedPtr res)
 {
   if (drrt_->nextNodeFound_)
@@ -221,7 +225,6 @@ bool dsvplanner_ns::drrtPlanner::cleanFrontierServiceCallback(const dsvplanner::
   }
   res->success = true;
 
-  return true;
 }
 
 void dsvplanner_ns::drrtPlanner::cleanLastSelectedGlobalFrontier()
@@ -238,13 +241,6 @@ void dsvplanner_ns::drrtPlanner::cleanLastSelectedGlobalFrontier()
 
 bool dsvplanner_ns::drrtPlanner::setParams()
 {
-  nh_->declare_parameter("rm/kSensorPitch", params_.sensorPitch);
-  nh_->declare_parameter("rm/kSensorHorizontal", params_.sensorHorizontalView);
-  nh_->declare_parameter("rm/kSensorVertical", params_.sensorVerticalView);
-  nh_->declare_parameter("rm/kVehicleHeight", params_.kVehicleHeight);
-  nh_->declare_parameter("rm/kBoundX", params_.boundingBox[0]);
-  nh_->declare_parameter("rm/kBoundY", params_.boundingBox[1]);
-  nh_->declare_parameter("rm/kBoundZ", params_.boundingBox[2]);
   nh_->declare_parameter("drrt/gain/kFree", params_.kGainFree);
   nh_->declare_parameter("drrt/gain/kOccupied", params_.kGainOccupied);
   nh_->declare_parameter("drrt/gain/kUnknown", params_.kGainUnknown);
@@ -267,21 +263,7 @@ bool dsvplanner_ns::drrtPlanner::setParams()
   nh_->declare_parameter("drrt/vertexSize", params_.kVertexSize);
   nh_->declare_parameter("drrt/keepTryingNum", params_.kKeepTryingNum);
   nh_->declare_parameter("drrt/kLoopCountThres", params_.kLoopCountThres);
-  nh_->declare_parameter("lb/kMinXLocal", params_.kMinXLocalBound);
-  nh_->declare_parameter("lb/kMinYLocal", params_.kMinYLocalBound);
-  nh_->declare_parameter("lb/kMinZLocal", params_.kMinZLocalBound);
-  nh_->declare_parameter("lb/kMaxXLocal", params_.kMaxXLocalBound);
-  nh_->declare_parameter("lb/kMaxYLocal", params_.kMaxYLocalBound);
-  nh_->declare_parameter("lb/kMaxZLocal", params_.kMaxZLocalBound);
-  nh_->declare_parameter("gb/kMinXGlobal", params_.kMinXGlobalBound);
-  nh_->declare_parameter("gb/kMinYGlobal", params_.kMinYGlobalBound);
-  nh_->declare_parameter("gb/kMinZGlobal", params_.kMinZGlobalBound);
-  nh_->declare_parameter("gb/kMaxXGlobal", params_.kMaxXGlobalBound);
-  nh_->declare_parameter("gb/kMaxYGlobal", params_.kMaxYGlobalBound);
-  nh_->declare_parameter("gb/kMaxZGlobal", params_.kMaxZGlobalBound);
-  nh_->declare_parameter("elevation/kTerrainVoxelSize", params_.kTerrainVoxelSize);
-  nh_->declare_parameter("elevation/kTerrainVoxelWidth", params_.kTerrainVoxelWidth);
-  nh_->declare_parameter("elevation/kTerrainVoxelHalfWidth", params_.kTerrainVoxelHalfWidth);
+
   nh_->declare_parameter("planner/odomSubTopic", odomSubTopic);
   nh_->declare_parameter("planner/boundarySubTopic", boundarySubTopic);
   nh_->declare_parameter("planner/newTreePathPubTopic", newTreePathPubTopic);
@@ -295,6 +277,32 @@ bool dsvplanner_ns::drrtPlanner::setParams()
   nh_->declare_parameter("planner/shutDownTopic", shutDownTopic);
   nh_->declare_parameter("planner/plannerServiceName", plannerServiceName);
   nh_->declare_parameter("planner/cleanFrontierServiceName", cleanFrontierServiceName);
+
+  nh_->declare_parameter("lb/kMinXLocal", params_.kMinXLocalBound);
+  nh_->declare_parameter("lb/kMinYLocal", params_.kMinYLocalBound);
+  nh_->declare_parameter("lb/kMinZLocal", params_.kMinZLocalBound);
+  nh_->declare_parameter("lb/kMaxXLocal", params_.kMaxXLocalBound);
+  nh_->declare_parameter("lb/kMaxYLocal", params_.kMaxYLocalBound);
+  nh_->declare_parameter("lb/kMaxZLocal", params_.kMaxZLocalBound);
+
+  nh_->declare_parameter("gb/kMinXGlobal", params_.kMinXGlobalBound);
+  nh_->declare_parameter("gb/kMinYGlobal", params_.kMinYGlobalBound);
+  nh_->declare_parameter("gb/kMinZGlobal", params_.kMinZGlobalBound);
+  nh_->declare_parameter("gb/kMaxXGlobal", params_.kMaxXGlobalBound);
+  nh_->declare_parameter("gb/kMaxYGlobal", params_.kMaxYGlobalBound);
+  nh_->declare_parameter("gb/kMaxZGlobal", params_.kMaxZGlobalBound);
+
+  nh_->declare_parameter("rm/kSensorPitch", params_.sensorPitch);
+  nh_->declare_parameter("rm/kSensorHorizontal", params_.sensorHorizontalView);
+  nh_->declare_parameter("rm/kSensorVertical", params_.sensorVerticalView);
+  nh_->declare_parameter("rm/kVehicleHeight", params_.kVehicleHeight);
+  nh_->declare_parameter("rm/kBoundX", params_.boundingBox[0]);
+  nh_->declare_parameter("rm/kBoundY", params_.boundingBox[1]);
+  nh_->declare_parameter("rm/kBoundZ", params_.boundingBox[2]);
+
+  nh_->declare_parameter("elevation/kTerrainVoxelSize", params_.kTerrainVoxelSize);
+  nh_->declare_parameter("elevation/kTerrainVoxelWidth", params_.kTerrainVoxelWidth);
+  nh_->declare_parameter("elevation/kTerrainVoxelHalfWidth", params_.kTerrainVoxelHalfWidth);
 
   nh_->get_parameter("rm/kSensorPitch", params_.sensorPitch);
   nh_->get_parameter("rm/kSensorHorizontal", params_.sensorHorizontalView);
@@ -359,10 +367,6 @@ bool dsvplanner_ns::drrtPlanner::setParams()
 
 bool dsvplanner_ns::drrtPlanner::init()
 {
-  if (!setParams())
-  {
-    RCLCPP_ERROR(nh_->get_logger(), "Set parameters fail. Cannot start planning!");
-  }
 
   odomSub_ = nh_->create_subscription<nav_msgs::msg::Odometry>(odomSubTopic, 1, 
   std::bind(&dsvplanner_ns::drrtPlanner::odomCallback, this, std::placeholders::_1));

@@ -80,6 +80,10 @@ int main(int argc, char** argv)
   rclcpp::init(argc, argv);
   rclcpp::Node::SharedPtr nh = rclcpp::Node::make_shared("navigationBoundary");
 
+  nh->declare_parameter("boundary_file_dir", boundary_file_dir);
+  nh->declare_parameter("sendBoundary", sendBoundary);
+  nh->declare_parameter("sendBoundaryInterval", sendBoundaryInterval);
+
   nh->get_parameter("boundary_file_dir", boundary_file_dir);
   nh->get_parameter("sendBoundary", sendBoundary);
   nh->get_parameter("sendBoundaryInterval", sendBoundaryInterval);

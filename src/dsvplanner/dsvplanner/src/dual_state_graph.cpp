@@ -40,9 +40,6 @@ bool DualStateGraph::readParameters()
   nh_->declare_parameter("graph/kSurroundRange", kSurroundRange);
   nh_->declare_parameter("graph/kMinGainRange", kMinGainRange);
   nh_->declare_parameter("graph/kMinDistanceToRobotToCheck", kMinDistanceToRobotToCheck);
-  nh_->declare_parameter("rm/kBoundX", robot_bounding[0]);
-  nh_->declare_parameter("rm/kBoundY", robot_bounding[1]);
-  nh_->declare_parameter("rm/kBoundZ", robot_bounding[2]);
 
   nh_->get_parameter("graph/world_frame_id", world_frame_id_);
   nh_->get_parameter("graph/pub_local_graph_topic", pub_local_graph_topic_);

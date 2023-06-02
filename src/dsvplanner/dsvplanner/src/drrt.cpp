@@ -808,7 +808,7 @@ void dsvplanner_ns::Drrt::publishPlanningHorizon()
   p.color.g = 145.0 / 255.0;
   p.color.b = 37.0 / 255.0;
   p.color.a = 0.3;
-  p.lifetime = rclcpp::Duration(0.0);
+  p.lifetime = rclcpp::Duration(0, 0);
   p.frame_locked = false;
   params_.boundaryPub_->publish(p);
 }

@@ -12,7 +12,7 @@ def generate_launch_description():
     param_dir_planning = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'exploration_garage.yaml')
     param_dir_octomap = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'octomap_garage.yaml')
     param_dir_boundary = os.path.join(get_package_share_directory('dsvp_launch'), 'data', 'boundary.ply')
-    rviz_path = os.path.join(get_package_share_directory('dsvp_launch'), 'default.rviz')
+    rviz_path = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'default.rviz')
     use_boundary = LaunchConfiguration('use_boundary', default='false')
     enable_bag_record = LaunchConfiguration('enable_bag_record', default='false')
     bag_name = LaunchConfiguration('bag_name', default='garage')
@@ -31,7 +31,7 @@ def generate_launch_description():
          ),
          Node(
             package='dsvplanner',
-            executable='dsvplanner',
+            executable='dsvplanner_exe',
             name='dsvplanner',
             prefix=['stdbuf -o L'],
             output='screen',

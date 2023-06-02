@@ -63,7 +63,6 @@ double return_home_threshold = 1.5;
 double robot_moving_threshold = 6;
 std::string map_frame = "map";
 std::string waypoint_topic = "/way_point";
-std::string cmd_vel_topic = "/cmd_vel";
 std::string gp_command_topic = "/graph_planner_command";
 std::string effective_plan_time_topic = "/runtime";
 std::string total_plan_time_topic = "/totaltime";
@@ -137,73 +136,74 @@ bool robotPositionChange()
   return true;
 }
 
-void initilization()
-{
-  tf2::Vector3 vec_init(init_x, init_y, init_z);
-  tf2::Vector3 vec_goal;
-  vec_goal = transformToMap * vec_init;
-  geometry_msgs::msg::PointStamped wp;
-  wp.header.frame_id = map_frame;
-  wp.header.stamp = nh->now();
-  wp.point.x = vec_goal.x();
-  wp.point.y = vec_goal.y();
-  wp.point.z = vec_goal.z();
-  home_point.x = current_odom_x;
-  home_point.y = current_odom_y;
-  home_point.z = current_odom_z;
+// void initilization()
+// {
+//   tf2::Vector3 vec_init(init_x, init_y, init_z);
+//   tf2::Vector3 vec_goal;
+//   vec_goal = transformToMap * vec_init;
+//   geometry_msgs::msg::PointStamped wp;
+//   wp.header.frame_id = map_frame;
+//   wp.header.stamp = nh->now();
+//   wp.point.x = vec_goal.x();
+//   wp.point.y = vec_goal.y();
+//   wp.point.z = vec_goal.z();
+//   home_point.x = current_odom_x;
+//   home_point.y = current_odom_y;
+//   home_point.z = current_odom_z;
 
-  usleep(500000); // wait for sometime to make sure waypoint can be
-                               // published properly
+//   usleep(500000); // wait for sometime to make sure waypoint can be
+//                                // published properly
 
-  waypoint_pub->publish(wp);
-  bool wp_ongoing = true;
-  int init_time_count = 0;
-  while (wp_ongoing)
-  {  // Keep publishing initial waypoint until the robot
-    // reaches that point
-    init_time_count++;
-    usleep(100000);
-    rclcpp::spin_some(nh);
-    vec_goal = transformToMap * vec_init;
-    wp.point.x = vec_goal.x();
-    wp.point.y = vec_goal.y();
-    wp.point.z = vec_goal.z();
-    waypoint_pub->publish(wp);
-    double dist = sqrt((wp.point.x - current_odom_x) * (wp.point.x - current_odom_x) +
-                       (wp.point.y - current_odom_y) * (wp.point.y - current_odom_y));
-    double dist_to_home = sqrt((home_point.x - current_odom_x) * (home_point.x - current_odom_x) +
-                               (home_point.y - current_odom_y) * (home_point.y - current_odom_y));
-    if (dist < 0.5 && dist_to_home > 0.5)
-      wp_ongoing = false;
-    if (init_time_count >= init_time / 0.1 && dist_to_home > 0.5)
-      wp_ongoing = false;
-  }
-}
+//   waypoint_pub->publish(wp);
+//   bool wp_ongoing = true;
+//   int init_time_count = 0;
+//   while (wp_ongoing)
+//   {  // Keep publishing initial waypoint until the robot
+//     // reaches that point
+//     init_time_count++;
+//     usleep(100000);
+//     exector.spin_some();
+//     vec_goal = transformToMap * vec_init;
+//     wp.point.x = vec_goal.x();
+//     wp.point.y = vec_goal.y();
+//     wp.point.z = vec_goal.z();
+//     waypoint_pub->publish(wp);
+//     double dist = sqrt((wp.point.x - current_odom_x) * (wp.point.x - current_odom_x) +
+//                        (wp.point.y - current_odom_y) * (wp.point.y - current_odom_y));
+//     double dist_to_home = sqrt((home_point.x - current_odom_x) * (home_point.x - current_odom_x) +
+//                                (home_point.y - current_odom_y) * (home_point.y - current_odom_y));
+//     if (dist < 0.5 && dist_to_home > 0.5)
+//       wp_ongoing = false;
+//     if (init_time_count >= init_time / 0.1 && dist_to_home > 0.5)
+//       wp_ongoing = false;
+//   }
+// }
 
 int main(int argc, char** argv)
 {
   rclcpp::init(argc, argv);
+  rclcpp::executors::MultiThreadedExecutor exector;
   nh = rclcpp::Node::make_shared("exploration");
+  exector.add_node(nh);
   
-  nh->declare_parameter("interface/simulation");
-  nh->declare_parameter("interface/dtime");
-  nh->declare_parameter("interface/initX");
-  nh->declare_parameter("interface/initY");
-  nh->declare_parameter("interface/initZ");
-  nh->declare_parameter("interface/initTime");
-  nh->declare_parameter("interface/returnHomeThres");
-  nh->declare_parameter("interface/robotMovingThres");
-  nh->declare_parameter("interface/tfFrame");
-  nh->declare_parameter("interface/autoExp");
-  nh->declare_parameter("interface/waypointTopic");
-  nh->declare_parameter("interface/cmdVelTopic");
-  nh->declare_parameter("interface/graphPlannerCommandTopic");
-  nh->declare_parameter("interface/effectivePlanTimeTopic");
-  nh->declare_parameter("interface/totalPlanTimeTopic");
-  nh->declare_parameter("interface/gpStatusTopic");
-  nh->declare_parameter("interface/odomTopic");
-  nh->declare_parameter("interface/beginSignalTopic");
-  nh->declare_parameter("interface/stopSignalTopic");
+  nh->declare_parameter("interface/simulation", simulation);
+  nh->declare_parameter("interface/dtime", dtime);
+  nh->declare_parameter("interface/initX", init_x);
+  nh->declare_parameter("interface/initY", init_y);
+  nh->declare_parameter("interface/initZ", init_z);
+  nh->declare_parameter("interface/initTime", init_time);
+  nh->declare_parameter("interface/returnHomeThres", return_home_threshold);
+  nh->declare_parameter("interface/robotMovingThres", robot_moving_threshold);
+  nh->declare_parameter("interface/tfFrame", map_frame);
+  nh->declare_parameter("interface/autoExp", begin_signal);
+  nh->declare_parameter("interface/waypointTopic", waypoint_topic);
+  nh->declare_parameter("interface/graphPlannerCommandTopic", gp_command_topic);
+  nh->declare_parameter("interface/effectivePlanTimeTopic", effective_plan_time_topic);
+  nh->declare_parameter("interface/totalPlanTimeTopic", total_plan_time_topic);
+  nh->declare_parameter("interface/gpStatusTopic", gp_status_topic);
+  nh->declare_parameter("interface/odomTopic", odom_topic);
+  nh->declare_parameter("interface/beginSignalTopic", begin_signal_topic);
+  nh->declare_parameter("interface/stopSignalTopic", stop_signal_topic);
 
   nh->get_parameter("interface/simulation", simulation);
   nh->get_parameter("interface/dtime", dtime);
@@ -216,7 +216,6 @@ int main(int argc, char** argv)
   nh->get_parameter("interface/tfFrame", map_frame);
   nh->get_parameter("interface/autoExp", begin_signal);
   nh->get_parameter("interface/waypointTopic", waypoint_topic);
-  nh->get_parameter("interface/cmdVelTopic", cmd_vel_topic);
   nh->get_parameter("interface/graphPlannerCommandTopic", gp_command_topic);
   nh->get_parameter("interface/effectivePlanTimeTopic", effective_plan_time_topic);
   nh->get_parameter("interface/totalPlanTimeTopic", total_plan_time_topic);
@@ -225,34 +224,77 @@ int main(int argc, char** argv)
   nh->get_parameter("interface/beginSignalTopic", begin_signal_topic);
   nh->get_parameter("interface/stopSignalTopic", stop_signal_topic);
 
-  waypoint_pub = nh->create_publisher<geometry_msgs::msg::PointStamped>(waypoint_topic, 5);
-  gp_command_pub = nh->create_publisher<graph_planner::msg::GraphPlannerCommand>(gp_command_topic, 1);
-  effective_plan_time_pub = nh->create_publisher<std_msgs::msg::Float32>(effective_plan_time_topic, 1);
-  total_plan_time_pub = nh->create_publisher<std_msgs::msg::Float32>(total_plan_time_topic, 1);
-  stop_signal_pub = nh->create_publisher<std_msgs::msg::Bool>(stop_signal_topic, 1);
+  rclcpp::CallbackGroup::SharedPtr client_cb_group_ =  nh->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
-  gp_status_sub = nh->create_subscription<graph_planner::msg::GraphPlannerStatus>(gp_status_topic, 1, gp_status_callback);
-  waypoint_sub = nh->create_subscription<geometry_msgs::msg::PointStamped>(waypoint_topic, 1, waypoint_callback);
-  odom_sub = nh->create_subscription<nav_msgs::msg::Odometry>(odom_topic, 1, odom_callback);
-  begin_signal_sub = nh->create_subscription<std_msgs::msg::Bool>(begin_signal_topic, 1, begin_signal_callback);
+  waypoint_pub = nh->create_publisher<geometry_msgs::msg::PointStamped>(waypoint_topic, 5);
+  gp_command_pub = nh->create_publisher<graph_planner::msg::GraphPlannerCommand>(gp_command_topic, 2);
+  effective_plan_time_pub = nh->create_publisher<std_msgs::msg::Float32>(effective_plan_time_topic, 2);
+  total_plan_time_pub = nh->create_publisher<std_msgs::msg::Float32>(total_plan_time_topic, 2);
+  stop_signal_pub = nh->create_publisher<std_msgs::msg::Bool>(stop_signal_topic, 2);
+
+  gp_status_sub = nh->create_subscription<graph_planner::msg::GraphPlannerStatus>(gp_status_topic, 5, gp_status_callback);
+  waypoint_sub = nh->create_subscription<geometry_msgs::msg::PointStamped>(waypoint_topic, 5, waypoint_callback);
+  odom_sub = nh->create_subscription<nav_msgs::msg::Odometry>(odom_topic, 5, odom_callback);
+  begin_signal_sub = nh->create_subscription<std_msgs::msg::Bool>(begin_signal_topic, 5, begin_signal_callback);
 
   rclcpp::Client<dsvplanner::srv::CleanFrontier>::SharedPtr frontier_cleaner_client =
-    nh->create_client<dsvplanner::srv::CleanFrontier>("cleanFrontierSrv");
+    nh->create_client<dsvplanner::srv::CleanFrontier>("cleanFrontierSrv", rmw_qos_profile_services_default, client_cb_group_);
   rclcpp::Client<dsvplanner::srv::Dsvplanner>::SharedPtr drrt_planner_client =
-    nh->create_client<dsvplanner::srv::Dsvplanner>("drrtPlannerSrv");
+    nh->create_client<dsvplanner::srv::Dsvplanner>("drrtPlannerSrv", rmw_qos_profile_services_default, client_cb_group_);
 
   sleep(1);
-  rclcpp::spin_some(nh);
+  exector.spin_some();
 
   while (!begin_signal || !odom_is_ready)
   {
     usleep(500000);
-    rclcpp::spin_some(nh);
+    exector.spin_some();
     RCLCPP_INFO(nh->get_logger(), "Waiting for Odometry");
   }
 
   RCLCPP_INFO(nh->get_logger(), "Starting the planner: Performing initialization motion");
-  initilization();
+  {
+    tf2::Vector3 vec_init(init_x, init_y, init_z);
+    tf2::Vector3 vec_goal;
+    vec_goal = transformToMap * vec_init;
+    geometry_msgs::msg::PointStamped wp;
+    wp.header.frame_id = map_frame;
+    wp.header.stamp = nh->now();
+    wp.point.x = vec_goal.x();
+    wp.point.y = vec_goal.y();
+    wp.point.z = vec_goal.z();
+    home_point.x = current_odom_x;
+    home_point.y = current_odom_y;
+    home_point.z = current_odom_z;
+
+    usleep(500000); // wait for sometime to make sure waypoint can be
+                                // published properly
+
+    waypoint_pub->publish(wp);
+    bool wp_ongoing = true;
+    int init_time_count = 0;
+    while (wp_ongoing)
+    {  // Keep publishing initial waypoint until the robot
+      // reaches that point
+      init_time_count++;
+      usleep(100000);
+      exector.spin_some();
+      vec_goal = transformToMap * vec_init;
+      wp.point.x = vec_goal.x();
+      wp.point.y = vec_goal.y();
+      wp.point.z = vec_goal.z();
+      waypoint_pub->publish(wp);
+      double dist = sqrt((wp.point.x - current_odom_x) * (wp.point.x - current_odom_x) +
+                        (wp.point.y - current_odom_y) * (wp.point.y - current_odom_y));
+      double dist_to_home = sqrt((home_point.x - current_odom_x) * (home_point.x - current_odom_x) +
+                                (home_point.y - current_odom_y) * (home_point.y - current_odom_y));
+      if (dist < 0.5 && dist_to_home > 0.5)
+        wp_ongoing = false;
+      if (init_time_count >= init_time / 0.1 && dist_to_home > 0.5)
+        wp_ongoing = false;
+    }
+  }
+  // initilization();
   sleep(1);
 
   std::cout << std::endl << "\033[1;32mExploration Started\033[0m\n" << std::endl;
@@ -277,16 +319,21 @@ int main(int argc, char** argv)
       auto planSrv = std::make_shared<dsvplanner::srv::Dsvplanner::Request>();
       auto cleanSrv = std::make_shared<dsvplanner::srv::CleanFrontier::Request>();
       planSrv->header.stamp = nh->now();
-      auto response = drrt_planner_client->async_send_request(planSrv);
-      if (rclcpp::spin_until_future_complete(nh, response) == rclcpp::FutureReturnCode::SUCCESS)
-      {
-        if (response.get()->goal.size() == 0)
-        {  // usually the size should be 1 if planning successfully
-          sleep(1);
-          continue;
-        }
 
-        if (response.get()->mode.data == 2)
+      auto result_future = drrt_planner_client->async_send_request(planSrv);
+      auto callback = [&](rclcpp::Client<dsvplanner::srv::Dsvplanner>::SharedFuture future) { 
+        auto result = future.get();
+        std::cout<<"call service successfully"<<std::endl;
+        std::cout<<"get response goal"<<result->goal.x<<std::endl;
+        // if (response.get()->goal.size() == 0)
+        // {  // usually the size should be 1 if planning successfully
+        //   sleep(1);
+        //   continue;
+        // }
+        
+        // std::cout<<"get response goalx is "<<response.get()->goal[0].x<<std::endl;
+        // std::cout<<"get response goal"<<response.get()->mode<<std::endl;
+        if (result->mode == 2)
         {
           return_home = true;
           goal_point = home_point;
@@ -296,13 +343,19 @@ int main(int argc, char** argv)
         }
         else
         {
+          std::cout<<"ready to receive goal!!"<<std::endl;
           return_home = false;
-          goal_point = response.get()->goal[0];
+          goal_point = result->goal;
+          std::cout<<"get goal points!!"<<std::endl;
           plan_over = steady_clock::now();
           time_span = plan_over - plan_start;
+          std::cout<<"get goal points2!!"<<std::endl;
           effective_time.data = float(time_span.count()) * steady_clock::period::num / steady_clock::period::den;
+          std::cout<<"get goal points3!!"<<std::endl;
           effective_plan_time_pub->publish(effective_time);
+          std::cout<<"get goal points4!!"<<std::endl;
         }
+        std::cout<<"get response mode"<<std::endl;
         total_time.data += effective_time.data;
         total_plan_time_pub->publish(total_time);
 
@@ -312,9 +365,11 @@ int main(int argc, char** argv)
           graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
           graph_planner_command.location = goal_point;
           gp_command_pub->publish(graph_planner_command);
+          std::cout<<"pub command successfully"<<std::endl;
           sleep(dtime);  // give sometime to graph planner for
                                          // searching path to goal point
-          rclcpp::spin_some(nh);              // update gp_in_progree
+          // exector.spin_some();              // update gp_in_progree
+          std::cout<<"pub command successfully"<<std::endl;
           int count = 200;
           previous_odom_x = current_odom_x;
           previous_odom_y = current_odom_y;
@@ -324,7 +379,7 @@ int main(int argc, char** argv)
                                          // (200*0.1)
             usleep(100000);  // seconds, then give up the goal
             wayPoint_pre = wayPoint;
-            rclcpp::spin_some(nh);
+            exector.spin_some();
             bool robotMoving = robotPositionChange();
             if (robotMoving)
             {
@@ -344,7 +399,7 @@ int main(int argc, char** argv)
               break;
             }
           }
-
+          std::cout<<"disable graph planner"<<std::endl;
           graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_DISABLE;
           gp_command_pub->publish(graph_planner_command);
         }
@@ -353,16 +408,27 @@ int main(int argc, char** argv)
            // with bagfiles where robot will
           // not move to the planned goal. When in simulation mode, robot will
           // keep replanning every two seconds
-          for (size_t i = 0; i < response.get()->goal.size(); i++)
-          {
+          // for (size_t i = 0; i < response.get()->goal.size(); i++)
+          // {
             graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
-            graph_planner_command.location = response.get()->goal[i];
+            graph_planner_command.location = result->goal;
             gp_command_pub->publish(graph_planner_command);
             sleep(2);
             break;
-          }
+          // }
         }
+        std::cout<<"get response move"<<std::endl;
         plan_start = steady_clock::now();
+        std::cout<<"get response sleep"<<std::endl;
+      // Use result->responses[] and do something 
+      };
+      result_future.add_done_callback(callback);
+      std::cout<<"start call service"<<std::endl;
+      // exector.spin_until_future_complete(this->get_node_base_interface(), future_goal_handle, std::chrono::seconds(5))
+      // if (rclcpp::spin_until_future_complete(nh, response) == rclcpp::FutureReturnCode::)
+      if (1)
+      {
+        
       }
       else
       {
@@ -374,7 +440,7 @@ int main(int argc, char** argv)
     }
     else
     {
-      rclcpp::spin_some(nh);
+      exector.spin_some();
       if (fabs(current_odom_x - home_point.x) + fabs(current_odom_y - home_point.y) +
               fabs(current_odom_z - home_point.z) <=
           return_home_threshold)
@@ -390,7 +456,7 @@ int main(int argc, char** argv)
       {
         while (!gp_in_progress)
         {
-          rclcpp::spin_some(nh);
+          exector.spin_some();
           sleep(2);
 
           graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;

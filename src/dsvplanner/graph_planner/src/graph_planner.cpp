@@ -402,16 +402,16 @@ bool GraphPlanner::initialize()
   waypoint_.header.frame_id = world_frame_id_;
 
   // Initialize subscribers
-  graph_sub_ = nh_->create_subscription<graph_utils::msg::TopologicalGraph>(sub_graph_topic_, 1, 
+  graph_sub_ = nh_->create_subscription<graph_utils::msg::TopologicalGraph>(sub_graph_topic_, 5, 
   std::bind(&GraphPlanner::graphCallback, this, std::placeholders::_1));
 
-  graph_planner_command_sub_ = nh_->create_subscription<graph_planner::msg::GraphPlannerCommand>(graph_planner_command_topic_, 1, 
+  graph_planner_command_sub_ = nh_->create_subscription<graph_planner::msg::GraphPlannerCommand>(graph_planner_command_topic_, 5, 
   std::bind(&GraphPlanner::commandCallback, this, std::placeholders::_1));
 
-  odometry_sub_ = nh_->create_subscription<nav_msgs::msg::Odometry>(sub_odometry_topic_, 1, 
+  odometry_sub_ = nh_->create_subscription<nav_msgs::msg::Odometry>(sub_odometry_topic_, 5, 
   std::bind(&GraphPlanner::odometryCallback, this, std::placeholders::_1));
 
-  terrain_sub_ = nh_->create_subscription<sensor_msgs::msg::PointCloud2>(sub_terrain_topic_, 1, 
+  terrain_sub_ = nh_->create_subscription<sensor_msgs::msg::PointCloud2>(sub_terrain_topic_, 5, 
   std::bind(&GraphPlanner::terrainCallback, this, std::placeholders::_1));
 
   // Initialize publishers
@@ -482,7 +482,7 @@ void GraphPlanner::executeCommand()
 
 bool GraphPlanner::execute()
 {
-  rclcpp::WallRate loopRate(kExecuteFrequency);
+  rclcpp::Rate loopRate(kExecuteFrequency);
   while (rclcpp::ok())
   {
     rclcpp::spin_some(nh_);
