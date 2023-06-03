@@ -672,8 +672,8 @@ bool DualStateFrontier::initialize()
   graph_points_sub_ = nh_->create_subscription<sensor_msgs::msg::PointCloud2>(sub_graph_points_topic_, 1, 
   std::bind(&DualStateFrontier::graphPointsCallback, this, std::placeholders::_1));
 
-  odom_sub_.subscribe(nh_, sub_odom_topic_);
-  terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_);
+  odom_sub_.subscribe(nh_, sub_odom_topic_, qos_profile);
+  terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_, qos_profile);
   sync_.reset(new Sync(syncPolicy(100), odom_sub_, terrain_point_cloud_sub_));
   sync_->registerCallback(std::bind(&DualStateFrontier::terrainCloudAndOdomCallback, this, std::placeholders::_1, std::placeholders::_2));
 

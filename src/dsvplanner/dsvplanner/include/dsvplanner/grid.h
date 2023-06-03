@@ -16,8 +16,10 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <nav_msgs/msg/odometry.hpp>
 #include <message_filters/subscriber.h>
-#include "message_filters/synchronizer.h"
-#include "message_filters/sync_policies/approximate_time.h"
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <rmw/types.h>
+#include <rmw/qos_profiles.h>
 
 #include <pcl/filters/voxel_grid.h>
 #include <pcl/kdtree/kdtree_flann.h>
@@ -47,7 +49,7 @@ public:
   message_filters::Subscriber<sensor_msgs::msg::PointCloud2> terrain_point_cloud_sub_;
   typedef message_filters::sync_policies::ApproximateTime<nav_msgs::msg::Odometry, sensor_msgs::msg::PointCloud2> syncPolicy;
   typedef message_filters::Synchronizer<syncPolicy> Sync;
-  std::shared_ptr<Sync> sync_;
+  boost::shared_ptr<Sync> sync_;
   // std::shared_ptr<message_filters::TimeSynchronizer<nav_msgs::msg::Odometry, sensor_msgs::msg::PointCloud2>> sync_;
 
   // ROS publishers
@@ -76,6 +78,20 @@ public:
     occupied = 2,
     near_occupied = 3
   };
+
+  rmw_qos_profile_t qos_profile=
+  {
+    RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+    10,
+    RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+    RMW_QOS_POLICY_DURABILITY_VOLATILE,
+    RMW_QOS_DEADLINE_DEFAULT,
+    RMW_QOS_LIFESPAN_DEFAULT,
+    RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT,
+    RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+    false
+  };
+
   std::vector<std::vector<int>> gridState_;
   int map_width_grid_num_;
   int map_half_width_grid_num_;

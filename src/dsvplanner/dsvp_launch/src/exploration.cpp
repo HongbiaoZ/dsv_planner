@@ -48,6 +48,7 @@ bool gp_in_progress = false;
 bool wp_state = false;
 bool return_home = false;
 bool odom_is_ready = false;
+bool call_dsvp_successfully = false;
 double current_odom_x = 0;
 double current_odom_y = 0;
 double current_odom_z = 0;
@@ -224,7 +225,7 @@ int main(int argc, char** argv)
   nh->get_parameter("interface/beginSignalTopic", begin_signal_topic);
   nh->get_parameter("interface/stopSignalTopic", stop_signal_topic);
 
-  rclcpp::CallbackGroup::SharedPtr client_cb_group_ =  nh->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
+  // rclcpp::CallbackGroup::SharedPtr client_cb_group_ =  nh->create_callback_group(rclcpp::CallbackGroupType::Reentrant);
 
   waypoint_pub = nh->create_publisher<geometry_msgs::msg::PointStamped>(waypoint_topic, 5);
   gp_command_pub = nh->create_publisher<graph_planner::msg::GraphPlannerCommand>(gp_command_topic, 2);
@@ -238,9 +239,9 @@ int main(int argc, char** argv)
   begin_signal_sub = nh->create_subscription<std_msgs::msg::Bool>(begin_signal_topic, 5, begin_signal_callback);
 
   rclcpp::Client<dsvplanner::srv::CleanFrontier>::SharedPtr frontier_cleaner_client =
-    nh->create_client<dsvplanner::srv::CleanFrontier>("cleanFrontierSrv", rmw_qos_profile_services_default, client_cb_group_);
+    nh->create_client<dsvplanner::srv::CleanFrontier>("cleanFrontierSrv");//, rmw_qos_profile_services_default, client_cb_group_);
   rclcpp::Client<dsvplanner::srv::Dsvplanner>::SharedPtr drrt_planner_client =
-    nh->create_client<dsvplanner::srv::Dsvplanner>("drrtPlannerSrv", rmw_qos_profile_services_default, client_cb_group_);
+    nh->create_client<dsvplanner::srv::Dsvplanner>("drrtPlannerSrv");//, rmw_qos_profile_services_default, client_cb_group_);
 
   sleep(1);
   exector.spin_some();
@@ -320,127 +321,127 @@ int main(int argc, char** argv)
       auto cleanSrv = std::make_shared<dsvplanner::srv::CleanFrontier::Request>();
       planSrv->header.stamp = nh->now();
 
-      auto result_future = drrt_planner_client->async_send_request(planSrv);
+      call_dsvp_successfully = false;
       auto callback = [&](rclcpp::Client<dsvplanner::srv::Dsvplanner>::SharedFuture future) { 
-        auto result = future.get();
         std::cout<<"call service successfully"<<std::endl;
-        std::cout<<"get response goal"<<result->goal.x<<std::endl;
-        // if (response.get()->goal.size() == 0)
-        // {  // usually the size should be 1 if planning successfully
-        //   sleep(1);
-        //   continue;
-        // }
+        auto result = future.get();
+        if (result->goal.size() == 0)
+        {  // usually the size should be 1 if planning successfully
+          sleep(1);
+        }else{
         
-        // std::cout<<"get response goalx is "<<response.get()->goal[0].x<<std::endl;
-        // std::cout<<"get response goal"<<response.get()->mode<<std::endl;
-        if (result->mode == 2)
-        {
-          return_home = true;
-          goal_point = home_point;
-          std::cout << std::endl << "\033[1;32mExploration completed, returning home\033[0m" << std::endl << std::endl;
-          effective_time.data = 0;
-          effective_plan_time_pub->publish(effective_time);
-        }
-        else
-        {
-          std::cout<<"ready to receive goal!!"<<std::endl;
-          return_home = false;
-          goal_point = result->goal;
-          std::cout<<"get goal points!!"<<std::endl;
-          plan_over = steady_clock::now();
-          time_span = plan_over - plan_start;
-          std::cout<<"get goal points2!!"<<std::endl;
-          effective_time.data = float(time_span.count()) * steady_clock::period::num / steady_clock::period::den;
-          std::cout<<"get goal points3!!"<<std::endl;
-          effective_plan_time_pub->publish(effective_time);
-          std::cout<<"get goal points4!!"<<std::endl;
-        }
-        std::cout<<"get response mode"<<std::endl;
-        total_time.data += effective_time.data;
-        total_plan_time_pub->publish(total_time);
+          // std::cout<<"get response goalx is "<<response.get()->goal[0].x<<std::endl;
+          // std::cout<<"get response goal"<<response.get()->mode<<std::endl;
+          if (result->mode == 2)
+          {
+            return_home = true;
+            goal_point = home_point;
+            std::cout << std::endl << "\033[1;32mExploration completed, returning home\033[0m" << std::endl << std::endl;
+            effective_time.data = 0;
+            effective_plan_time_pub->publish(effective_time);
+          }
+          else
+          {
+            std::cout<<"ready to receive goal!!"<<std::endl;
+            return_home = false;
+            goal_point = result->goal[0];
+            std::cout<<"get goal points!!"<<std::endl;
+            plan_over = steady_clock::now();
+            time_span = plan_over - plan_start;
+            std::cout<<"get goal points2!!"<<std::endl;
+            effective_time.data = float(time_span.count()) * steady_clock::period::num / steady_clock::period::den;
+            std::cout<<"get goal points3!!"<<std::endl;
+            effective_plan_time_pub->publish(effective_time);
+            std::cout<<"get goal points4!!"<<std::endl;
+          }
+          std::cout<<"get response mode"<<std::endl;
+          total_time.data += effective_time.data;
+          total_plan_time_pub->publish(total_time);
 
-        if (!simulation)
-        {  // when not in simulation mode, the robot will go to
-           // the goal point according to graph planner
-          graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
-          graph_planner_command.location = goal_point;
-          gp_command_pub->publish(graph_planner_command);
-          std::cout<<"pub command successfully"<<std::endl;
-          sleep(dtime);  // give sometime to graph planner for
-                                         // searching path to goal point
-          // exector.spin_some();              // update gp_in_progree
-          std::cout<<"pub command successfully"<<std::endl;
-          int count = 200;
-          previous_odom_x = current_odom_x;
-          previous_odom_y = current_odom_y;
-          previous_odom_z = current_odom_z;
-          while (gp_in_progress)
-          {                              // if the waypoint keep the same for 20
-                                         // (200*0.1)
-            usleep(100000);  // seconds, then give up the goal
-            wayPoint_pre = wayPoint;
-            exector.spin_some();
-            bool robotMoving = robotPositionChange();
-            if (robotMoving)
-            {
-              count = 200;
+          if (!simulation)
+          {  // when not in simulation mode, the robot will go to
+            // the goal point according to graph planner
+            graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
+            graph_planner_command.location = goal_point;
+            gp_command_pub->publish(graph_planner_command);
+            std::cout<<"pub command successfully"<<std::endl;
+            sleep(dtime);  // give sometime to graph planner for
+                                          // searching path to goal point
+            // exector.spin_some();              // update gp_in_progree
+            std::cout<<"pub command successfully"<<std::endl;
+            int count = 200;
+            previous_odom_x = current_odom_x;
+            previous_odom_y = current_odom_y;
+            previous_odom_z = current_odom_z;
+            while (gp_in_progress)
+            {                              // if the waypoint keep the same for 20
+                                          // (200*0.1)
+              usleep(100000);  // seconds, then give up the goal
+              wayPoint_pre = wayPoint;
+              bool robotMoving = robotPositionChange();
+              if (robotMoving)
+              {
+                count = 200;
+              }
+              else
+              {
+                count--;
+              }
+              if (count <= 0)
+              {  // when the goal point cannot be reached, clean
+                // its correspoinding frontier if there is
+                cleanSrv->header.stamp = nh->now();
+                cleanSrv->header.frame_id = map_frame;
+                auto response = frontier_cleaner_client->async_send_request(cleanSrv);
+
+                usleep(100000);
+                break;
+              }
             }
-            else
+            std::cout<<"disable graph planner"<<std::endl;
+            graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_DISABLE;
+            gp_command_pub->publish(graph_planner_command);
+          }
+          else
+          {  // simulation mode is used when testing this planning algorithm
+            // with bagfiles where robot will
+            // not move to the planned goal. When in simulation mode, robot will
+            // keep replanning every two seconds
+            for (size_t i = 0; i < result->goal.size(); i++)
             {
-              count--;
-            }
-            if (count <= 0)
-            {  // when the goal point cannot be reached, clean
-               // its correspoinding frontier if there is
-              cleanSrv->header.stamp = nh->now();
-              cleanSrv->header.frame_id = map_frame;
-              auto response = frontier_cleaner_client->async_send_request(cleanSrv);
-              usleep(100000);
+              graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
+              graph_planner_command.location = result->goal[i];
+              gp_command_pub->publish(graph_planner_command);
+              sleep(2);
               break;
             }
           }
-          std::cout<<"disable graph planner"<<std::endl;
-          graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_DISABLE;
-          gp_command_pub->publish(graph_planner_command);
+          std::cout<<"get response move"<<std::endl;
+          plan_start = steady_clock::now();
+          std::cout<<"get response sleep"<<std::endl;
         }
-        else
-        {  // simulation mode is used when testing this planning algorithm
-           // with bagfiles where robot will
-          // not move to the planned goal. When in simulation mode, robot will
-          // keep replanning every two seconds
-          // for (size_t i = 0; i < response.get()->goal.size(); i++)
-          // {
-            graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
-            graph_planner_command.location = result->goal;
-            gp_command_pub->publish(graph_planner_command);
-            sleep(2);
-            break;
-          // }
-        }
-        std::cout<<"get response move"<<std::endl;
-        plan_start = steady_clock::now();
-        std::cout<<"get response sleep"<<std::endl;
+        call_dsvp_successfully = true;
       // Use result->responses[] and do something 
       };
-      result_future.add_done_callback(callback);
       std::cout<<"start call service"<<std::endl;
+      auto result_future = drrt_planner_client->async_send_request(planSrv, callback);
+
+        // rclcpp::future_and_futureid_to_executor_callback(
+        //   result_future, callback, rclcpp::executors::SingleThreadedExecutor); 
+      // rclcpp::future_and_futureid_to_executor_callback(
+      //   result_future, callback, rclcpp::ExecutorType::ExecutorTypeSingleThreaded); 
+      // result_future.add_done_callback(callback);
+      while(!call_dsvp_successfully){
+        exector.spin_some();
+        sleep(200000);
+      }
+      
       // exector.spin_until_future_complete(this->get_node_base_interface(), future_goal_handle, std::chrono::seconds(5))
       // if (rclcpp::spin_until_future_complete(nh, response) == rclcpp::FutureReturnCode::)
-      if (1)
-      {
-        
-      }
-      else
-      {
-        std::cout << "Cannot call drrt planner." << std::flush;
-
-        sleep(1);
-      }
       iteration++;
     }
     else
     {
-      exector.spin_some();
       if (fabs(current_odom_x - home_point.x) + fabs(current_odom_y - home_point.y) +
               fabs(current_odom_z - home_point.z) <=
           return_home_threshold)
@@ -456,9 +457,8 @@ int main(int argc, char** argv)
       {
         while (!gp_in_progress)
         {
-          exector.spin_some();
           sleep(2);
-
+          exector.spin_some();
           graph_planner_command.command = graph_planner::msg::GraphPlannerCommand::COMMAND_GO_TO_LOCATION;
           graph_planner_command.location = goal_point;
           gp_command_pub->publish(graph_planner_command);

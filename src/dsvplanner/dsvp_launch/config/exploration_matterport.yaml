@@ -95,7 +95,7 @@
 
     #OccupancyGrid Constants
     grid/world_frame_id: map
-    grid/odomSubTopic: /state_estimation
+    grid/odomSubTopic: /state_estimation_at_scan
     grid/terrainCloudSubTopic: /terrain_map_ext
     grid/pubGridPointsTopic: /occpancy_grid_map
     grid/kMapWidth: 20.0

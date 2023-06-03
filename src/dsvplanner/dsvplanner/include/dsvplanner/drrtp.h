@@ -59,6 +59,7 @@ public:
 private:
   std::string odomSubTopic;
   std::string boundarySubTopic;
+  std::string terrainCloudSubTopic;
   std::string newTreePathPubTopic;
   std::string remainingTreePathPubTopic;
   std::string boundaryPubTopic;

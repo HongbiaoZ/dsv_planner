@@ -59,8 +59,8 @@ bool OccupancyGrid::initialize()
   if (!readParameters())
     return false;
   // Initialize subscriber
-  odom_sub_.subscribe(nh_, sub_odom_topic_);
-  terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_);
+  odom_sub_.subscribe(nh_, sub_odom_topic_, qos_profile);
+  terrain_point_cloud_sub_.subscribe(nh_, sub_terrain_point_cloud_topic_, qos_profile);
   sync_.reset(new Sync(syncPolicy(100), odom_sub_, terrain_point_cloud_sub_));
   sync_->registerCallback(std::bind(&OccupancyGrid::terrainCloudAndOdomCallback, this, std::placeholders::_1, std::placeholders::_2));
 

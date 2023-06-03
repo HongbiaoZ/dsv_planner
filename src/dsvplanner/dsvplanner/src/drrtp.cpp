@@ -21,15 +21,10 @@ dsvplanner_ns::drrtPlanner::drrtPlanner(rclcpp::Node::SharedPtr& node_handle)
   }
 
   manager_ = new volumetric_mapping::OctomapManager(nh_);
-  RCLCPP_INFO(nh_->get_logger(), "Successfully launched octomap node");
   grid_ = new OccupancyGrid(nh_);
-  RCLCPP_INFO(nh_->get_logger(), "Successfully launched grid node");
   dual_state_graph_ = new DualStateGraph(nh_, manager_, grid_);
-  RCLCPP_INFO(nh_->get_logger(), "Successfully launched graph node");
   dual_state_frontier_ = new DualStateFrontier(nh_, manager_, grid_);
-  RCLCPP_INFO(nh_->get_logger(), "Successfully launched frontier node");
   drrt_ = new Drrt(nh_, manager_, dual_state_graph_, dual_state_frontier_, grid_);
-  RCLCPP_INFO(nh_->get_logger(), "Successfully launched drrt node");
 
   init();
   drrt_->setParams(params_);
@@ -148,7 +143,7 @@ void dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::D
     home_position.x = 0;
     home_position.y = 0;
     home_position.z = 0;
-    res->goal = home_position;
+    res->goal.push_back(home_position);
     res->mode = 2;  // mode 2 means returning home
 
     dual_state_frontier_->cleanAllUselessFrontiers();
@@ -194,7 +189,7 @@ void dsvplanner_ns::drrtPlanner::plannerServiceCallback(const dsvplanner::srv::D
     next_goal_position = dual_state_graph_->getBestLocalVertexPosition();
   }
   dual_state_graph_->setCurrentPlannerStatus(drrt_->global_plan_pre_);
-  res->goal = next_goal_position;
+  res->goal.push_back(next_goal_position);
   res->mode = 1;  // mode 1 means exploration
 
   geometry_msgs::msg::PointStamped next_goal_point;
@@ -266,6 +261,7 @@ bool dsvplanner_ns::drrtPlanner::setParams()
 
   nh_->declare_parameter("planner/odomSubTopic", odomSubTopic);
   nh_->declare_parameter("planner/boundarySubTopic", boundarySubTopic);
+  nh_->declare_parameter("planner/terrainCloudSubTopic", terrainCloudSubTopic);
   nh_->declare_parameter("planner/newTreePathPubTopic", newTreePathPubTopic);
   nh_->declare_parameter("planner/remainingTreePathPubTopic", remainingTreePathPubTopic);
   nh_->declare_parameter("planner/boundaryPubTopic", boundaryPubTopic);

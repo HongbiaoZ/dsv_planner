@@ -18,10 +18,14 @@ Hongbiao Zhu(hongbiaz@andrew.cmu.edu)
 #include <geometry_msgs/msg/polygon.hpp>
 #include <geometry_msgs/msg/polygon_stamped.hpp>
 #include <message_filters/subscriber.h>
-#include <message_filters/time_synchronizer.h>
+#include <message_filters/synchronizer.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <rmw/types.h>
+#include <rmw/qos_profiles.h>
 #include <nav_msgs/msg/odometry.hpp>
 #include <nav_msgs/msg/path.hpp>
 #include <std_msgs/msg/float32_multi_array.hpp>
+
 namespace dsvplanner_ns
 {
 typedef Eigen::Vector3d StateVec;
@@ -39,7 +43,7 @@ public:
   message_filters::Subscriber<sensor_msgs::msg::PointCloud2> terrain_point_cloud_sub_;
   typedef message_filters::sync_policies::ApproximateTime<nav_msgs::msg::Odometry, sensor_msgs::msg::PointCloud2> syncPolicy;
   typedef message_filters::Synchronizer<syncPolicy> Sync;
-  std::shared_ptr<Sync> sync_;
+  boost::shared_ptr<Sync> sync_;
 
   // ROS publishers
   rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr unknown_points_pub_;
@@ -80,6 +84,19 @@ public:
   double kTerrainVoxelSize;
   int kTerrainVoxelHalfWidth;
   int kTerrainVoxelWidth;
+
+  rmw_qos_profile_t qos_profile=
+  {
+    RMW_QOS_POLICY_HISTORY_KEEP_LAST,
+    10,
+    RMW_QOS_POLICY_RELIABILITY_BEST_EFFORT,
+    RMW_QOS_POLICY_DURABILITY_VOLATILE,
+    RMW_QOS_DEADLINE_DEFAULT,
+    RMW_QOS_LIFESPAN_DEFAULT,
+    RMW_QOS_POLICY_LIVELINESS_SYSTEM_DEFAULT,
+    RMW_QOS_LIVELINESS_LEASE_DURATION_DEFAULT,
+    false
+  };
 
   // Variables
 
