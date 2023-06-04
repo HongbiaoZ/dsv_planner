@@ -6,5 +6,7 @@ note
 .catkin_workspace
 build
 devel
+install
+log
 
 

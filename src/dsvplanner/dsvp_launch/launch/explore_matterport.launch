@@ -9,13 +9,13 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.conditions import IfCondition
 
 def generate_launch_description():
-    param_dir_planning = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'exploration_forest.yaml')
-    param_dir_octomap = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'octomap_forest.yaml')
+    param_dir_planning = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'exploration_matterport.yaml')
+    param_dir_octomap = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'octomap_matterport.yaml')
     param_dir_boundary = os.path.join(get_package_share_directory('dsvp_launch'), 'data', 'boundary.ply')
     rviz_path = os.path.join(get_package_share_directory('dsvp_launch'), 'config', 'default.rviz')
     use_boundary = LaunchConfiguration('use_boundary', default='false')
     enable_bag_record = LaunchConfiguration('enable_bag_record', default='false')
-    bag_name = LaunchConfiguration('bag_name', default='forest')
+    bag_name = LaunchConfiguration('bag_name', default='matterport')
     print(param_dir_planning, param_dir_octomap)
 
     return LaunchDescription([
@@ -62,13 +62,13 @@ def generate_launch_description():
          ),
          IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-                [ThisLaunchFileDir(), '/rosbag_record.py']
+                [ThisLaunchFileDir(), '/rosbag_record.launch']
             ),
             condition=IfCondition(enable_bag_record),
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-              os.path.join(get_package_share_directory('graph_planner'), 'launch/graph_planner.py'
+              os.path.join(get_package_share_directory('graph_planner'), 'launch/graph_planner_matterport.launch'
         	    )
             )
         )

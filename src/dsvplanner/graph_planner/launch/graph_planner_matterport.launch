@@ -22,7 +22,7 @@ def generate_launch_description():
          ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(
-              os.path.join(get_package_share_directory('graph_utils'), 'launch/graph_visualization.py'
+              os.path.join(get_package_share_directory('graph_utils'), 'launch/graph_visualization.launch'
         	    )
             )
         )
