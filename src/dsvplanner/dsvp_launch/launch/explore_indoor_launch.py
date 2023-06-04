@@ -64,8 +64,7 @@ def generate_launch_description():
             PythonLaunchDescriptionSource(
                 [ThisLaunchFileDir(), '/rosbag_record.py']
             ),
-            condition=IfCondition(enable_bag_record),
-            launch_arguments={'bag_name': bag_name}.items()
+            condition=IfCondition(enable_bag_record)
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(

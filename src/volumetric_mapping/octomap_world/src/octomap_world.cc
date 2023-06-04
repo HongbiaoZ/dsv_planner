@@ -78,7 +78,7 @@ void OctomapWorld::setOctomapParameters(const OctomapParameters& params)
   {
     if (octree_->getResolution() != params.resolution)
     {
-      printf("Octomap resolution has changed! Resetting tree!");
+      printf("Octomap resolution has changed! Resetting tree!\n");
       octree_.reset(new octomap::OcTree(params.resolution));
     }
   }

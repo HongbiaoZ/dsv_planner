@@ -9,7 +9,7 @@
     interface/returnHomeThres: 1.5
     interface/robotMovingThres: 10.0
     interface/autoExp: true
-    interface/simulation: true
+    interface/replay: false
     interface/tfFrame: map
     interface/waypointTopic: /way_point
     interface/cmdVelTopic: /cmd_vel
