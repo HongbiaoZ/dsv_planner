@@ -3,9 +3,9 @@
     #Interface Constants
     interface/dtime: 1.0
     interface/initX: 1.0
-    interface/initY: 0.0
+    interface/initY: 1.0
     interface/initZ: 0.0
-    interface/initTime: 1.0
+    interface/initTime: 4.0
     interface/returnHomeThres: 1.5
     interface/robotMovingThres: 10.0
     interface/autoExp: true
@@ -32,18 +32,18 @@
     drrt/gain/kRangeZMinus: 0.4
     drrt/gain/kRangeZPlus: 0.4
     drrt/gain/kZero: 0.0
-    drrt/tree/kExtensionRange: 0.3
-    drrt/tree/kMinExtensionRange: 0.3
+    drrt/tree/kExtensionRange: 0.25
+    drrt/tree/kMinExtensionRange: 0.25
     drrt/tree/kMaxExtensionAlongZ: 0.2
     drrt/tree/kExactRoot: false
-    drrt/tree/kGlobalExtraIterations_: 200
-    drrt/tree/kCuttoffIterations: 150
+    drrt/tree/kGlobalExtraIterations_: 150
+    drrt/tree/kCuttoffIterations: 100
     drrt/tree/kRemainingNodeScaleSize: 0.2
     drrt/tree/kRemainingBranchScaleSize: 0.03
     drrt/tree/kNewNodeScaleSize: 0.2
     drrt/tree/kNewBranchScaleSize: 0.03
     drrt/vertexSize: 40
-    drrt/keepTryingNum: 1
+    drrt/keepTryingNum: 2
     drrt/kLoopCountThres: 1500
     drrt/tfFrame: map
 
@@ -102,7 +102,7 @@
     grid/kGridSize: 0.05
     grid/kDownsampleSize: 0.05
     grid/kFlyingObstacleHeightThre: 1.0
-    grid/kObstacleHeightThre: 0.15
+    grid/kObstacleHeightThre: 0.10
 
     # Graph Constants
     graph/world_frame_id                          : map
@@ -126,7 +126,7 @@
     graph/kMaxVertexDiffAlongZ                    : 0.2 # max distance along Z when add edge between two vertex
     graph/kMaxDistToPrunedRoot                    : 10.0 # max distance when pruning the local graph between root and closest vertex
     graph/kMaxPrunedNodeDist                      : 8.0 # max distance when pruning the local graph between root and new node
-    graph/kMinVertexDist                          : 0.35 # new vertex only created if keypose is at least this distance away from existing vertices
+    graph/kMinVertexDist                          : 0.3 # new vertex only created if keypose is at least this distance away from existing vertices
     graph/kSurroundRange                          : 4.0 #range to count node arround the vertex
     graph/kMinGainRange                           : 0.5 #min range to count the gain. vertext that in this range has no gain
     graph/kMinDistanceToRobotToCheck              : 4.0 #min distace of the vertex to the robot to check the collision state of its edge
