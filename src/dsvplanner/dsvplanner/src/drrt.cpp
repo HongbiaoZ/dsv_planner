@@ -330,7 +330,7 @@ void dsvplanner_ns::Drrt::getNextNodeToClosestGlobalFrontier()
                    // difference between the z
       }            // of this node and frontier is too large, then skip to next frontier.
       // No need to use FOV here.
-      if (volumetric_mapping::OctomapManager::CellStatus::kOccupied == manager_->getVisibility(p1, p2, false))
+      if (volumetric_mapping::OctomapManager::CellStatus::kOccupied == manager_->getLineStatusBoundingBox(p1, p2, params_.boundingBox))
       {
         continue;  // Only when there is no occupied voxels between the node
                    // and

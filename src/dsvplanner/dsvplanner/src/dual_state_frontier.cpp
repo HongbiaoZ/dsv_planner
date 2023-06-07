@@ -318,7 +318,7 @@ bool DualStateFrontier::inSensorRangeofGraphPoints(StateVec point)
       {
         continue;
       }
-      if (manager_->CellStatus::kOccupied != manager_->getVisibility(node_point, point, false) &&
+      if (manager_->CellStatus::kOccupied != manager_->getLineStatusBoundingBox(node_point, point, robot_bounding) &&
           !grid_->collisionCheckByTerrainWithVector(node_point, point))
       {
         return true;
